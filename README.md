@@ -10,11 +10,11 @@ payment functionalities across diverse charging networks.
 
 
 ## Project team
-| Mec    | Team              | Roles |
-|--------|-------------------|-------|
-| 68264  | Bruno Lopes       | ---   |
-| 112901 | Tiago Albuquerque | ---   |
-| 113655 | Abel Teixeira     | ---   |
+| Mec    | Team              | Roles                     |
+|--------|-------------------|---------------------------|
+| 68264  | Bruno Lopes       | Team Leader/DevOps master |
+| 112901 | Tiago Albuquerque | QA Enginer                |
+| 113655 | Abel Teixeira     | Product Owner             |
 
 
 
