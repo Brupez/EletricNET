@@ -1,11 +1,16 @@
 import { LayoutDashboard, Calendar, User, LogOut, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '/src/assets/logo.svg'
 
 const Sidebar = () => {
     const location = useLocation()
+    const navigate = useNavigate()
     const [openMenus, setOpenMenus] = useState<string[]>([])
+
+    const handleLogoClick = () => {
+        navigate('/')
+    }
 
     const toggleMenu = (path: string) => {
         setOpenMenus(prev =>
@@ -34,7 +39,10 @@ const Sidebar = () => {
 
     return (
         <aside className="fixed left-0 top-0 h-screen w-64 bg-[#243E16] text-white flex flex-col">
-            <div className="p-4 border-b border-[#243E16] flex justify-center items-center">
+            <div
+                onClick={handleLogoClick}
+                className="p-4 border-b border-[#243E16] flex justify-center items-center cursor-pointer"
+            >
                 <img
                     src={logo}
                     alt="logo"
