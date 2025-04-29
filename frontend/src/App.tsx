@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import MapPage from './pages/MapPage'
 import BookingPage from './pages/BookingPage'
+import ChargerDetails from './pages/ChargerDetails'
 
 const AppContent = () => {
     const location = useLocation()
@@ -23,6 +24,7 @@ const AppContent = () => {
                         <Route path="/map/favorites" element={<MapPage />} />
                         <Route path="/bookings/current" element={<BookingPage />} />
                         <Route path="/bookings/history" element={<BookingPage />} />
+                        <Route path="/charger/:id" element={<ChargerDetails />} />
                     </Routes>
                 </div>
             </main>
