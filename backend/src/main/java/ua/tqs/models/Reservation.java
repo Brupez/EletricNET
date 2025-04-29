@@ -24,11 +24,11 @@ public class Reservation {
     private Slot slot;
 
     @Enumerated(EnumType.STRING)
-    private ReservationStatus estado;
+    private ReservationStatus status;
 
-    private LocalDateTime dataCriacao;
+    private LocalDateTime creationDate;
 
-    private Double consumoKWh;
-    private Double custoTotal;
-    private boolean pago;
+    private Double consumptionKWh;
+    private Double totalCost;
+    private boolean paid;
 }

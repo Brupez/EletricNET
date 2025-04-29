@@ -17,10 +17,10 @@ public class Slot {
     @GeneratedValue
     private Long id;
 
-    private LocalDateTime inicio;
-    private LocalDateTime fim;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
-    private boolean reservado;
+    private boolean reserved;
 
     @ManyToOne
     private Station station;
@@ -29,5 +29,5 @@ public class Slot {
     private Reservation reservation;
 
     @Enumerated(EnumType.STRING)
-    private ChargingType tipoDeCarregamento;
+    private ChargingType chargingType;
 }

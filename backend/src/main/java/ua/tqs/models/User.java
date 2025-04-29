@@ -15,8 +15,8 @@ public class User {
     @GeneratedValue
     private Long id;
 
-    private String nome;
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private UserType tipo;
+    private UserType type;
 }
