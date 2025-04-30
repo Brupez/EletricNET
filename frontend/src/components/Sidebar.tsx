@@ -3,7 +3,11 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '/src/assets/logo.svg'
 
-const Sidebar = () => {
+interface SidebarProps {
+    sidebarBgColor: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
     const location = useLocation()
     const navigate = useNavigate()
     const [openMenus, setOpenMenus] = useState<string[]>([])
@@ -38,10 +42,10 @@ const Sidebar = () => {
     ]
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-[#243E16] text-white flex flex-col">
+        <aside className={`fixed left-0 top-0 h-screen w-64 text-white flex flex-col ${sidebarBgColor}`}>
             <div
                 onClick={handleLogoClick}
-                className="p-4 border-b border-[#243E16] flex justify-center items-center cursor-pointer"
+                className="p-4 border-b border-white/20 flex justify-center items-center cursor-pointer"
             >
                 <img
                     src={logo}
@@ -57,7 +61,7 @@ const Sidebar = () => {
                             {item.subItems ? (
                                 <button
                                     onClick={() => toggleMenu(item.path)}
-                                    className="nav-link hover:bg-green-700 w-full flex justify-between items-center"
+                                    className="nav-link hover:bg-white/10 w-full flex justify-between items-center"
                                 >
                                     <div className="flex items-center">
                                         {item.icon}
@@ -73,7 +77,9 @@ const Sidebar = () => {
                             ) : (
                                 <Link
                                     to={item.path}
-                                    className="nav-link hover:bg-green-700 w-full flex items-center"
+                                    className={`nav-link hover:bg-white/10 w-full flex items-center ${
+                                        location.pathname === item.path ? 'bg-white/10' : ''
+                                    }`}
                                 >
                                     {item.icon}
                                     <span className="ml-3">{item.text}</span>
@@ -99,7 +105,7 @@ const Sidebar = () => {
                 </ul>
             </nav>
 
-            <div className="border-t border-[#243E16] p-4">
+            <div className="border-t border-white/20 p-4">
                 <ul className="space-y-2">
                     <div className="flex items-center gap-3 pl-4 border-l border-white">
                         <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-white">
@@ -113,7 +119,7 @@ const Sidebar = () => {
                     <li>
                         <button
                             onClick={() => {/* Add logout logic */}}
-                            className="nav-link hover:bg-green-700 w-full flex items-center"
+                            className="nav-link hover:bg-white/10 w-full flex items-center"
                         >
                             <LogOut size={24} />
                             <span className="ml-3">Logout</span>
