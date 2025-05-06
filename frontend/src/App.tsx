@@ -5,16 +5,19 @@ import HomePage from './pages/HomePage'
 import MapPage from './pages/MapPage'
 import BookingPage from './pages/BookingPage'
 import ChargerDetails from './pages/ChargerDetails'
+import AdminPage from './pages/AdminPage'
 
 const AppContent = () => {
     const location = useLocation()
     const isHomePage = location.pathname === '/'
+    const isAdminPage = location.pathname.startsWith('/admin')
+
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <Sidebar />
-            {!isHomePage && <Header />}
-            <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} p-6`}>
+        <div className={`min-h-screen 'bg-gray-100'}`}>
+            <Sidebar sidebarBgColor={isAdminPage ? 'bg-blue-900' : 'bg-green-900'}/>
+            {!isHomePage && !isAdminPage && <Header />}
+            <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''} p-6`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
@@ -25,6 +28,7 @@ const AppContent = () => {
                         <Route path="/bookings/current" element={<BookingPage />} />
                         <Route path="/bookings/history" element={<BookingPage />} />
                         <Route path="/charger/:id" element={<ChargerDetails />} />
+                        <Route path="/admin" element={<AdminPage />} />
                     </Routes>
                 </div>
             </main>
