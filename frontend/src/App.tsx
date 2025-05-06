@@ -10,7 +10,7 @@ const AppContent = () => {
     const isHomePage = location.pathname === '/'
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-100">
             <Sidebar />
             {!isHomePage && <Header />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} p-6`}>
