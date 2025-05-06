@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Data
+@Table(name = "reservations")
 public class Reservation {
     @Id
     @GeneratedValue

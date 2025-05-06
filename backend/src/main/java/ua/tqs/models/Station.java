@@ -12,6 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Data
+@Table(name = "stations")
 public class Station {
     @Id
     @GeneratedValue
@@ -31,4 +32,8 @@ public class Station {
 
     @ManyToOne
     private User operator;
+
+    public boolean isDiscountActive() {
+        return discount;
+    }
 }

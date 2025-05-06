@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Data
+@Table(name = "slots")
 public class Slot {
     @Id
     @GeneratedValue

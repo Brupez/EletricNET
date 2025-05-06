@@ -10,6 +10,7 @@ import ua.tqs.enums.UserType;
 @Getter
 @Setter
 @Data
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue
