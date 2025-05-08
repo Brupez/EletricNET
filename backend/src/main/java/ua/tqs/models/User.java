@@ -10,13 +10,14 @@ import ua.tqs.enums.UserType;
 @Getter
 @Setter
 @Data
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue
     private Long id;
 
-    private String nome;
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private UserType tipo;
+    private UserType type;
 }

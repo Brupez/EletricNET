@@ -12,23 +12,28 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Data
+@Table(name = "stations")
 public class Station {
     @Id
     @GeneratedValue
     private Long id;
 
-    private String nome;
+    private String name;
     private double latitude;
     private double longitude;
 
     @Enumerated(EnumType.STRING)
     private StationStatus status;
 
-    private boolean desconto;
-    private double descontoValor;
-    private LocalTime horaInicioDesconto;
-    private LocalTime horaFimDesconto;
+    private boolean discount;
+    private double discountValue;
+    private LocalTime discountStartTime;
+    private LocalTime discountEndTime;
 
     @ManyToOne
-    private User operador;
+    private User operator;
+
+    public boolean isDiscountActive() {
+        return discount;
+    }
 }
