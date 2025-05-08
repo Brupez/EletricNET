@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { loadGoogleMapsApi } from "../utils/loadGoogleMapsApi";
-
-interface PlaceResult {
-  id: string;
-  name: string;
-  location?: google.maps.LatLng;
-  vicinity: string;
-}
+import { PlaceResult } from "../utils/types";
 
 const MapPage = () => {
   const [searchParams] = useSearchParams();
