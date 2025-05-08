@@ -32,4 +32,12 @@ public class SlotService {
                 .filter(slot -> slot.getStation().getId().equals(stationId))
                 .toList();
     }
+
+    public boolean deleteSlot(Long id) {
+        if (slotRepository.existsById(id)) {
+            slotRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }
