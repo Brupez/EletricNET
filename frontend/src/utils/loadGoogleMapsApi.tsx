@@ -25,7 +25,7 @@ export const loadGoogleMapsApi = (): Promise<void> => {
         };
 
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}&loading=async`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async&v=beta&_fn=1&callback=${callbackName}`;
         script.async = true;
         script.defer = true;
         script.onerror = () => reject(new Error('Falha ao carregar a API'));
