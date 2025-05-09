@@ -29,12 +29,22 @@ public class SlotController {
     }
 
     @PostMapping
-    public ResponseEntity<Slot> createOrUpdateSlot(@RequestBody Slot slot) {
+    public ResponseEntity<Slot> createSlot(@RequestBody Slot slot) {
         return ResponseEntity.ok(slotService.saveOrUpdateSlot(slot));
     }
 
     @GetMapping("/station/{stationId}")
     public ResponseEntity<List<Slot>> getSlotsByStation(@PathVariable Long stationId) {
         return ResponseEntity.ok(slotService.getSlotsByStationId(stationId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteSlot(@PathVariable Long id) {
+        boolean success = slotService.deleteSlot(id);
+        if (success) {
+            return ResponseEntity.ok("Slot deleted successfully.");
+        } else {
+            return ResponseEntity.badRequest().body("Slot not found.");
+        }
     }
 }

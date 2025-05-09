@@ -26,7 +26,7 @@ public class ReservationController {
         }
     }
 
-    @PostMapping("/cancel/{id}")
+    @PutMapping("/{id}/cancel")
     public ResponseEntity<?> cancelReservation(@PathVariable Long id) {
         boolean success = reservationService.cancelReservation(id);
         if (success) {
