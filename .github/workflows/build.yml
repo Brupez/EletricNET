@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test and Analyze
 
 on:
   push:
@@ -7,40 +7,45 @@ on:
     branches: [ master ]
 
 jobs:
-  frontend:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./frontend
-
-      - name: Build frontend
-        run: npm run dev
-        working-directory: ./frontend
-
-  backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build and test with Maven
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Start containers
+        run: docker-compose up -d --build
+
+      - name: Wait for containers
         run: |
-          ./mvnw clean verify
-        working-directory: ./backend
+          sleep 30
+          docker ps
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd backend
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=Brupez_EletricNET \
+          -Dsonar.organization=eletricnet
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose down -v
