@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -32,6 +32,7 @@ const ProtectedRoute = ({ children, isAuthenticated, userRole, requiredRole }: P
 }
 
 const AppContent = () => {
+    const navigate = useNavigate()
     const location = useLocation()
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [userRole, setUserRole] = useState<UserRole>(null)
@@ -57,6 +58,7 @@ const AppContent = () => {
     const handleLogout = () => {
         setIsAuthenticated(false)
         setUserRole(null)
+        navigate('/')
     }
 
     if (isLoginPage) {
@@ -94,6 +96,16 @@ const AppContent = () => {
                         <Route path="/map" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <MapPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/bookings" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <BookingPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/chargerDetails" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <ChargerDetails />
                             </ProtectedRoute>
                         } />
                         <Route path="*" element={<NotFoundPage />} />
