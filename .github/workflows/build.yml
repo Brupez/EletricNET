@@ -44,3 +44,8 @@ jobs:
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
+
+        name: Build and start Docker containers
+        run: |
+          docker compose down -v
+          docker compose up --build -d
