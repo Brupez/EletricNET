@@ -23,3 +23,4 @@ link all relevant resources here and, at least, the links to Project
 Backlog, Related repositories (if applicable), API documentation, static analysis dashboard.
 
 ### [Jira - Backlog](https://eletricnet.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
+### [Mockups](https://app.moqups.com/apiwPY7LZnYoukWLSLGCHXXqVlXX2Zo7/edit/page/ab9bb6bb5)
