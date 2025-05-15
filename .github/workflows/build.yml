@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -34,15 +35,29 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Run Checkstyle
-          run: |
-            cd backend
-            mvn checkstyle:check
+        run: |
+          cd backend
+          mvn checkstyle:check
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+#      - name: Install ESLint
+#        run: |
+#          cd frontend
+#          npm install eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks --save-dev
+#
+#      - name: Run ESLint
+#        run: |
+#          cd frontend
+#          npx eslint . --ext .ts,.tsx
 
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
         run: |
           cd backend
           mvn -B -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
@@ -50,3 +65,7 @@ jobs:
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
 
+#      - name: Build and start Docker containers
+#        run: |
+#          docker compose down -v
+#          docker compose up --build -d
