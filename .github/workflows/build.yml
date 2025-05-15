@@ -65,7 +65,10 @@ jobs:
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
 
-#      - name: Build and start Docker containers
-#        run: |
-#          docker compose down -v
-#          docker compose up --build -d
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose -f docker-compose.yml pull
+          docker compose -f docker-compose.yml up -d --remove-orphans
+          docker container prune -f
+          docker image prune -af
+          docker builder prune -af
