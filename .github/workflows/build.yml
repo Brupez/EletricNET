@@ -1,13 +1,13 @@
-name: SonarQube
+name: CI Pipeline
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
-  build:
-    name: Build and analyze
+  sonarqube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,22 +39,7 @@ jobs:
           cd backend
           mvn checkstyle:check
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-#      - name: Install ESLint
-#        run: |
-#          cd frontend
-#          npm install eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks --save-dev
-#
-#      - name: Run ESLint
-#        run: |
-#          cd frontend
-#          npx eslint . --ext .ts,.tsx
-
-      - name: Build and analyze
+      - name: Build and analyze with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -65,10 +50,87 @@ jobs:
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
 
+  deploy:
+    name: Deploy Application
+    needs: sonarqube
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Deploy with Docker Compose
         run: |
           docker compose -f docker-compose.yml pull
           docker compose -f docker-compose.yml up -d --remove-orphans
+          docker container prune -f
+          docker image prune -af
+          docker builder prune -af
+
+      - name: Verify application is running
+        run: |
+          # Wait for application to be ready
+          for i in {1..10}; do
+            if curl -s http://localhost >/dev/null; then
+              echo "Application is ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Application failed to start"
+          exit 1
+
+  lighthouse:
+    name: Lighthouse Audits
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+
+      - name: Run Lighthouse Audit
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: "http://localhost:3000"
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Format results
+        id: format_results
+        run: |
+          SCORES=$(jq -r '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
+          echo "SCORES=${SCORES}" >> $GITHUB_OUTPUT
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const scores = JSON.parse(`${{ steps.format_results.outputs.SCORES }}`);
+            let comment = "## ⚡ Lighthouse Results\n\n";
+            
+            scores.forEach(({id, score}) => {
+              const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
+              comment += `- ${emoji} ${id}: ${score}/100\n`;
+            });
+            
+            comment += "\n[View full report](LINK_TO_REPORT)";
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  cleanup:
+    name: Cleanup
+    needs: lighthouse
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stop containers
+        run: |
+          docker compose -f docker-compose.yml down
           docker container prune -f
           docker image prune -af
           docker builder prune -af
