@@ -169,7 +169,8 @@
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <encoding>UTF-8</encoding>
-                    <failOnViolation>true</failOnViolation>
+                    <failsOnError>true</failsOnError>
+                    <consoleOutput>true</consoleOutput>
                     <violationSeverity>warning</violationSeverity>
                 </configuration>
                 <executions>
@@ -181,6 +182,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.14.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

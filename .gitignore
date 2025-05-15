@@ -58,4 +58,7 @@ build/
 ### VS Code ###
 .vscode/
 
+### Environment Variables ###
+.env
+.env.localVITE_MAPS_API_KEY=AIzaSyBty0FXw1KnMZo4zi5Ljh5UZ7hpZFyHh_E
 

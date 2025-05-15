@@ -14,7 +14,7 @@ const BookingPage = () => {
     const totalPages = 5
 
     const handleAddBooking = () => {
-        navigate('/map')
+        navigate('/')
     }
 
     const handleViewDetails = (id: string) => {
