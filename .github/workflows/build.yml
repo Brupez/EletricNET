@@ -33,6 +33,11 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Run Checkstyle
+          run: |
+            cd backend
+            mvn checkstyle:check
+
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +50,3 @@ jobs:
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
 
-      - name: Build and start Docker containers
-        run: |
-          docker compose down -v
-          docker compose up --build -d
