@@ -1,14 +1,15 @@
-import { LayoutDashboard, Calendar, User, LogOut, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, Calendar, User, LogOut, ChevronDown, SmartphoneCharging } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logo from '/src/assets/logo.svg'
 
 interface SidebarProps {
-    sidebarBgColor: string;
+    sidebarBgColor: string
     onLogout: () => void
+    userRole?: 'admin' | 'user' | null
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole }) => {
     const location = useLocation()
     const navigate = useNavigate()
     const [openMenus, setOpenMenus] = useState<string[]>([])
@@ -30,8 +31,20 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout }) => {
         )
     }
 
+    const adminNavigationItems = [
+        {
+            icon: <LayoutDashboard size={24} />,
+            text: 'Overview',
+            path: '/admin',
+        },
+        {
+            icon: <SmartphoneCharging size={24} />,
+            text: 'Chargers',
+            path: '/admin/chargers',
+        },
+    ]
 
-    const navigationItems = [
+    const userNavigationItems = [
         {
             icon: <LayoutDashboard size={24} />,
             text: 'Overview',
@@ -46,6 +59,8 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout }) => {
             path: '/bookings',
         },
     ]
+
+    const navigationItems = userRole === 'admin' ? adminNavigationItems : userNavigationItems
 
     return (
         <aside className={`fixed left-0 top-0 h-screen w-64 text-white flex flex-col ${sidebarBgColor}`}>
@@ -118,8 +133,12 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout }) => {
                             <User size={24} />
                         </div>
                         <div className="block">
-                            <p className="text-sm font-medium text-white">Carlos</p>
-                            <p className="text-xs text-green-100">carlos@gmail.com</p>
+                            <p className="text-sm font-medium text-white">
+                                {userRole === 'admin' ? 'Admin' : 'Carlos'}
+                            </p>
+                            <p className="text-xs text-green-100">
+                                {userRole === 'admin' ? 'admin@gmail.com' : 'carlos@gmail.com'}
+                            </p>
                         </div>
                     </div>
                     <li>

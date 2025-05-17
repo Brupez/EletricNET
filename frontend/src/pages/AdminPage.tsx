@@ -1,4 +1,3 @@
-// src/pages/AdminPage.tsx
 import { Battery, Plus, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Bar, Pie } from 'react-chartjs-2'
@@ -23,7 +22,6 @@ ChartJS.register(
     ArcElement
 )
 
-// Define the Charger type
 interface Charger {
     id: string;
     name: string;
@@ -95,7 +93,6 @@ const AdminPage = () => {
         },
     }
 
-    // Dummy data for Popular Chargers pie chart
     const chargerTypeCounts = chargers.reduce(
         (acc, charger) => {
             acc[charger.type] = (acc[charger.type] || 0) + 1

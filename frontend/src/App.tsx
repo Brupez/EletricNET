@@ -78,6 +78,7 @@ const AppContent = () => {
             <Sidebar
                 sidebarBgColor={isAdminPage ? 'bg-blue-900' : 'bg-green-900'}
                 onLogout={handleLogout}
+                userRole={userRole}
             />
             {!isHomePage && !isAdminPage && <Header />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
