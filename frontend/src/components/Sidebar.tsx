@@ -5,12 +5,18 @@ import logo from '/src/assets/logo.svg'
 
 interface SidebarProps {
     sidebarBgColor: string;
+    onLogout: () => void
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
+const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout }) => {
     const location = useLocation()
     const navigate = useNavigate()
     const [openMenus, setOpenMenus] = useState<string[]>([])
+
+    const handleLogout = () => {
+        onLogout()
+        navigate('/login')
+    }
 
     const handleLogoClick = () => {
         navigate('/')
@@ -118,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
                     </div>
                     <li>
                         <button
-                            onClick={() => {/* Add logout logic */}}
+                            onClick={handleLogout}
                             className="nav-link hover:bg-white/10 w-full flex items-center"
                         >
                             <LogOut size={24} />
