@@ -1,6 +1,12 @@
 import { Battery, MapPin } from 'lucide-react'
+import { useState } from 'react'
+import BookingModal from '../components/BookingModal'
 
 const ChargerDetails = () => {
+
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+
     const chargerDetails = {
         id: '001',
         name: 'Charger A',
@@ -37,32 +43,32 @@ const ChargerDetails = () => {
                                 <table className="w-full text-lg">
                                     <tbody className="space-y-2">
                                     <tr>
-                                        <td className="py-2 text-gray-600">Type:</td>
+                                        <th className="py-2 text-gray-600">Type:</th>
                                         <td className="py-2 font-medium">{chargerDetails.type}</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Power Output:</td>
+                                        <th className="py-2 text-gray-600">Power Output:</th>
                                         <td className="py-2 font-medium">{chargerDetails.power}</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Price per kWh:</td>
+                                        <th className="py-2 text-gray-600">Price per kWh:</th>
                                         <td className="py-2 font-medium">{chargerDetails.pricePerKwh}</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Operating Hours:</td>
+                                        <th className="py-2 text-gray-600">Operating Hours:</th>
                                         <td className="py-2 font-medium">{chargerDetails.operatingHours}</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Connector Type:</td>
+                                        <th className="py-2 text-gray-600">Connector Type:</th>
                                         <td className="py-2 font-medium">{chargerDetails.connectorType}</td>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Last Maintenance:</td>
-                                        <td className="py-2 font-medium">{chargerDetails.lastMaintenance}</td>
+                                        <th className="py-2 text-gray-600">Last Maintenance:</th>
+                                        <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
                                     </tr>
                                     <tr>
-                                        <td className="py-2 text-gray-600">Promotions:</td>
-                                        <td className="py-2 font-medium">{chargerDetails.lastMaintenance}</td>
+                                        <th className="py-2 text-gray-600">Promotions:</th>
+                                        <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
                                     </tr>
                                     <tr>
                                         <td className="py-2 text-gray-600">Payment:</td>
@@ -101,10 +107,24 @@ const ChargerDetails = () => {
             </div>
 
             <div className="flex justify-end mt-8">
-                <button className="btn bg-[#243E16] hover:bg-green-700 text-white px-8 py-3 text-lg">
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="btn bg-[#243E16] hover:bg-green-700 text-white px-8 py-3 text-lg"
+                >
                     Book Now
                 </button>
             </div>
+
+            <BookingModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                chargerDetails={{
+                    id: chargerDetails.id,
+                    name: chargerDetails.name,
+                    pricePerKwh: chargerDetails.pricePerKwh,
+                    type: chargerDetails.type
+                }}
+            />
         </div>
     )
 }
