@@ -127,6 +127,12 @@ jobs:
     needs: lighthouse
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: none
+      issues: none
+      pull-requests: none
+      deployments: none
+      statuses: none
     steps:
       - name: Stop containers
         run: |
