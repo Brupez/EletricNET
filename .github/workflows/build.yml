@@ -49,6 +49,8 @@ jobs:
     name: Deploy Application
     needs: sonarqube
     runs-on: ubuntu-latest
+    outputs:
+      container_status: ${{ steps.container_status.outputs.status }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -82,38 +84,41 @@ jobs:
     name: Lighthouse Audits
     needs: deploy
     runs-on: ubuntu-latest
+    services:
+      nginx:
+        image: nginx:latest
+        ports:
+          - 80:80
+
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
 
-      - name: Verify Docker and application status
+      - name: Deploy application again
         run: |
-          echo "Checking Docker status..."
+          docker compose down -v
+          docker compose up -d --build
+          echo "Waiting for nginx to start..."
+          sleep 20
+          
+      - name: Verify application is running
+        run: |
+          echo "Docker container status:"
           docker compose ps
           
-          echo "\nChecking nginx status..."
-          curl -v --max--time 10 http://localhost:80 || true
-          
-          if ! docker compose ps | grep -q "nginx.*running"; then
-            echo "Nginx container is not running"
-            docker compose logs nginx
-            exit 1
-          fi
+          echo "Testing connection:"
+          curl -v --max-time 10 http://localhost || true
 
-      - name: Wait for nginx response
+      - name: Waiting for app
+        timeout-minutes: 2
         run: |
-          for i in {1..12}; do
-            if curl -s --max-time http://localhost:80 > /dev/null; then
-              echo "Nginx is responding!"
-              exit 0
-            fi
-            echo "Attempt $i/12: Waiting for nginx..."
+          until curl -s --fail http://localhost:80; do
+            echo "Waiting for the application to be ready..."
+            docker compose ps
             sleep 5
           done
-          
-          echo "Nginx failed to respond"
-          docker compose logs nginx
-          exit 1
+          echo "Application is ready!"
+      
 
       - name: Run Lighthouse Audit
         id: lighthouse
