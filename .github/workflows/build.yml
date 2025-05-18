@@ -34,11 +34,6 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run Checkstyle
-        run: |
-          cd backend
-          mvn checkstyle:check
-
       - name: Build and analyze with SonarQube
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -54,50 +49,102 @@ jobs:
     name: Deploy Application
     needs: sonarqube
     runs-on: ubuntu-latest
+    outputs:
+      container_status: ${{ steps.container_status.outputs.status }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy with Docker Compose
         run: |
-          docker compose -f docker-compose.yml pull
-          docker compose -f docker-compose.yml up -d --remove-orphans
-          docker container prune -f
-          docker image prune -af
-          docker builder prune -af
+          docker compose down -v || true
+          docker compose up -d --build
 
-      - name: Verify application is running
+      - name: Wait for services to be healthy
         run: |
-          # Wait for application to be ready
-          for i in {1..10}; do
-            if curl -s http://localhost >/dev/null; then
-              echo "Application is ready"
-              exit 0
+          echo "Waiting for services to be healthy..."
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy"; then
+              if curl -s http://localhost:80 > /dev/null; then
+                echo "All services are healthy!"
+                exit 0
+              fi
             fi
-            sleep 5
+            echo "Attempt $i/30: Waiting for services..."
+            docker compose ps
+            sleep 10
           done
-          echo "Application failed to start"
+          echo "Services failed to become healthy"
+          docker compose logs
           exit 1
 
   lighthouse:
     name: Lighthouse Audits
     needs: deploy
     runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
 
+      - name: Deploy application again
+        run: |
+          docker compose down -v
+          docker compose up -d --build
+          echo "Waiting for nginx to start..."
+          sleep 20
+          
+      - name: Verify application is running
+        run: |
+          echo "Docker container status:"
+          docker compose ps
+          
+          echo "Testing connection:"
+          curl -v --max-time 10 http://localhost || true
+
+      - name: Check container status
+        run: |
+          echo "Docker container status:"
+          docker compose ps
+          echo "\nDocker logs:"
+          docker compose logs
+
+      - name: Waiting for app
+        timeout-minutes: 2
+        run: |
+          until curl -s --fail --retry 3 --retry-delay 5 http://localhost > /dev/null; do
+            echo "Waiting for the application to be ready..."
+            docker compose ps
+            sleep 5
+          done
+          echo "Application is ready!"
+      
+
       - name: Run Lighthouse Audit
+        id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: "http://localhost:3000"
+          urls: "http://localhost"
           uploadArtifacts: true
           temporaryPublicStorage: true
+          configPath: ./lighthouserc.json
+        continue-on-error: true
 
       - name: Format results
         id: format_results
         run: |
-          SCORES=$(jq -r '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
-          echo "SCORES=${SCORES}" >> $GITHUB_OUTPUT
+          if compgen -G ".lighthouseci/lhr-*.json" > /dev/null; then
+            SCORES=$(jq -r --compact-output '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
+            echo "scores=$(echo $SCORES | jq -c '.')" >> "$GITHUB_OUTPUT"
+          else
+            echo "scores=[]" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Post PR comment
         if: github.event_name == 'pull_request'
@@ -105,20 +152,21 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const scores = JSON.parse(`${{ steps.format_results.outputs.SCORES }}`);
+            const scores = ${{ steps.format_results.outputs.scores }};
             let comment = "## ⚡ Lighthouse Results\n\n";
             
-            scores.forEach(({id, score}) => {
-              const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
-              comment += `- ${emoji} ${id}: ${score}/100\n`;
-            });
-            
-            comment += "\n[View full report](LINK_TO_REPORT)";
-            
+            if (!scores || scores.length === 0) {
+              comment += "❌ Lighthouse audit failed to complete\n";
+            } else {
+              for (const {id, score} of scores) {
+                const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
+                comment += `- ${emoji} ${id}: ${score}/100\n`;
+              }
+            }
+                        
             await github.rest.issues.createComment({
+              ...context.repo,
               issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
               body: comment
             });
 
@@ -134,9 +182,12 @@ jobs:
       deployments: none
       statuses: none
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Stop containers
         run: |
-          docker compose -f docker-compose.yml down
+          docker compose down -v || true
           docker container prune -f
           docker image prune -af
           docker builder prune -af

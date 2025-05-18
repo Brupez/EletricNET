@@ -1,19 +1,42 @@
-import { LayoutDashboard, Calendar, User, LogOut, ChevronDown } from 'lucide-react'
+import { LayoutDashboard, Calendar, User, LogOut, ChevronDown, SmartphoneCharging } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import logo from '/src/assets/logo.svg'
+import logo from "../assets/logo.svg"
 
-interface SidebarProps {
-    sidebarBgColor: string;
+interface SubItem {
+    text: string
+    path: string
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
+interface NavigationItem {
+    icon: JSX.Element
+    text: string
+    path: string
+    subItems?: SubItem[]
+}
+
+interface SidebarProps {
+    sidebarBgColor: string
+    onLogout: () => void
+    userRole?: 'admin' | 'user' | null
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole }) => {
     const location = useLocation()
     const navigate = useNavigate()
     const [openMenus, setOpenMenus] = useState<string[]>([])
 
+    const handleLogout = () => {
+        onLogout()
+        navigate('/login')
+    }
+
     const handleLogoClick = () => {
-        navigate('/')
+        if (userRole === 'admin') {
+            navigate('/admin')
+        } else {
+            navigate('/')
+        }
     }
 
     const toggleMenu = (path: string) => {
@@ -24,8 +47,20 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
         )
     }
 
+    const adminNavigationItems: NavigationItem[] = [
+        {
+            icon: <LayoutDashboard size={24} />,
+            text: 'Overview',
+            path: '/admin',
+        },
+        {
+            icon: <SmartphoneCharging size={24} />,
+            text: 'Chargers',
+            path: '/admin/chargers',
+        },
+    ]
 
-    const navigationItems = [
+    const userNavigationItems: NavigationItem[] = [
         {
             icon: <LayoutDashboard size={24} />,
             text: 'Overview',
@@ -41,18 +76,21 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
         },
     ]
 
+    const navigationItems = userRole === 'admin' ? adminNavigationItems : userNavigationItems
+
     return (
         <aside className={`fixed left-0 top-0 h-screen w-64 text-white flex flex-col ${sidebarBgColor}`}>
-            <div
+            <button
                 onClick={handleLogoClick}
-                className="p-4 border-b border-white/20 flex justify-center items-center cursor-pointer"
+                className="p-4 border-b border-white/20 flex justify-center items-center w-full"
+                aria-label="Go to home page"
             >
                 <img
                     src={logo}
                     alt="logo"
                     className="h-20 w-auto"
                 />
-            </div>
+            </button>
 
             <nav className="p-4 flex-1">
                 <ul className="space-y-2">
@@ -112,13 +150,17 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor }) => {
                             <User size={24} />
                         </div>
                         <div className="block">
-                            <p className="text-sm font-medium text-white">Carlos</p>
-                            <p className="text-xs text-green-100">carlos@gmail.com</p>
+                            <p className="text-sm font-medium text-white">
+                                {userRole === 'admin' ? 'Admin' : 'Carlos'}
+                            </p>
+                            <p className="text-xs text-green-100">
+                                {userRole === 'admin' ? 'admin@gmail.com' : 'carlos@gmail.com'}
+                            </p>
                         </div>
                     </div>
                     <li>
                         <button
-                            onClick={() => {/* Add logout logic */}}
+                            onClick={handleLogout}
                             className="nav-link hover:bg-white/10 w-full flex items-center"
                         >
                             <LogOut size={24} />
