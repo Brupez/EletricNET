@@ -2,11 +2,12 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavig
 import { useState } from 'react'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
-import HomePage from './pages/HomePage'
-import MapPage from './pages/MapPage'
-import BookingPage from './pages/BookingPage'
-import ChargerDetails from './pages/ChargerDetails'
-import AdminPage from './pages/AdminPage'
+import HomePage from './pages/user/HomePage.tsx'
+import MapPage from './pages/user/MapPage.tsx'
+import BookingPage from './pages/user/BookingPage.tsx'
+import ChargerDetails from './pages/user/ChargerDetails.tsx'
+import AdminPage from './pages/admin/AdminPage.tsx'
+import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -92,6 +93,11 @@ const AppContent = () => {
                         <Route path="/admin" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole} requiredRole="admin">
                                 <AdminPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/chargers" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole} requiredRole="admin">
+                                <AdminChargersPage />
                             </ProtectedRoute>
                         } />
                         <Route path="/map" element={

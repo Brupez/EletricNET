@@ -1,7 +1,19 @@
 import { LayoutDashboard, Calendar, User, LogOut, ChevronDown, SmartphoneCharging } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import logo from '/src/assets/logo.svg'
+import logo from "../assets/logo.svg"
+
+interface SubItem {
+    text: string
+    path: string
+}
+
+interface NavigationItem {
+    icon: JSX.Element
+    text: string
+    path: string
+    subItems?: SubItem[]
+}
 
 interface SidebarProps {
     sidebarBgColor: string
@@ -20,7 +32,11 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole })
     }
 
     const handleLogoClick = () => {
-        navigate('/')
+        if (userRole === 'admin') {
+            navigate('/admin')
+        } else {
+            navigate('/')
+        }
     }
 
     const toggleMenu = (path: string) => {
@@ -31,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole })
         )
     }
 
-    const adminNavigationItems = [
+    const adminNavigationItems: NavigationItem[] = [
         {
             icon: <LayoutDashboard size={24} />,
             text: 'Overview',
@@ -44,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole })
         },
     ]
 
-    const userNavigationItems = [
+    const userNavigationItems: NavigationItem[] = [
         {
             icon: <LayoutDashboard size={24} />,
             text: 'Overview',
@@ -64,16 +80,17 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarBgColor, onLogout, userRole })
 
     return (
         <aside className={`fixed left-0 top-0 h-screen w-64 text-white flex flex-col ${sidebarBgColor}`}>
-            <div
+            <button
                 onClick={handleLogoClick}
-                className="p-4 border-b border-white/20 flex justify-center items-center cursor-pointer"
+                className="p-4 border-b border-white/20 flex justify-center items-center w-full"
+                aria-label="Go to home page"
             >
                 <img
                     src={logo}
                     alt="logo"
                     className="h-20 w-auto"
                 />
-            </div>
+            </button>
 
             <nav className="p-4 flex-1">
                 <ul className="space-y-2">

@@ -1,6 +1,6 @@
 import { Battery, MapPin } from 'lucide-react'
 import { useState } from 'react'
-import BookingModal from '../components/BookingModal'
+import BookingModal from '../../components/BookingModal.tsx'
 
 const ChargerDetails = () => {
 
