@@ -84,11 +84,6 @@ jobs:
     name: Lighthouse Audits
     needs: deploy
     runs-on: ubuntu-latest
-    services:
-      nginx:
-        image: nginx:latest
-        ports:
-          - 80:80
 
     steps:
       - uses: actions/checkout@v4
@@ -109,10 +104,17 @@ jobs:
           echo "Testing connection:"
           curl -v --max-time 10 http://localhost || true
 
+      - name: Check container status
+        run: |
+          echo "Docker container status:"
+          docker compose ps
+          echo "\nDocker logs:"
+          docker compose logs
+
       - name: Waiting for app
         timeout-minutes: 2
         run: |
-          until curl -s --fail http://localhost:80; do
+          until curl -s --fail --retry 3 --retry-delay 5 http://localhost > /dev/null do
             echo "Waiting for the application to be ready..."
             docker compose ps
             sleep 5
@@ -124,7 +126,7 @@ jobs:
         id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: "http://localhost:80"
+          urls: "http://localhost"
           uploadArtifacts: true
           temporaryPublicStorage: true
           configPath: ./lighthouserc.json
