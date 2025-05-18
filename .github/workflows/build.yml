@@ -135,8 +135,9 @@ jobs:
       - name: Format results
         id: format_results
         run: |
-          if [ -f .lighthouseci/lhr-*.json ]; then
-            SCORES=$(jq -r '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json || echo '[]')
+          if compgen -G ".lighthouseci/lhr-*.json" > /dev/null; then
+            SCORES=$(jq -r '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
+            echo "SCORES=${SCORES}" >> $GITHUB_OUTPUT
           else
             SCORES='[]'
           fi
