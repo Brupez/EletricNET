@@ -136,12 +136,11 @@ jobs:
         id: format_results
         run: |
           if compgen -G ".lighthouseci/lhr-*.json" > /dev/null; then
-            SCORES=$(jq -r '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
-            echo "SCORES=${SCORES}" >> $GITHUB_OUTPUT
+            SCORES=$(jq -r --compact-output '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
+            echo "scores=$(echo $SCORES | jq -c '.')" >> "$GITHUB_OUTPUT"
           else
-            SCORES='[]'
+            echo "scores=[]" >> "$GITHUB_OUTPUT"
           fi
-          echo "SCORES=${SCORES}" >> $GITHUB_OUTPUT
 
       - name: Post PR comment
         if: github.event_name == 'pull_request'
