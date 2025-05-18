@@ -85,6 +85,10 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
 
+    permissions:
+      issues: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
@@ -148,10 +152,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const scores = JSON.parse(`${{ steps.format_results.outputs.SCORES }}`);
+            const scores = ${{ steps.format_results.outputs.scores }}`);
             let comment = "## ⚡ Lighthouse Results\n\n";
             
-            if (scores.length === 0) {
+            if (!scores || scores.length === 0) {
               comment += "❌ Lighthouse audit failed to complete\n";
             } else {
               scores.forEach(({id, score}) => {
