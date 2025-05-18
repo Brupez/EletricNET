@@ -55,12 +55,16 @@ jobs:
     needs: sonarqube
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy with Docker Compose
         run: |
-          docker compose -f docker-compose.yml pull
-          docker compose -f docker-compose.yml up -d --remove-orphans
+          ls -la
+          docker compose down -v || true
+          docker compose up -d --build
           docker container prune -f
           docker image prune -af
           docker builder prune -af
@@ -73,9 +77,11 @@ jobs:
               echo "Application is ready"
               exit 0
             fi
-            sleep 5
+            echo "Waiting for application to start...attempt $i"
+            sleep 10
           done
           echo "Application failed to start"
+          docker compose logs
           exit 1
 
   lighthouse:
@@ -86,12 +92,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
 
+      - name: Wait for application
+        run: |
+          echo "Waiting for application to be ready..."
+          timeout 60 bash -c '
+            until curl -s http://localhost:80 >/dev/null; do
+                echo "Waiting for application to start..."
+                sleep 5
+            done'
+
       - name: Run Lighthouse Audit
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: "http://localhost:3000"
+          urls: "http://localhost:80"
           uploadArtifacts: true
           temporaryPublicStorage: true
+          configPath: ./lighthouserc.json
 
       - name: Format results
         id: format_results
@@ -128,9 +144,12 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name : Checkout repository
+        uses: actions/checkout@v4
+
       - name: Stop containers
         run: |
-          docker compose -f docker-compose.yml down
+          docker compose down -v || true
           docker container prune -f
           docker image prune -af
           docker builder prune -af

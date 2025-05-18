@@ -1,0 +1,10 @@
+{
+  "ci": {
+    "collect": {
+      "settings": {
+        "chromeFlags": ["--no-sandbox", "--ignore-certificate-errors"],
+        "preset": "desktop"
+      }
+    }
+  }
+}
