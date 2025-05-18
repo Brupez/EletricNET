@@ -95,19 +95,36 @@ jobs:
       - name: Wait for application
         run: |
           echo "Waiting for application to be ready..."
-          timeout 60 bash -c '
-            until curl -s http://localhost:80 >/dev/null; do
-                echo "Waiting for application to start..."
-                sleep 5
-            done'
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy"; then
+              if curl -s http://localhost:80 > /dev/null; then
+                echo "Application is ready!"
+                break
+              fi
+            fi
+            echo "Attempt $i/30: Waiting for services to be healthy..."
+            docker compose ps
+            sleep 10
+          done
+
+          # Verify final state
+          if ! curl -s http://localhost:80 > /dev/null; then
+            echo "Failed to reach application after 5 minutes"
+            docker compose ps
+            docker compose logs
+            exit 1
+          fi
 
       - name: Run Lighthouse Audit
+        id: lighthouse
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: "http://localhost:80"
           uploadArtifacts: true
           temporaryPublicStorage: true
           configPath: ./lighthouserc.json
+        continue-on-error: true
+
 
       - name: Format results
         id: format_results

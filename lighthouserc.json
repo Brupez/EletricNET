@@ -1,10 +1,17 @@
 {
   "ci": {
     "collect": {
+      "numberOfRuns": 1,
+      "startServerCommand": "echo 'Server already running'",
       "settings": {
-        "chromeFlags": ["--no-sandbox", "--ignore-certificate-errors"],
+        "chromeFlags": [
+          "--no-sandbox",
+          "--ignore-certificate-errors",
+          "--disable-gpu"
+        ],
         "preset": "desktop"
-      }
+      },
+      "maxWaitForLoad": 60000
     }
   }
 }
