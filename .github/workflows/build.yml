@@ -86,15 +86,34 @@ jobs:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
 
-      - name: Verify application is still running
+      - name: Verify Docker and application status
         run: |
-          if ! curl -s http://localhost:80 > /dev/null; then
-            echo "Application is not responding"
-            docker compose ps
-            docker compose logs
+          echo "Checking Docker status..."
+          docker compose ps
+          
+          echo "\nChecking nginx status..."
+          curl -v --max--time 10 http://localhost:80 || true
+          
+          if ! docker compose ps | grep -q "nginx.*running"; then
+            echo "Nginx container is not running"
+            docker compose logs nginx
             exit 1
           fi
-          echo "Application is ready for testing"
+
+      - name: Wait for nginx response
+        run: |
+          for i in {1..12}; do
+            if curl -s --max-time http://localhost:80 > /dev/null; then
+              echo "Nginx is responding!"
+              exit 0
+            fi
+            echo "Attempt $i/12: Waiting for nginx..."
+            sleep 5
+          done
+          
+          echo "Nginx failed to respond"
+          docker compose logs nginx
+          exit 1
 
       - name: Run Lighthouse Audit
         id: lighthouse
