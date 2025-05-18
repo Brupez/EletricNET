@@ -152,24 +152,21 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const scores = ${{ steps.format_results.outputs.scores }}`);
+            const scores = ${{ steps.format_results.outputs.scores }};
             let comment = "## ⚡ Lighthouse Results\n\n";
             
             if (!scores || scores.length === 0) {
               comment += "❌ Lighthouse audit failed to complete\n";
             } else {
-              scores.forEach(({id, score}) => {
+              for (const {id, score} of scores) {
                 const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
                 comment += `- ${emoji} ${id}: ${score}/100\n`;
-              });
+              }
             }
-            
-            comment += "\n[View full report](LINK_TO_REPORT)";
-            
+                        
             await github.rest.issues.createComment({
+              ...context.repo,
               issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
               body: comment
             });
 
