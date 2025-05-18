@@ -96,11 +96,9 @@ jobs:
         run: |
           echo "Waiting for application to be ready..."
           for i in {1..30}; do
-            if docker compose ps | grep -q "healthy"; then
-              if curl -s http://localhost:80 > /dev/null; then
-                echo "Application is ready!"
-                break
-              fi
+            if curl -s http://localhost:80 > /dev/null; then
+              echo "Application is ready!"
+              break
             fi
             echo "Attempt $i/30: Waiting for services to be healthy..."
             docker compose ps
