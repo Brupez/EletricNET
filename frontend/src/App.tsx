@@ -66,12 +66,13 @@ const AppContent = () => {
 
     const handleLogin = async (email: string, password: string): Promise<string | null> => {
         try {
-            const response = await fetch('http://localhost:8080/api/auth/login', {
+            const response = await fetch('http://localhost:8081/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username: email, password })
+                credentials: "include",
+                body: JSON.stringify({ email, password })
             })
     
             if (!response.ok) return null

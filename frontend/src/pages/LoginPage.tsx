@@ -13,6 +13,8 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     const [showPassword, setShowPassword] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [name, setName] = useState('')
+    const [role, setRole] = useState('USER')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
@@ -25,9 +27,26 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                 setError('Passwords do not match')
                 return
             }
-            
-            console.log('Signup:', { email, password })
-            setIsLoginMode(true)
+    
+            try {
+                const response = await fetch('http://localhost:8081/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password, name, role })
+                })
+    
+                if (!response.ok) {
+                    const msg = await response.text()
+                    throw new Error(msg || 'Failed to register')
+                }
+    
+                setIsLoginMode(true)
+            } catch (err: any) {
+                setError(err.message || 'Failed to register')
+            }
+    
             return
         }
     
@@ -60,7 +79,25 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                     </p>
                 </div>
 
+
+
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {!isLoginMode && (
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                                Name
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                placeholder="Enter your name"
+                                required
+                            />
+                        </div>
+                    )}
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                             Email
@@ -114,6 +151,24 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                                 placeholder="Confirm your password"
                                 required
                             />
+                        </div>
+                    )}
+
+                    {!isLoginMode && (
+                        <div>
+                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                                Role
+                            </label>
+                            <select
+                                id="role"
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                required
+                            >
+                                <option value="USER">User</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
                         </div>
                     )}
 

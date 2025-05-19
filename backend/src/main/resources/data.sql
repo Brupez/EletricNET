@@ -1,6 +1,6 @@
-INSERT INTO users (id, username, password, name, role) VALUES
-    (1, 'joana', 'password', 'Joana', 'ADMIN'),
-    (2, 'tiago', 'password', 'Tiago', 'USER')
+INSERT INTO users (id, email, password, name, role) VALUES
+    (1, 'joana@gmail.com', 'password', 'Joana', 'ADMIN'),
+    (2, 'tiago@gmail.com', 'password', 'Tiago', 'USER')
     ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO stations (
