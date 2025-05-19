@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
 
 interface LoginPageProps {
-    onLogin: (email: string, password: string) => string | null
+    onLogin: (email: string, password: string) => Promise<string | null>
 }
 
 const LoginPage = ({ onLogin }: LoginPageProps) => {
@@ -16,28 +16,28 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
-
+    
         if (!isLoginMode) {
             if (password !== confirmPassword) {
                 setError('Passwords do not match')
                 return
             }
-            // Add signup logic here
+            
             console.log('Signup:', { email, password })
             setIsLoginMode(true)
             return
         }
-
-        const redirectPath = onLogin(email, password)
+    
+        const redirectPath = await onLogin(email, password)
         if (redirectPath) {
             navigate(redirectPath)
         } else {
             setError('Invalid credentials')
         }
-    }
+    }    
 
     const handleToggleMode = () => {
         setIsLoginMode(!isLoginMode)
