@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 type SortDirection = 'asc' | 'desc' | null
 type SortField = 'id' | 'station' | 'category' | 'price' | 'date' | 'status' | null
 
-const BookingPage = () => {
+const AdminChargersPage = () => {
     const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
     const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -13,12 +13,12 @@ const BookingPage = () => {
     const itemsPerPage = 5
     const totalPages = 5
 
-    const handleAddBooking = () => {
-        navigate('/map')
+    const handleAddCharger = () => {
+        navigate('/admin/chargers/add')
     }
 
     const handleViewDetails = (id: string) => {
-        navigate(`/charger/${id}`)
+        navigate(`/admin/charger/${id}`)
     }
 
     const Pagination = () => (
@@ -58,12 +58,21 @@ const BookingPage = () => {
     const SortIcon = ({ field }: { field: SortField }) => {
         if (sortField !== field) return <ChevronUp className="opacity-0 group-hover:opacity-50" size={16} />
         return sortDirection === 'asc' ?
-            <ChevronUp className="text-green-700" size={16} /> :
-            <ChevronDown className="text-green-700" size={16} />
+            <ChevronUp className="text-blue-700" size={16} /> :
+            <ChevronDown className="text-blue-700" size={16} />
     }
 
-    const BookingTable = () => {
-        const bookings = [
+    const statusStyles = {
+        Active: 'bg-green-100 text-green-800',
+        Pending: 'bg-yellow-100 text-yellow-800',
+        Completed: 'bg-gray-100 text-gray-800'
+    } as const
+
+    type Status = keyof typeof statusStyles
+
+
+    const ChargerTable = () => {
+        const chargers = [
             { id: '001', station: 'Station A', status: 'Active', category: 'Fast', price: '$25.00', date: '2024-03-20 14:30' },
             { id: '002', station: 'Station B', status: 'Pending', category: 'Ultra', price: '$35.00', date: '2024-03-21 10:15' },
             { id: '003', station: 'Station C', status: 'Completed', category: 'Fast', price: '$28.00', date: '2024-03-19 16:45' },
@@ -98,26 +107,22 @@ const BookingPage = () => {
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                    {bookings.map(booking => (
-                        <tr key={booking.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4">{booking.id}</td>
-                            <td className="px-6 py-4">{booking.station}</td>
+                    {chargers.map(charger => (
+                        <tr key={charger.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4">{charger.id}</td>
+                            <td className="px-6 py-4">{charger.station}</td>
                             <td className="px-6 py-4">
-                                    <span className={`badge ${
-                                        booking.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                            booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-gray-100 text-gray-800'
-                                    }`}>
-                                        {booking.status}
+                                    <span className={`badge ${statusStyles[charger.status as Status]}`}>
+                                        {charger.status}
                                     </span>
                             </td>
-                            <td className="px-6 py-4">{booking.category}</td>
-                            <td className="px-6 py-4">{booking.price}</td>
-                            <td className="px-6 py-4">{booking.date}</td>
+                            <td className="px-6 py-4">{charger.category}</td>
+                            <td className="px-6 py-4">{charger.price}</td>
+                            <td className="px-6 py-4">{charger.date}</td>
                             <td className="px-6 py-4">
                                 <button
-                                    onClick={() => handleViewDetails(booking.id)}
-                                    className="text-green-700 hover:text-green-800 flex items-center gap-1"
+                                    onClick={() => handleViewDetails(charger.id)}
+                                    className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
                                 >
                                     <Eye size={16} />
                                     View
@@ -137,35 +142,35 @@ const BookingPage = () => {
                 <div className="card w-full">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <Calendar size={24} className="text-green-700" />
+                            <Calendar size={24} className="text-blue-700" />
                             <h2 className="text-2xl font-bold text-gray-800">
-                                Current Bookings
+                                Current chargers
                             </h2>
                             <button
-                                onClick={handleAddBooking}
-                                className="btn bg-[#243E16] hover:bg-green-700 text-white flex items-center gap-2 ml-4"
+                                onClick={handleAddCharger}
+                                className="btn bg-[#1E3A8A] hover:bg-blue-700 text-white flex items-center gap-2 ml-4"
                             >
                                 <Plus size={20} />
-                                Add Booking
+                                Add charger
                             </button>
                         </div>
                     </div>
-                    <BookingTable />
+                    <ChargerTable />
                 </div>
             </div>
 
             <div className="card w-full mt-8">
                 <div className="flex items-center gap-3 mb-6">
-                    <History size={24} className="text-green-700" />
+                    <History size={24} className="text-blue-700" />
                     <h2 className="text-2xl font-bold text-gray-800">
-                        Booking History
+                        Chargers History
                     </h2>
                 </div>
-                <BookingTable />
+                <ChargerTable />
                 <Pagination />
             </div>
         </>
     )
 }
 
-export default BookingPage
+export default AdminChargersPage

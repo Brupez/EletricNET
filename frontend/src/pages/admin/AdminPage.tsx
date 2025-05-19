@@ -1,7 +1,7 @@
-// src/pages/AdminPage.tsx
 import { Battery, Plus, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Bar, Pie } from 'react-chartjs-2'
+import AdminChargerModal from '../../components/AdminChargerModal'
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -11,6 +11,7 @@ import {
     Tooltip,
     Legend,
     ArcElement,
+    ChartOptions,
 } from 'chart.js'
 
 ChartJS.register(
@@ -23,14 +24,13 @@ ChartJS.register(
     ArcElement
 )
 
-// Define the Charger type
 interface Charger {
-    id: string;
-    name: string;
-    location: string;
-    status: 'Active' | 'Inactive';
-    type: string;
-    power: string;
+    id: string
+    name: string
+    location: string
+    status: 'Active' | 'Inactive'
+    type: string
+    power: string
 }
 
 const AdminPage = () => {
@@ -44,7 +44,6 @@ const AdminPage = () => {
         { id: '007', name: 'Charger G', location: 'Residential Area W', status: 'Active', type: 'Normal', power: '60 kW' },
     ])
 
-    // Dummy data for Weekly Users chart
     const weeklyUsersData = {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         datasets: [
@@ -61,7 +60,7 @@ const AdminPage = () => {
         ],
     }
 
-    const weeklyUsersOptions = {
+    const weeklyUsersOptions: ChartOptions<'bar'> = {
         responsive: true,
         plugins: {
             title: {
@@ -84,18 +83,23 @@ const AdminPage = () => {
             y: {
                 beginAtZero: true,
                 grid: {
-                    drawBorder: false,
+                    display: true,
+                },
+                border: {
+                    display: false,  // This controls the axis line visibility
                 },
             },
             x: {
                 grid: {
                     display: false,
                 },
+                border: {
+                    display: true,  // Keep the x-axis line visible
+                },
             },
         },
     }
 
-    // Dummy data for Popular Chargers pie chart
     const chargerTypeCounts = chargers.reduce(
         (acc, charger) => {
             acc[charger.type] = (acc[charger.type] || 0) + 1
@@ -117,7 +121,7 @@ const AdminPage = () => {
         ],
     }
 
-    const popularChargersOptions = {
+    const popularChargersOptions: ChartOptions<'pie'> = {
         responsive: true,
         plugins: {
             title: {
@@ -142,9 +146,35 @@ const AdminPage = () => {
         },
     }
 
+    // Modal CRUD Charger
+    const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
+    const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit')
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const handleEdit = (charger: Charger) => {
+        setSelectedCharger(charger)
+        setModalMode('edit')
+        setIsModalOpen(true)
+    }
+
+    const handleDelete = (charger: Charger) => {
+        setSelectedCharger(charger)
+        setModalMode('delete')
+        setIsModalOpen(true)
+    }
+
+    const handleModalConfirm = (updatedCharger?: Charger) => {
+        if (modalMode === 'edit' && updatedCharger) {
+            // Handle charger update
+            console.log('Update charger:', updatedCharger)
+        } else if (modalMode === 'delete') {
+            // Handle charger deletion
+            console.log('Delete charger:', selectedCharger?.id)
+        }
+    }
+
     return (
         <div className="space-y-6">
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-700">Total Chargers</h3>
@@ -166,7 +196,6 @@ const AdminPage = () => {
                 </div>
             </div>
 
-            {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card">
                     <Bar data={weeklyUsersData} options={weeklyUsersOptions} />
@@ -176,16 +205,13 @@ const AdminPage = () => {
                 </div>
             </div>
 
-            {/* Chargers Table */}
             <div className="card">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <Battery size={24} className="text-blue-600" />
                         <h2 className="text-xl font-bold text-gray-800">Charger Management</h2>
                     </div>
-                    <button
-                        className="btn bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 disabled"
-                    >
+                    <button className="btn bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
                         <Plus size={20} />
                         Add Charger
                     </button>
@@ -194,47 +220,57 @@ const AdminPage = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">ID</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Name</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Location</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Type</th>
-                            <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Power</th>
-                            <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
-                        </tr>
+                            <tr>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">ID</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Name</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Location</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Type</th>
+                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Power</th>
+                                <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
+                            </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                        {chargers.map(charger => (
-                            <tr key={charger.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4">{charger.id}</td>
-                                <td className="px-6 py-4">{charger.name}</td>
-                                <td className="px-6 py-4">{charger.location}</td>
-                                <td className="px-6 py-4">
+                            {chargers.map(charger => (
+                                <tr key={charger.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4">{charger.id}</td>
+                                    <td className="px-6 py-4">{charger.name}</td>
+                                    <td className="px-6 py-4">{charger.location}</td>
+                                    <td className="px-6 py-4">
                                         <span className={`badge ${
                                             charger.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                         }`}>
                                             {charger.status}
                                         </span>
-                                </td>
-                                <td className="px-6 py-4">{charger.type}</td>
-                                <td className="px-6 py-4">{charger.power}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-3">
-                                        <button
-                                            className="text-blue-600 hover:text-blue-800 disabled"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        <button
-                                            className="text-red-600 hover:text-red-800 disabled"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-6 py-4">{charger.type}</td>
+                                    <td className="px-6 py-4">{charger.power}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-3">
+                                            <button
+                                                onClick={() => handleEdit(charger)}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                <Pencil size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(charger)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+
+                                            <AdminChargerModal
+                                                isOpen={isModalOpen}
+                                                onClose={() => setIsModalOpen(false)}
+                                                mode={modalMode}
+                                                charger={selectedCharger}
+                                                onConfirm={handleModalConfirm}
+                                            />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

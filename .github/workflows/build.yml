@@ -1,46 +1,193 @@
-name: Build and Test
-
+name: CI Pipeline
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./frontend
-
-      - name: Build frontend
-        run: npm run dev
-        working-directory: ./frontend
-
-  backend:
+  sonarqube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          fetch-depth: 0
 
-      - name: Build and test with Maven
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and analyze with SonarQube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./mvnw clean verify
-        working-directory: ./backend
+          cd backend
+          mvn -B -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=Brupez_EletricNET \
+          -Dsonar.organization=eletricnet \
+          -Dsonar.host.url=https://sonarcloud.io
+
+  deploy:
+    name: Deploy Application
+    needs: sonarqube
+    runs-on: ubuntu-latest
+    outputs:
+      container_status: ${{ steps.container_status.outputs.status }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker compose down -v || true
+          docker compose up -d --build
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to be healthy..."
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy"; then
+              if curl -s http://localhost:80 > /dev/null; then
+                echo "All services are healthy!"
+                exit 0
+              fi
+            fi
+            echo "Attempt $i/30: Waiting for services..."
+            docker compose ps
+            sleep 10
+          done
+          echo "Services failed to become healthy"
+          docker compose logs
+          exit 1
+
+  lighthouse:
+    name: Lighthouse Audits
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+
+      - name: Deploy application again
+        run: |
+          docker compose down -v
+          docker compose up -d --build
+          echo "Waiting for nginx to start..."
+          sleep 20
+          
+      - name: Verify application is running
+        run: |
+          echo "Docker container status:"
+          docker compose ps
+          
+          echo "Testing connection:"
+          curl -v --max-time 10 http://localhost || true
+
+      - name: Check container status
+        run: |
+          echo "Docker container status:"
+          docker compose ps
+          echo "\nDocker logs:"
+          docker compose logs
+
+      - name: Waiting for app
+        timeout-minutes: 2
+        run: |
+          until curl -s --fail --retry 3 --retry-delay 5 http://localhost > /dev/null; do
+            echo "Waiting for the application to be ready..."
+            docker compose ps
+            sleep 5
+          done
+          echo "Application is ready!"
+      
+
+      - name: Run Lighthouse Audit
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: "http://localhost"
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: ./lighthouserc.json
+        continue-on-error: true
+
+      - name: Format results
+        id: format_results
+        run: |
+          if compgen -G ".lighthouseci/lhr-*.json" > /dev/null; then
+            SCORES=$(jq -r --compact-output '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
+            echo "scores=$(echo $SCORES | jq -c '.')" >> "$GITHUB_OUTPUT"
+          else
+            echo "scores=[]" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const scores = ${{ steps.format_results.outputs.scores }};
+            let comment = "## ⚡ Lighthouse Results\n\n";
+            
+            if (!scores || scores.length === 0) {
+              comment += "❌ Lighthouse audit failed to complete\n";
+            } else {
+              for (const {id, score} of scores) {
+                const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
+                comment += `- ${emoji} ${id}: ${score}/100\n`;
+              }
+            }
+                        
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+  cleanup:
+    name: Cleanup
+    needs: lighthouse
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none
+      issues: none
+      pull-requests: none
+      deployments: none
+      statuses: none
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stop containers
+        run: |
+          docker compose down -v || true
+          docker container prune -f
+          docker image prune -af
+          docker builder prune -af

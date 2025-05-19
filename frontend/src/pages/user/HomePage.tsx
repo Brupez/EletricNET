@@ -1,8 +1,8 @@
 import { Search, Calendar, Clock } from 'lucide-react'
-import map from '../assets/map.jpg'
+import map from '../../assets/map.jpg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import LoadingScreen from '../components/LoadingScreen'
+import LoadingScreen from '../../components/LoadingScreen.tsx'
 
 const HomePage = () => {
     const navigate = useNavigate()
