@@ -2,14 +2,16 @@ package ua.tqs.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ua.tqs.login.JwtUtil;
 import ua.tqs.models.*;
 import ua.tqs.enums.ReservationStatus;
 import ua.tqs.repositories.ReservationRepository;
 import ua.tqs.repositories.SlotRepository;
-import ua.tqs.repositories.StationRepository;
 import ua.tqs.repositories.UserRepository;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
+import java.util.stream.Collectors;
+import java.util.List;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -27,7 +29,7 @@ public class ReservationService {
     private UserRepository userRepository;
 
     @Autowired
-    private StationRepository stationRepository;
+    private JwtUtil jwtUtil;
 
     public Optional<ReservationResponseDTO> createReservation(ReservationRequestDTO dto) {
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
@@ -84,5 +86,31 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.CANCELED);
         reservationRepository.save(reservation);
         return true;
+    }
+
+    public List<ReservationResponseDTO> getReservationsByToken(String token) {
+        String email = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return List.of();
+        }
+
+        List<Reservation> reservations = reservationRepository.findByUser(userOpt.get());
+
+        return reservations.stream().map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setSlotId(reservation.getSlot().getId());
+            dto.setState(reservation.getStatus().name());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setChargingType(reservation.getSlot().getChargingType().name());
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 }
