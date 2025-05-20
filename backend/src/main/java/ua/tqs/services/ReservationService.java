@@ -113,4 +113,10 @@ public class ReservationService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    public double getTotalRevenue() {
+        return reservationRepository.findAll().stream()
+                .mapToDouble(Reservation::getTotalCost)
+                .sum();
+    }
 }

@@ -40,4 +40,14 @@ public class SlotService {
         }
         return false;
     }
+
+    public long getTotalChargers() {
+        return slotRepository.count();
+    }
+
+    public long getActiveChargers() {
+        return slotRepository.findAll().stream()
+                .filter(slot -> !slot.isReserved())
+                .count();
+    }
 }

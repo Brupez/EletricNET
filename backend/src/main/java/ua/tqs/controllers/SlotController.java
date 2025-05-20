@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.*;
 import ua.tqs.models.Slot;
 import ua.tqs.services.SlotService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -46,5 +48,23 @@ public class SlotController {
         } else {
             return ResponseEntity.badRequest().body("Slot not found.");
         }
+    }
+
+    @GetMapping("/chargers")
+    public ResponseEntity<List<Slot>> getAllChargers() {
+        List<Slot> slots = slotService.getAllSlots();
+        return ResponseEntity.ok(slots);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getChargerStats() {
+        long totalChargers = slotService.getTotalChargers();
+        long activeChargers = slotService.getActiveChargers();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalChargers", totalChargers);
+        stats.put("activeChargers", activeChargers);
+
+        return ResponseEntity.ok(stats);
     }
 }

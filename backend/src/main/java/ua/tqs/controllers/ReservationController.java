@@ -7,7 +7,9 @@ import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 import ua.tqs.services.ReservationService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -40,5 +42,15 @@ public class ReservationController {
         String token = authHeader.replace("Bearer ", "");
         List<ReservationResponseDTO> reservations = reservationService.getReservationsByToken(token);
         return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/revenue")
+    public ResponseEntity<Map<String, Object>> getRevenue() {
+        double totalRevenue = reservationService.getTotalRevenue();
+
+        Map<String, Object> revenue = new HashMap<>();
+        revenue.put("totalRevenue", totalRevenue);
+
+        return ResponseEntity.ok(revenue);
     }
 }
