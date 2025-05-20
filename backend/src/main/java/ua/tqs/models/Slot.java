@@ -31,4 +31,6 @@ public class Slot {
 
     @Enumerated(EnumType.STRING)
     private ChargingType chargingType;
+
+    private String power;
 }
