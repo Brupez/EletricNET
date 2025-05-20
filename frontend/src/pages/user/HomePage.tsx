@@ -4,16 +4,16 @@ import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import LoadingScreen from '../../components/LoadingScreen.tsx'
 
-
 const HomePage = () => {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
-
+    const [searchLocation, setSearchLocation] = useState('')
 
     const handleSearch = () => {
+        if (!searchLocation) return alert('Please enter a location.')
         setIsLoading(true)
         setTimeout(() => {
-            navigate('/map')
+            navigate(`/map?location=${encodeURIComponent(searchLocation)}`)
         }, 1000)
     }
 
@@ -46,22 +46,8 @@ const HomePage = () => {
                                 <input
                                     type="search"
                                     placeholder="Location..."
-                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            <div className="relative">
-                                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                <input
-                                    type="date"
-                                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                <input
-                                    type="time"
+                                    value={searchLocation}
+                                    onChange={(e) => setSearchLocation(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 />
                             </div>

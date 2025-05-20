@@ -13,7 +13,7 @@ payment functionalities across diverse charging networks.
 | Mec    | Team              | Roles                     |
 |--------|-------------------|---------------------------|
 | 68264  | Bruno Lopes       | Team Leader/DevOps master |
-| 112901 | Tiago Albuquerque | QA Enginer                |
+| 112901 | Tiago Albuquerque | QA Engineer               |
 | 113655 | Abel Teixeira     | Product Owner             |
 
 

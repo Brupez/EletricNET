@@ -10,4 +10,10 @@ export default defineConfig({
         },
     },
   plugins: [react()],
+  build: {
+    sourcemap: false, 
+  },
+  optimizeDeps: {
+    exclude: ['chart.js'], // Exclude chart.js from pre-bundling to avoid warnings
+  },
 })
