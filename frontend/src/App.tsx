@@ -11,6 +11,7 @@ import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { jwtDecode } from 'jwt-decode'
+import * as React from "react";
 
 type UserRole = 'admin' | 'user' | null
 
@@ -88,7 +89,7 @@ const AppContent = () => {
     
             return role === 'admin' ? '/admin' : '/'
         } catch (err) {
-            console.error('Erro ao fazer login:', err)
+            console.error('Error on login:', err)
             return null
         }
     }    
@@ -153,7 +154,7 @@ const AppContent = () => {
                                 <BookingPage />
                             </ProtectedRoute>
                         } />
-                        <Route path="/chargerDetails" element={
+                        <Route path="/charger/:id" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <ChargerDetails />
                             </ProtectedRoute>

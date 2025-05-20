@@ -1,14 +1,15 @@
 import { Battery, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import BookingModal from '../../components/BookingModal.tsx'
+import { useParams } from 'react-router-dom'
 
 const ChargerDetails = () => {
-
+    const { id } = useParams()
     const [isModalOpen, setIsModalOpen] = useState(false)
 
 
     const chargerDetails = {
-        id: '001',
+        id: id ?? '001',
         name: 'Charger A',
         location: 'EDP Comercial',
         type: 'Fast Charging Station',
