@@ -62,7 +62,6 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         onConfirm(formData)
-        onClose()
         cleanForm()
     }
 

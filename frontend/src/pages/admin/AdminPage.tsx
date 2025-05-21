@@ -130,6 +130,7 @@ const AdminPage = () => {
                 });
 
                 setIsModalOpen(false);
+                setErrorMessage('');
             })
             .catch(error => {
                 console.error('Error saving charger:', error);
