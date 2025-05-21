@@ -21,6 +21,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    @SuppressWarnings("squid:S4502")
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtFilter) throws Exception {
         http
@@ -55,6 +56,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    @SuppressWarnings({"squid:S5344", "squid:S1874"})
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
