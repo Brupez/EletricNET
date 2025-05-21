@@ -33,6 +33,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/slots/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/slots/dto").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/slots/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/slots/dto/**").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )

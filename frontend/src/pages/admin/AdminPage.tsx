@@ -67,10 +67,11 @@ const AdminPage = () => {
     }, []);
 
     const handleEdit = (charger: Charger) => {
-        setSelectedCharger(charger)
-        setModalMode('edit')
-        setIsModalOpen(true)
-    }
+        if (!charger) return;
+        setSelectedCharger(charger);
+        setModalMode('edit');
+        setIsModalOpen(true);
+    };
 
     const handleDelete = (charger: Charger) => {
         setSelectedCharger(charger)
@@ -89,41 +90,47 @@ const AdminPage = () => {
             power: updatedCharger.power
         };
     
-        fetch(`${API_BASE}/api/slots/dto`, {
-            method: 'POST',
+        const url = updatedCharger.id
+            ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
+            : `${API_BASE}/api/slots/dto`;
+    
+        const method = updatedCharger.id ? 'PUT' : 'POST';
+    
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload)
-        })        
-        .then(async response => {
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Erro ${response.status}: ${error}`);
-            }
-            return response.json();
         })
-        .then(newSlot => {
-            const formattedCharger: Charger = {
-                id: newSlot.id,
-                name: `Slot ${newSlot.id}`,
-                location: newSlot.station?.name || 'Unknown',
-                status: newSlot.reserved ? 'Inactive' : 'Active',
-                type: newSlot.chargingType,
-                power: newSlot.power
-            };
+            .then(async response => {
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(`Erro ${response.status}: ${error}`);
+                }
+                return response.json();
+            })
+            .then(newSlot => {
+                const formattedCharger: Charger = {
+                    id: newSlot.id,
+                    name: `Slot ${newSlot.id}`,
+                    location: newSlot.station?.name || 'Unknown',
+                    status: newSlot.reserved ? 'Inactive' : 'Active',
+                    type: newSlot.chargingType,
+                    power: newSlot.power
+                };
     
-            setChargers(prev => {
-                const existing = prev.find(c => c.id === formattedCharger.id);
-                return existing
-                    ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
-                    : [...prev, formattedCharger];
-            });
-        })
-        .catch(error => console.error('Error saving charger:', error));
+                setChargers(prev => {
+                    const existing = prev.find(c => c.id === formattedCharger.id);
+                    return existing
+                        ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
+                        : [...prev, formattedCharger];
+                });
+            })
+            .catch(error => console.error('Error saving charger:', error));
     
         setIsModalOpen(false);
-    };    
+    };
 
     const handleAdd = () => {
         setSelectedCharger(null)

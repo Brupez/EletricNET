@@ -33,8 +33,17 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
     useEffect(() => {
         if (charger) {
             setFormData(charger)
+        } else {
+            setFormData({
+                id: '',
+                name: '',
+                location: '',
+                status: 'Active',
+                type: '',
+                power: ''
+            })
         }
-    }, [charger])
+    }, [charger])    
 
     if (!isOpen) return null
 
