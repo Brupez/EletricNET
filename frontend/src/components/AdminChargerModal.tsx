@@ -13,12 +13,13 @@ interface Charger {
 interface AdminChargerModalProps {
     isOpen: boolean
     onClose: () => void
-    mode: 'edit' | 'delete'
+    mode: 'create' | 'edit' | 'delete'
     charger: Charger | null
     onConfirm: (charger?: Charger) => void
+    errorMessage?: string
 }
 
-const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminChargerModalProps) => {
+const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMessage }: AdminChargerModalProps) => {
     const [formData, setFormData] = useState<Charger>({
         id: '',
         name: '',
@@ -28,18 +29,40 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
         power: ''
     })
 
+    const chargingTypes = ['NORMAL', 'FAST', 'ULTRA_FAST']
+
     useEffect(() => {
-        if (charger) {
+        if (mode == 'edit' && charger) {
             setFormData(charger)
+        } else if (mode == 'create') {
+            setFormData({
+                id: '',
+                name: '',
+                location: '',
+                status: 'Active',
+                type: '',
+                power: ''
+            })
         }
-    }, [charger])
+    }, [mode, charger])
 
     if (!isOpen) return null
+
+    const cleanForm = () => {
+        setFormData({
+            id: '',
+            name: '',
+            location: '',
+            status: 'Active',
+            type: '',
+            power: ''
+        })
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         onConfirm(formData)
-        onClose()
+        cleanForm()
     }
 
     return (
@@ -53,7 +76,9 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                 </button>
 
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {mode === 'edit' ? 'Edit Charger' : 'Delete Charger'}
+                    {mode === 'create' && 'Create Charger'}
+                    {mode === 'edit' && 'Edit Charger'}
+                    {mode === 'delete' && 'Delete Charger'}
                 </h2>
 
                 {mode === 'delete' ? (
@@ -126,13 +151,19 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Type
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     value={formData.type}
                                     onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
-                                />
+                                >
+                                    <option value="" disabled>Select charging type</option>
+                                    {chargingTypes.map(type => (
+                                        <option key={type} value={type}>
+                                            {type.replace('_', ' ')}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>
@@ -148,6 +179,10 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 />
                             </div>
                         </div>
+
+                        {errorMessage && (
+                            <p className="text-red-600 mt-4 font-semibold">{errorMessage}</p>
+                        )}
 
                         <div className="flex justify-end gap-3 mt-6">
                             <button

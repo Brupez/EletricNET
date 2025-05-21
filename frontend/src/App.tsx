@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import HomePage from './pages/user/HomePage.tsx'
@@ -10,6 +10,8 @@ import AdminPage from './pages/admin/AdminPage.tsx'
 import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import { jwtDecode } from 'jwt-decode'
+import * as React from "react";
 
 type UserRole = 'admin' | 'user' | null
 
@@ -42,26 +44,68 @@ const AppContent = () => {
     const isHomePage = location.pathname === '/'
     const isAdminPage = location.pathname.startsWith('/admin')
 
-    const handleLogin = (email: string, password: string) => {
-        // Mock authentication
-        if (email === 'admin@gmail.com' && password === 'admin') {
-            setIsAuthenticated(true)
-            setUserRole('admin')
-            return '/admin'
-        } else if (email === 'user@gmail.com' && password === 'user') {
-            setIsAuthenticated(true)
-            setUserRole('user')
-            return '/'
+    useEffect(() => {
+        const token = localStorage.getItem('jwt')
+        if (token) {
+            try {
+                const decoded: any = jwtDecode(token)
+                const now = Date.now() / 1000
+                if (decoded.exp && decoded.exp < now) {
+                    localStorage.removeItem('jwt')
+                    return
+                }
+    
+                const role = decoded.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
+                setIsAuthenticated(true)
+                setUserRole(role)
+            } catch {
+                localStorage.removeItem('jwt')
+            }
         }
-        return null
-    }
+    }, [])    
+    
+
+    const handleLogin = async (email: string, password: string): Promise<string | null> => {
+        try {
+            const response = await fetch('http://localhost:8081/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include",
+                body: JSON.stringify({ email, password })
+            })
+    
+            if (!response.ok) return null
+    
+            const data = await response.json()
+            localStorage.setItem('jwt', data.token)
+    
+            const payload: any = jwtDecode(data.token)
+            const role = payload.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
+    
+            setIsAuthenticated(true)
+            setUserRole(role)
+    
+            return role === 'admin' ? '/admin' : '/'
+        } catch (err) {
+            console.error('Error on login:', err)
+            return null
+        }
+    }    
+    
 
     const handleLogout = () => {
         setIsAuthenticated(false)
         setUserRole(null)
+        localStorage.removeItem('jwt')
         navigate('/')
     }
 
+    if (isLoginPage && isAuthenticated) {
+        return <Navigate to={userRole === 'admin' ? '/admin' : '/'} replace />
+    }
+   
     if (isLoginPage) {
         return (
             <div className="min-h-screen bg-gray-100">
@@ -110,7 +154,7 @@ const AppContent = () => {
                                 <BookingPage />
                             </ProtectedRoute>
                         } />
-                        <Route path="/chargerDetails" element={
+                        <Route path="/charger/:id" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <ChargerDetails />
                             </ProtectedRoute>

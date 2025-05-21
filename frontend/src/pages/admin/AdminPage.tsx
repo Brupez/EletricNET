@@ -1,5 +1,5 @@
 import { Battery, Plus, Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bar, Pie } from 'react-chartjs-2'
 import AdminChargerModal from '../../components/AdminChargerModal'
 import {
@@ -24,6 +24,8 @@ ChartJS.register(
     ArcElement
 )
 
+const API_BASE = 'http://localhost:8081'
+
 interface Charger {
     id: string
     name: string
@@ -34,15 +36,113 @@ interface Charger {
 }
 
 const AdminPage = () => {
-    const [chargers] = useState<Charger[]>([
-        { id: '001', name: 'Charger A', location: 'EDP Comercial', status: 'Active', type: 'Fast', power: '150 kW' },
-        { id: '002', name: 'Charger B', location: 'Shell Station', status: 'Inactive', type: 'Ultra', power: '350 kW' },
-        { id: '003', name: 'Charger C', location: 'Parking Lot X', status: 'Active', type: 'Normal', power: '50 kW' },
-        { id: '004', name: 'Charger D', location: 'Shopping Mall Y', status: 'Active', type: 'SuperFast', power: '250 kW' },
-        { id: '005', name: 'Charger E', location: 'Highway Rest Area Z', status: 'Inactive', type: 'Fast', power: '180 kW' },
-        { id: '006', name: 'Charger F', location: 'City Center Plaza', status: 'Active', type: 'Ultra', power: '300 kW' },
-        { id: '007', name: 'Charger G', location: 'Residential Area W', status: 'Active', type: 'Normal', power: '60 kW' },
-    ])
+    const [chargers, setChargers] = useState<Charger[]>([])
+    const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
+    const [modalMode, setModalMode] = useState<'create' | 'edit' | 'delete'>('create')
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [totalUsers, setTotalUsers] = useState(0);
+
+    const [errorMessage, setErrorMessage] = useState('')
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/slots/chargers`)
+            .then(response => response.json())
+            .then(slots => {
+                const chargers = slots.map((slot: any) => ({
+                    id: slot.id,
+                    name: slot.name || `Slot ${slot.id}`,
+                    location: slot.station?.name || 'Unknown',
+                    status: slot.reserved ? 'Inactive' : 'Active',
+                    type: slot.chargingType,
+                    power: slot.power,
+                }))
+                setChargers(chargers)
+            })
+            .catch(error => console.error('Error fetching chargers:', error))
+    }, [])
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/users/total-users`)
+            .then(response => response.json())
+            .then(data => setTotalUsers(data))
+            .catch(error => console.error('Error fetching total users:', error));
+    }, []);
+
+    const handleEdit = (charger: Charger) => {
+        if (!charger) return;
+        setSelectedCharger(charger);
+        setModalMode('edit');
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = (charger: Charger) => {
+        setSelectedCharger(charger)
+        setModalMode('delete')
+        setIsModalOpen(true)
+    }
+
+    const handleModalConfirm = (updatedCharger?: Charger) => {
+        if (!updatedCharger) return;
+        setErrorMessage('')
+
+        const payload = {
+            id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
+            name: updatedCharger.name,
+            stationName: updatedCharger.location,
+            reserved: updatedCharger.status === 'Inactive',
+            chargingType: updatedCharger.type,
+            power: updatedCharger.power
+        };
+
+        const url = updatedCharger.id
+            ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
+            : `${API_BASE}/api/slots/dto`;
+
+        const method = updatedCharger.id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(async response => {
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || `Erro ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(newSlot => {
+                const formattedCharger: Charger = {
+                    id: newSlot.id,
+                    name: newSlot.name || `Slot ${newSlot.id}`,
+                    location: newSlot.station?.name || 'Unknown',
+                    status: newSlot.reserved ? 'Inactive' : 'Active',
+                    type: newSlot.chargingType,
+                    power: newSlot.power
+                };
+
+                setChargers(prev => {
+                    const existing = prev.find(c => c.id === formattedCharger.id);
+                    return existing
+                        ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
+                        : [...prev, formattedCharger];
+                });
+
+                setIsModalOpen(false);
+                setErrorMessage('');
+            })
+            .catch(error => {
+                console.error('Error saving charger:', error);
+                setErrorMessage(error.message);
+            });
+    };
+
+    const handleAdd = () => {
+        setSelectedCharger(null)
+        setModalMode('create')
+        setIsModalOpen(true)
+    }
 
     const weeklyUsersData = {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -86,7 +186,7 @@ const AdminPage = () => {
                     display: true,
                 },
                 border: {
-                    display: false,  // This controls the axis line visibility
+                    display: false,
                 },
             },
             x: {
@@ -94,7 +194,7 @@ const AdminPage = () => {
                     display: false,
                 },
                 border: {
-                    display: true,  // Keep the x-axis line visible
+                    display: true,
                 },
             },
         },
@@ -146,32 +246,6 @@ const AdminPage = () => {
         },
     }
 
-    // Modal CRUD Charger
-    const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
-    const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit')
-    const [isModalOpen, setIsModalOpen] = useState(false)
-
-    const handleEdit = (charger: Charger) => {
-        setSelectedCharger(charger)
-        setModalMode('edit')
-        setIsModalOpen(true)
-    }
-
-    const handleDelete = (charger: Charger) => {
-        setSelectedCharger(charger)
-        setModalMode('delete')
-        setIsModalOpen(true)
-    }
-
-    const handleModalConfirm = (updatedCharger?: Charger) => {
-        if (modalMode === 'edit' && updatedCharger) {
-            // Handle charger update
-            console.log('Update charger:', updatedCharger)
-        } else if (modalMode === 'delete') {
-            // Handle charger deletion
-            console.log('Delete charger:', selectedCharger?.id)
-        }
-    }
 
     return (
         <div className="space-y-6">
@@ -190,9 +264,8 @@ const AdminPage = () => {
                     <p className="text-sm text-green-600 mt-1">+8% from last month</p>
                 </div>
                 <div className="card">
-                    <h3 className="text-lg font-semibold text-gray-700">Active Users</h3>
-                    <p className="text-3xl font-bold mt-2">320</p>
-                    <p className="text-sm text-green-600 mt-1">+5% from last month</p>
+                    <h3 className="text-lg font-semibold text-gray-700">Total Users</h3>
+                    <p className="text-3xl font-bold mt-2">{totalUsers}</p>
                 </div>
             </div>
 
@@ -201,7 +274,11 @@ const AdminPage = () => {
                     <Bar data={weeklyUsersData} options={weeklyUsersOptions} />
                 </div>
                 <div className="card">
-                    <Pie data={popularChargersData} options={popularChargersOptions} />
+                    {chargers.length > 0 ? (
+                        <Pie data={popularChargersData} options={popularChargersOptions} />
+                    ) : (
+                        <p className="text-center text-gray-500">No data available for popular chargers.</p>
+                    )}
                 </div>
             </div>
 
@@ -211,7 +288,10 @@ const AdminPage = () => {
                         <Battery size={24} className="text-blue-600" />
                         <h2 className="text-xl font-bold text-gray-800">Charger Management</h2>
                     </div>
-                    <button className="btn bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+                    <button
+                        onClick={handleAdd}
+                        className="btn bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                    >
                         <Plus size={20} />
                         Add Charger
                     </button>
@@ -231,50 +311,61 @@ const AdminPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {chargers.map(charger => (
-                                <tr key={charger.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">{charger.id}</td>
-                                    <td className="px-6 py-4">{charger.name}</td>
-                                    <td className="px-6 py-4">{charger.location}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`badge ${
-                                            charger.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                        }`}>
-                                            {charger.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">{charger.type}</td>
-                                    <td className="px-6 py-4">{charger.power}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-3">
-                                            <button
-                                                onClick={() => handleEdit(charger)}
-                                                className="text-blue-600 hover:text-blue-800"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(charger)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-
-                                            <AdminChargerModal
-                                                isOpen={isModalOpen}
-                                                onClose={() => setIsModalOpen(false)}
-                                                mode={modalMode}
-                                                charger={selectedCharger}
-                                                onConfirm={handleModalConfirm}
-                                            />
-                                        </div>
+                            {chargers.length > 0 ? (
+                                chargers.map(charger => (
+                                    <tr key={charger.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">{charger.id}</td>
+                                        <td className="px-6 py-4">{charger.name}</td>
+                                        <td className="px-6 py-4">{charger.location}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`badge ${charger.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                {charger.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">{charger.type}</td>
+                                        <td className="px-6 py-4">{charger.power}</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex justify-end gap-3">
+                                                <button
+                                                    onClick={() => handleEdit(charger)}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(charger)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                                        No chargers available.
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <AdminChargerModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setErrorMessage('');
+                    setIsModalOpen(false);
+                }}
+                mode={modalMode}
+                charger={selectedCharger}
+                onConfirm={handleModalConfirm}
+                errorMessage={errorMessage}
+            />
         </div>
     )
 }

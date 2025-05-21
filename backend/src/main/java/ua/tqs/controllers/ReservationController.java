@@ -7,6 +7,9 @@ import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 import ua.tqs.services.ReservationService;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -17,22 +20,37 @@ public class ReservationController {
     private ReservationService reservationService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createReservation(@RequestBody ReservationRequestDTO dto) {
+    public ResponseEntity<ReservationResponseDTO> createReservation(@RequestBody ReservationRequestDTO dto) {
         Optional<ReservationResponseDTO> reservation = reservationService.createReservation(dto);
-        if (reservation.isPresent()) {
-            return ResponseEntity.ok(reservation.get());
-        } else {
-            return ResponseEntity.badRequest().body("Invalid reservation or unavailable slot.");
-        }
+        return reservation
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<?> cancelReservation(@PathVariable Long id) {
+    public ResponseEntity<String> cancelReservation(@PathVariable Long id) {
         boolean success = reservationService.cancelReservation(id);
         if (success) {
             return ResponseEntity.ok("Reservation successfully cancelled.");
         } else {
             return ResponseEntity.badRequest().body("Reservation not found or already cancelled.");
         }
+    }
+
+    @GetMapping("/myReservations")
+    public ResponseEntity<List<ReservationResponseDTO>> getMyReservations(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        List<ReservationResponseDTO> reservations = reservationService.getReservationsByToken(token);
+        return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/revenue")
+    public ResponseEntity<Map<String, Object>> getRevenue() {
+        double totalRevenue = reservationService.getTotalRevenue();
+
+        Map<String, Object> revenue = new HashMap<>();
+        revenue.put("totalRevenue", totalRevenue);
+
+        return ResponseEntity.ok(revenue);
     }
 }

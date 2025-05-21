@@ -27,26 +27,30 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
             authManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    request.getUsername(), request.getPassword()));
+                    request.getEmail(), request.getPassword()));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String token = jwtUtil.generateToken(userDetails.getUsername(), userDetails.getAuthorities().iterator().next().getAuthority());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        String token = jwtUtil.generateToken(
+                userDetails.getUsername(),
+                userDetails.getAuthorities().iterator().next().getAuthority()
+        );
 
-        return ResponseEntity.ok(new AuthResponse(token));
+        String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        return ResponseEntity.ok(new AuthResponse(token, role));
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody AuthRequest request) {
-        if (userDetailsService.userExists(request.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+        if (userDetailsService.userExists(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Email already exists");
         }
 
         try {
             userDetailsService.registerUser(
-                    request.getUsername(),
+                    request.getEmail(),
                     request.getPassword(),
                     request.getName(),
                     request.getRole()

@@ -18,6 +18,9 @@ public class Slot {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false)
+    private String name;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
@@ -31,4 +34,6 @@ public class Slot {
 
     @Enumerated(EnumType.STRING)
     private ChargingType chargingType;
+
+    private String power;
 }
