@@ -18,6 +18,8 @@ public class Slot {
     @GeneratedValue
     private Long id;
 
+    private String name;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 

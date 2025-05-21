@@ -69,6 +69,7 @@ public class SlotService {
                 ? slotRepository.findById(dto.getId()).orElse(new Slot())
                 : new Slot();
 
+        slot.setName(dto.getName());
         slot.setStation(station);
         slot.setReserved(dto.isReserved());
         slot.setChargingType(dto.getChargingType());

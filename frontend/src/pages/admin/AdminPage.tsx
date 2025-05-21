@@ -48,12 +48,12 @@ const AdminPage = () => {
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
                     id: slot.id,
-                    name: `Slot ${slot.id}`,
+                    name: slot.name || `Slot ${slot.id}`,
                     location: slot.station?.name || 'Unknown',
                     status: slot.reserved ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
-                }))
+                }))                
                 setChargers(chargers)
             })
             .catch(error => console.error('Error fetching chargers:', error))
@@ -84,11 +84,12 @@ const AdminPage = () => {
     
         const payload = {
             id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
+            name: updatedCharger.name,
             stationName: updatedCharger.location,
             reserved: updatedCharger.status === 'Inactive',
             chargingType: updatedCharger.type,
             power: updatedCharger.power
-        };
+        };        
     
         const url = updatedCharger.id
             ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
@@ -113,12 +114,12 @@ const AdminPage = () => {
             .then(newSlot => {
                 const formattedCharger: Charger = {
                     id: newSlot.id,
-                    name: `Slot ${newSlot.id}`,
+                    name: newSlot.name || `Slot ${newSlot.id}`,
                     location: newSlot.station?.name || 'Unknown',
                     status: newSlot.reserved ? 'Inactive' : 'Active',
                     type: newSlot.chargingType,
                     power: newSlot.power
-                };
+                };                
     
                 setChargers(prev => {
                     const existing = prev.find(c => c.id === formattedCharger.id);
