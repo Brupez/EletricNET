@@ -33,10 +33,13 @@ public class AuthController {
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
-        String token = jwtUtil.generateToken(userDetails.getUsername(),
-                userDetails.getAuthorities().iterator().next().getAuthority());
+        String token = jwtUtil.generateToken(
+                userDetails.getUsername(),
+                userDetails.getAuthorities().iterator().next().getAuthority()
+        );
 
-        return ResponseEntity.ok(new AuthResponse(token));
+        String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
+        return ResponseEntity.ok(new AuthResponse(token, role));
     }
 
     @PostMapping("/register")

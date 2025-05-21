@@ -3,6 +3,7 @@ package ua.tqs.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ua.tqs.dto.SlotDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.services.SlotService;
 
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/slots")
 public class SlotController {
@@ -30,9 +32,10 @@ public class SlotController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Slot> createSlot(@RequestBody Slot slot) {
-        return ResponseEntity.ok(slotService.saveOrUpdateSlot(slot));
+    @PostMapping("/dto")
+    public ResponseEntity<Slot> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+        Slot created = slotService.saveOrUpdateSlotFromDTO(slotDTO);
+        return ResponseEntity.ok(created);
     }
 
     @GetMapping("/station/{stationId}")
@@ -40,7 +43,7 @@ public class SlotController {
         return ResponseEntity.ok(slotService.getSlotsByStationId(stationId));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteSlot(@PathVariable Long id) {
         boolean success = slotService.deleteSlot(id);
         if (success) {

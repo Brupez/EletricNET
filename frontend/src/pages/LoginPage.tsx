@@ -3,6 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
 
+export async function onLogin(email: string, password: string): Promise<string | null> {
+    const response = await fetch('http://localhost:8081/api/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    localStorage.setItem('token', data.token);
+
+    localStorage.setItem('role', data.role);
+
+    return data.role === 'ADMIN' ? '/admin' : '/user';
+}
+
 interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
 }

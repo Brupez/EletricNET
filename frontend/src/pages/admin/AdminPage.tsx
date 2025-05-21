@@ -24,6 +24,8 @@ ChartJS.register(
     ArcElement
 )
 
+const API_BASE = 'http://localhost:8081'
+
 interface Charger {
     id: string
     name: string
@@ -41,7 +43,7 @@ const AdminPage = () => {
     const [totalUsers, setTotalUsers] = useState(0);
 
     useEffect(() => {
-        fetch('/api/slots/chargers')
+        fetch(`${API_BASE}/api/slots/chargers`)
             .then(response => response.json())
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
@@ -58,7 +60,7 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch('/api/users/total-users')
+        fetch(`${API_BASE}/api/users/total-users`)
             .then(response => response.json())
             .then(data => setTotalUsers(data))
             .catch(error => console.error('Error fetching total users:', error));
@@ -77,37 +79,51 @@ const AdminPage = () => {
     }
 
     const handleModalConfirm = (updatedCharger?: Charger) => {
-        if (modalMode === 'edit' && updatedCharger) {
-            fetch('/api/slots', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: updatedCharger.id,
-                    chargingType: updatedCharger.type,
-                    power: updatedCharger.power,
-                    reserved: updatedCharger.status === 'Inactive',
-                }),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    setChargers(prev => prev.map(c => (c.id === updatedCharger.id ? data : c)))
-                    console.log('Charger updated successfully')
-                })
-                .catch(error => console.error('Error updating charger:', error))
-        } else if (modalMode === 'delete') {
-            fetch(`/api/slots/${selectedCharger?.id}`, {
-                method: 'DELETE',
-            })
-                .then(() => {
-                    setChargers(prev => prev.filter(c => c.id !== selectedCharger?.id))
-                    console.log('Charger deleted successfully')
-                })
-                .catch(error => console.error('Error deleting charger:', error))
-        }
-        setIsModalOpen(false)
-    }
+        if (!updatedCharger) return;
+    
+        const payload = {
+            id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
+            stationName: updatedCharger.location,
+            reserved: updatedCharger.status === 'Inactive',
+            chargingType: updatedCharger.type,
+            power: updatedCharger.power
+        };
+    
+        fetch(`${API_BASE}/api/slots/dto`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        })        
+        .then(async response => {
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Erro ${response.status}: ${error}`);
+            }
+            return response.json();
+        })
+        .then(newSlot => {
+            const formattedCharger: Charger = {
+                id: newSlot.id,
+                name: `Slot ${newSlot.id}`,
+                location: newSlot.station?.name || 'Unknown',
+                status: newSlot.reserved ? 'Inactive' : 'Active',
+                type: newSlot.chargingType,
+                power: newSlot.power
+            };
+    
+            setChargers(prev => {
+                const existing = prev.find(c => c.id === formattedCharger.id);
+                return existing
+                    ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
+                    : [...prev, formattedCharger];
+            });
+        })
+        .catch(error => console.error('Error saving charger:', error));
+    
+        setIsModalOpen(false);
+    };    
 
     const handleAdd = () => {
         setSelectedCharger(null)
