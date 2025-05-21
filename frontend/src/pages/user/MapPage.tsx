@@ -8,7 +8,7 @@ interface Place extends PlaceResult {
       location: google.maps.LatLng;
     };
     place_id: string;
-    types?: string[];
+    isOpen?: boolean;
     name: string;
     vicinity?: string;
 }
@@ -73,15 +73,46 @@ const MapPage = () => {
         });
     };
 
-    const handleNearbySearch = (
+    const getPlaceDetails = async (
+        place: Place,
+        service: google.maps.places.PlacesService
+    ): Promise<Place> => {
+        return new Promise((resolve) => {
+            service.getDetails(
+                {
+                    placeId: place.place_id,
+                    fields: ['opening_hours'],
+                },
+                (result, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && result?.opening_hours) {
+                        resolve({
+                            ...place,
+                            isOpen: result.opening_hours.isOpen(),
+                        });
+                    } else {
+                        resolve(place);
+                    }
+                }
+            );
+        });
+    };
+
+    const handleNearbySearch = async (
         results: Place[],
         status: string,
         map: google.maps.Map,
-        customMarker: google.maps.Symbol
+        customMarker: google.maps.Symbol,
+        service: google.maps.places.PlacesService
     ) => {
+        console.log('Places API Status:', status);
+        console.log('Places API Results:', JSON.stringify(results, null, 2));
+
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            setPlaces(results);
-            results.forEach(place => createMarker(place, map, customMarker));
+            const placesWithDetails = await Promise.all(
+                results.map(place => getPlaceDetails(place, service))
+            );
+            setPlaces(placesWithDetails);
+            placesWithDetails.forEach(place => createMarker(place, map, customMarker));
         }
     };
 
@@ -100,9 +131,9 @@ const MapPage = () => {
             {
                 location: results[0].geometry.location,
                 radius: 5000,
-                type: "charging_station",
+                types: "electric_vehicle_charging_station"
             },
-            (results, status) => handleNearbySearch(results, status, map, customMarker)
+            (results, status) => handleNearbySearch(results, status, map, customMarker, service)
         );
     };
 
@@ -146,6 +177,9 @@ const MapPage = () => {
                         <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
                             <span className="font-medium">{place.name}</span>
                             <p className="text-sm text-gray-600">{place.vicinity}</p>
+                            <p className={`text-sm ${place.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                                {place.isOpen ? "Open Now" : "Closed"}
+                            </p>
                         </li>
                     ))}
                 </ul>
