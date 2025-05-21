@@ -33,9 +33,13 @@ public class SlotController {
     }
 
     @PostMapping("/dto")
-    public ResponseEntity<Slot> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
-        Slot created = slotService.saveOrUpdateSlotFromDTO(slotDTO);
-        return ResponseEntity.ok(created);
+    public ResponseEntity<?> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+        try {
+            Slot created = slotService.saveOrUpdateSlotFromDTO(slotDTO);
+            return ResponseEntity.ok(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/station/{stationId}")
@@ -77,11 +81,12 @@ public class SlotController {
         if (existingSlot.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
         slotDTO.setId(id);
-
-        Slot updated = slotService.saveOrUpdateSlotFromDTO(slotDTO);
-        return ResponseEntity.ok(updated);
+        try {
+            Slot updated = slotService.saveOrUpdateSlotFromDTO(slotDTO);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-
 }

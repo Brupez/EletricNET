@@ -6,4 +6,6 @@ import ua.tqs.models.Slot;
 
 @Repository
 public interface SlotRepository extends JpaRepository<Slot, Long> {
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

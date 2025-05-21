@@ -38,9 +38,11 @@ interface Charger {
 const AdminPage = () => {
     const [chargers, setChargers] = useState<Charger[]>([])
     const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
-    const [modalMode, setModalMode] = useState<'edit' | 'delete'>('edit')
+    const [modalMode, setModalMode] = useState<'create' | 'edit' | 'delete'>('create')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [totalUsers, setTotalUsers] = useState(0);
+
+    const [errorMessage, setErrorMessage] = useState('')
 
     useEffect(() => {
         fetch(`${API_BASE}/api/slots/chargers`)
@@ -53,7 +55,7 @@ const AdminPage = () => {
                     status: slot.reserved ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
-                }))                
+                }))
                 setChargers(chargers)
             })
             .catch(error => console.error('Error fetching chargers:', error))
@@ -81,7 +83,8 @@ const AdminPage = () => {
 
     const handleModalConfirm = (updatedCharger?: Charger) => {
         if (!updatedCharger) return;
-    
+        setErrorMessage('')
+
         const payload = {
             id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
             name: updatedCharger.name,
@@ -89,25 +92,23 @@ const AdminPage = () => {
             reserved: updatedCharger.status === 'Inactive',
             chargingType: updatedCharger.type,
             power: updatedCharger.power
-        };        
-    
+        };
+
         const url = updatedCharger.id
             ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
             : `${API_BASE}/api/slots/dto`;
-    
+
         const method = updatedCharger.id ? 'PUT' : 'POST';
-    
+
         fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            method,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
             .then(async response => {
                 if (!response.ok) {
                     const error = await response.text();
-                    throw new Error(`Erro ${response.status}: ${error}`);
+                    throw new Error(error || `Erro ${response.status}`);
                 }
                 return response.json();
             })
@@ -119,23 +120,26 @@ const AdminPage = () => {
                     status: newSlot.reserved ? 'Inactive' : 'Active',
                     type: newSlot.chargingType,
                     power: newSlot.power
-                };                
-    
+                };
+
                 setChargers(prev => {
                     const existing = prev.find(c => c.id === formattedCharger.id);
                     return existing
                         ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
                         : [...prev, formattedCharger];
                 });
+
+                setIsModalOpen(false);
             })
-            .catch(error => console.error('Error saving charger:', error));
-    
-        setIsModalOpen(false);
+            .catch(error => {
+                console.error('Error saving charger:', error);
+                setErrorMessage(error.message);
+            });
     };
 
     const handleAdd = () => {
         setSelectedCharger(null)
-        setModalMode('edit')
+        setModalMode('create')
         setIsModalOpen(true)
     }
 
@@ -240,6 +244,7 @@ const AdminPage = () => {
             },
         },
     }
+
 
     return (
         <div className="space-y-6">
@@ -351,10 +356,14 @@ const AdminPage = () => {
 
             <AdminChargerModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setErrorMessage('');
+                    setIsModalOpen(false);
+                }}
                 mode={modalMode}
                 charger={selectedCharger}
                 onConfirm={handleModalConfirm}
+                errorMessage={errorMessage}
             />
         </div>
     )

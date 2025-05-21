@@ -28,8 +28,12 @@ public class SlotService {
         return slotRepository.findById(id);
     }
 
-    public Slot saveOrUpdateSlot(Slot slot) {
-        return slotRepository.save(slot);
+    public boolean existsByName(String name) {
+        return slotRepository.existsByName(name);
+    }
+
+    public boolean existsByNameExceptId(String name, Long id) {
+        return slotRepository.existsByNameAndIdNot(name, id);
     }
 
     public List<Slot> getSlotsByStationId(Long stationId) {
@@ -58,6 +62,16 @@ public class SlotService {
     }
 
     public Slot saveOrUpdateSlotFromDTO(SlotDTO dto) {
+        if (dto.getId() != null) {
+            if (slotRepository.existsByNameAndIdNot(dto.getName(), dto.getId())) {
+                throw new IllegalArgumentException("Slot name already exists");
+            }
+        } else {
+            if (slotRepository.existsByName(dto.getName())) {
+                throw new IllegalArgumentException("Slot name already exists");
+            }
+        }
+
         Station station = stationRepository.findByName(dto.getStationName())
                 .orElseGet(() -> {
                     Station newStation = new Station();

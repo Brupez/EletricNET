@@ -18,6 +18,7 @@ public class Slot {
     @GeneratedValue
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
     private LocalDateTime startTime;
