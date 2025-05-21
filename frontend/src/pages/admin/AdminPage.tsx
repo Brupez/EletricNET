@@ -98,55 +98,55 @@ const AdminPage = () => {
     const searchNearbyChargers = async (address: string): Promise<Place[]> => {
         await loadGoogleMapsApi();
         const { google } = window as any;
-      
+
         const map = new google.maps.Map(document.createElement('div'));
-      
+
         const geocoder = new google.maps.Geocoder();
-      
+
         return new Promise((resolve, reject) => {
-          geocoder.geocode({ address }, (results: any, status: string) => {
-            if (status !== 'OK' || !results[0]) {
-              reject(new Error('Geocode failed: ' + status));
-              return;
-            }
-      
-            const location = results[0].geometry.location;
-      
-            const service = new google.maps.places.PlacesService(map);
-            service.nearbySearch(
-              {
-                location,
-                radius: 5000,
-                type: 'charging_station',
-              },
-              (places: Place[], status: string) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                  resolve(places);
-                } else {
-                  reject(new Error('NearbySearch failed: ' + status));
+            geocoder.geocode({ address }, (results: any, status: string) => {
+                if (status !== 'OK' || !results[0]) {
+                    reject(new Error('Geocode failed: ' + status));
+                    return;
                 }
-              }
-            );
-          });
+
+                const location = results[0].geometry.location;
+
+                const service = new google.maps.places.PlacesService(map);
+                service.nearbySearch(
+                    {
+                        location,
+                        radius: 5000,
+                        type: 'charging_station',
+                    },
+                    (places: Place[], status: string) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            resolve(places);
+                        } else {
+                            reject(new Error('NearbySearch failed: ' + status));
+                        }
+                    }
+                );
+            });
         });
-      };
-      
-      const handleSearch = async () => {
+    };
+
+    const handleSearch = async () => {
         if (!searchQuery.trim()) {
-          setExternalChargers([]);
-          return;
+            setExternalChargers([]);
+            return;
         }
         setIsSearching(true);
         setSearchError('');
         try {
-          const results = await searchNearbyChargers(searchQuery.trim());
-          setExternalChargers(results);
+            const results = await searchNearbyChargers(searchQuery.trim());
+            setExternalChargers(results);
         } catch (error) {
-          setSearchError((error as Error).message);
+            setSearchError((error as Error).message);
         } finally {
-          setIsSearching(false);
+            setIsSearching(false);
         }
-      };
+    };
 
     const combinedChargers = [
         ...chargers,
@@ -409,7 +409,7 @@ const AdminPage = () => {
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">ID</th>
+                                {/* <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">ID</th> */}
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Name</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Location</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
@@ -418,11 +418,12 @@ const AdminPage = () => {
                                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
                             </tr>
                         </thead>
+
                         <tbody className="divide-y divide-gray-200">
                             {combinedChargers.length > 0 ? (
                                 combinedChargers.map(charger => (
                                     <tr key={charger.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">{charger.id}</td>
+                                        {/* <td className="px-6 py-4">{charger.id}</td> */}
                                         <td className="px-6 py-4">{charger.name}</td>
                                         <td className="px-6 py-4">
                                             {charger.type === 'EXTERNAL' ? (
@@ -440,7 +441,7 @@ const AdminPage = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`badge ${charger.type === 'EXTERNAL' ? 'bg-yellow-100 text-yellow-800' :
-                                                    charger.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                charger.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                                 }`}>
                                                 {charger.type === 'EXTERNAL' ? 'External' : charger.status}
                                             </span>
@@ -469,7 +470,7 @@ const AdminPage = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
                                         No chargers available.
                                     </td>
                                 </tr>
