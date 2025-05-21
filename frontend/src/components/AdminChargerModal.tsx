@@ -28,6 +28,8 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
         power: ''
     })
 
+    const chargingTypes = ['NORMAL', 'FAST', 'ULTRA_FAST']
+
     useEffect(() => {
         if (charger) {
             setFormData(charger)
@@ -126,15 +128,21 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Type
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     value={formData.type}
                                     onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
-                                />
+                                >
+                                    <option value="" disabled>Select charging type</option>
+                                    {chargingTypes.map(type => (
+                                        <option key={type} value={type}>
+                                            {type.replace('_', ' ')}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-
+                            
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Power

@@ -70,4 +70,18 @@ public class SlotController {
 
         return ResponseEntity.ok(stats);
     }
+
+    @PutMapping("/dto/{id}")
+    public ResponseEntity<?> updateSlotFromDto(@PathVariable Long id, @RequestBody SlotDTO slotDTO) {
+        Optional<Slot> existingSlot = slotService.getSlotById(id);
+        if (existingSlot.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        slotDTO.setId(id);
+
+        Slot updated = slotService.saveOrUpdateSlotFromDTO(slotDTO);
+        return ResponseEntity.ok(updated);
+    }
+
 }
