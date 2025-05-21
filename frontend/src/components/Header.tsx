@@ -1,4 +1,4 @@
-import { Search, Calendar, Clock } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 const Header = () => {
     return (
@@ -12,25 +12,6 @@ const Header = () => {
                             placeholder="Location..."
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="date"
-                                className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                        </div>
-                        <div className="relative">
-                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="time"
-                                className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                            />
-                        </div>
                     </div>
                 </div>
             </div>
