@@ -7,7 +7,7 @@ on:
 
 jobs:
   sonarqube:
-    name: SonarQube Analysis
+    name: SonarQube Analysis and Report to Xray
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +44,15 @@ jobs:
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
+
+      - name: Upload to Xray
+        uses: mikepenz/xray-action@v3
+        with:
+          clientId: ${{ secrets.XRAY_CLIEND_ID }}
+          clientSecret: ${{ secrets.XRAY_CLIENT_SECRET }}
+          testFormat: 'junit'
+          projectKey: 'EN'
+          testExecKey: ''
 
   deploy:
     name: Deploy Application

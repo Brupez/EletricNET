@@ -87,6 +87,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <version>3.4.4</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -201,6 +202,7 @@
                         <include>**/*Test.java</include>
                         <include>**/*IT.java</include>
                     </includes>
+                    <reportsDirectory>target/surefire-reports</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>
