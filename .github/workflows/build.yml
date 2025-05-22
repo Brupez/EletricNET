@@ -191,3 +191,18 @@ jobs:
           docker container prune -f
           docker image prune -af
           docker builder prune -af
+
+  check-required:
+    name: Check Required Status
+    needs: [sonarqube, deploy, lighthouse]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Status
+        run: |
+          if [ "${{ needs.sonarqube.result }}" != "success" ] || \
+             [ "${{ needs.deploy.result }}" != "success" ] || \
+             [ "${{ needs.lighthouse.result }}" != "success" ]; then
+            echo "Some analysis failed."
+            exit 1
+          fi
