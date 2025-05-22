@@ -40,7 +40,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd backend
-          mvn -B -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B verify -Dtest=ReservationDTOTest test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
