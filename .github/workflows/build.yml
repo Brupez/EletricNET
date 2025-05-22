@@ -48,8 +48,9 @@ jobs:
       - name: Upload to Xray
         uses: mikepenz/xray-action@v3
         with:
-          clientId: ${{ secrets.XRAY_CLIEND_ID }}
-          clientSecret: ${{ secrets.XRAY_CLIENT_SECRET }}
+          xrayCloud: 'true'
+          username: ${{ secrets.XRAY_CLIEND_ID }}
+          password: ${{ secrets.XRAY_CLIENT_SECRET }}
           testFormat: 'junit'
           projectKey: 'EN'
           testExecKey: ''
