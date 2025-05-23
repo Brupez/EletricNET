@@ -31,8 +31,8 @@
         <!-- Sonarqube -->
         <sonar.organization>eletricnet</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <java.version>17</java.version>
 
-        <java.version>21</java.version>
     </properties>
 
     <dependencyManagement>
@@ -87,6 +87,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <version>3.4.4</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -109,6 +110,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- RestAssuredMockMvc -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>spring-mock-mvc</artifactId>
+            <version>5.3.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Cucumber (Java + JUnit Platform Engine) -->
         <dependency>
             <groupId>io.cucumber</groupId>
@@ -123,6 +132,11 @@
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -184,36 +198,18 @@
                     </excludes>
                 </configuration>
             </plugin>
-
-            <!-- CheckList code Styling -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--                <version>3.3.1</version>-->
-<!--                <configuration>-->
-<!--                    <configLocation>google_checks.xml</configLocation>-->
-<!--                    <encoding>UTF-8</encoding>-->
-<!--                    <failsOnError>true</failsOnError>-->
-<!--                    <consoleOutput>true</consoleOutput>-->
-<!--                    <violationSeverity>warning</violationSeverity>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>checkstyle</id>-->
-<!--                        <phase>validate</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>check</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>com.puppycrawl.tools</groupId>-->
-<!--                        <artifactId>checkstyle</artifactId>-->
-<!--                        <version>10.14.2</version>-->
-<!--                    </dependency>-->
-<!--                </dependencies>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <includes>
+                        <include>**/dto/*.java</include>
+                        <include>**/services/*.java</include>
+                    </includes>
+                    <reportsDirectory>target/surefire-reports</reportsDirectory>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

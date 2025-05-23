@@ -14,7 +14,7 @@ import java.util.Optional;
 public class ReservationController {
 
     @Autowired
-    private ReservationService reservationService;
+    public ReservationService reservationService;
 
     @PostMapping("/create")
     public ResponseEntity<?> createReservation(@RequestBody ReservationRequestDTO dto) {
