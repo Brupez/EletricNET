@@ -43,7 +43,6 @@ jobs:
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.login=$SONAR_TOKEN
       
 
       - name: Upload to Xray
