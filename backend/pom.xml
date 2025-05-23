@@ -204,8 +204,8 @@
                 <version>3.5.2</version>
                 <configuration>
                     <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*IT.java</include>
+                        <include>**/dto/*.java</include>
+                        <include>**/services/*.java</include>
                     </includes>
                     <reportsDirectory>target/surefire-reports</reportsDirectory>
                 </configuration>
