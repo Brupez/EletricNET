@@ -134,6 +134,11 @@
             <artifactId>junit-platform-suite</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>

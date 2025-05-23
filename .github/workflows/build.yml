@@ -54,6 +54,7 @@ jobs:
           testFormat: 'junit'
           projectKey: 'EN'
           testExecKey: ''
+          testPaths: '**/target/surefire-reports/*.xml'
 
   deploy:
     name: Deploy Application
