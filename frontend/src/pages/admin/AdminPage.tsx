@@ -36,6 +36,8 @@ interface Charger {
     status: 'Active' | 'Inactive'
     type: string
     power: string
+    latitude?: number
+    longitude?: number
 }
 
 interface Place extends PlaceResult {
@@ -178,8 +180,10 @@ const AdminPage = () => {
             stationName: updatedCharger.location,
             reserved: updatedCharger.status === 'Inactive',
             chargingType: updatedCharger.type,
-            power: updatedCharger.power
-        };
+            power: updatedCharger.power,
+            latitude: updatedCharger.latitude,
+            longitude: updatedCharger.longitude
+        };        
 
         const url = updatedCharger.id
             ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`

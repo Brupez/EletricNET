@@ -1,5 +1,7 @@
-import { X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import LocationModalPage from './LocationModalPage';
+
 
 interface Charger {
     id: string
@@ -8,6 +10,8 @@ interface Charger {
     status: 'Active' | 'Inactive'
     type: string
     power: string
+    latitude?: number
+    longitude?: number
 }
 
 interface AdminChargerModalProps {
@@ -30,6 +34,7 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
     })
 
     const chargingTypes = ['NORMAL', 'FAST', 'ULTRA_FAST']
+    const [showMap, setShowMap] = useState(false)
 
     useEffect(() => {
         if (mode == 'edit' && charger) {
@@ -124,13 +129,32 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Location
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.location}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={formData.location}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, location: e.target.value }))
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ex: Aveiro"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMap(true)}
+                                        className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        title="Open Map"
+                                    >
+                                        📍 Map
+                                    </button>
+                                </div>
+                                {formData.latitude && formData.longitude && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Selected coords: {formData.latitude.toFixed(5)},{" "}
+                                        {formData.longitude.toFixed(5)}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -201,6 +225,22 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
                         </div>
                     </form>
                 )}
+
+                {showMap && (
+                    <LocationModalPage
+                        onClose={() => setShowMap(false)}
+                        onSelect={(lat, lng, placeName) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                latitude: lat,
+                                longitude: lng,
+                                location: placeName || prev.location,
+                            }));
+                            setShowMap(false);
+                        }}
+                    />
+                )}
+
             </div>
         </div>
     )

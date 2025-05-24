@@ -88,6 +88,8 @@ public class SlotService {
         slot.setReserved(dto.isReserved());
         slot.setChargingType(dto.getChargingType());
         slot.setPower(dto.getPower());
+        slot.setLatitude(dto.getLatitude());
+        slot.setLongitude(dto.getLongitude());
 
         return slotRepository.save(slot);
     }

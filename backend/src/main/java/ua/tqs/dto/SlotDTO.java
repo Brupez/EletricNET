@@ -15,4 +15,7 @@ public class SlotDTO {
     private boolean reserved;
     private ChargingType chargingType;
     private String power;
+    private Double latitude;
+    private Double longitude;
+
 }
