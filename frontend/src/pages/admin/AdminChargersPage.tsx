@@ -1,6 +1,5 @@
 import {
     Calendar,
-    Plus,
     ChevronUp,
     ChevronDown,
     History,
@@ -23,7 +22,7 @@ interface ReservationResponseDTO {
 
 const API_BASE = 'http://localhost:8081'
 
-const AdminChargersPage = () => {
+const AdminReservationsPage = () => {
     const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
     const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -39,12 +38,8 @@ const AdminChargersPage = () => {
             .catch(err => console.error("Error fetching reservations", err))
     }, [])
 
-    const handleAddCharger = () => {
-        navigate('/admin/chargers/add')
-    }
-
     const handleViewDetails = (id: number) => {
-        navigate(`/admin/charger/${id}`)
+        navigate(`/admin/reservation/${id}`)
     }
 
     const handleSort = (field: SortField) => {
@@ -93,7 +88,7 @@ const AdminChargersPage = () => {
     const activeReservations = reservations.filter(r => r.state === 'ACTIVE')
     const historyReservations = reservations.filter(r => r.state !== 'ACTIVE')
 
-    const ChargerTable = ({ data }: { data: ReservationResponseDTO[] }) => {
+    const ReservationTable = ({ data }: { data: ReservationResponseDTO[] }) => {
         const sorted = getSortedData(data)
         const paginated = sorted.slice(
             (currentPage - 1) * itemsPerPage,
@@ -114,13 +109,13 @@ const AdminChargersPage = () => {
                                 Status <SortIcon field="status" />
                             </th>
                             <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('category')}>
-                                Type <SortIcon field="category" />
+                                Charging Type <SortIcon field="category" />
                             </th>
                             <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('price')}>
-                                Price <SortIcon field="price" />
+                                Cost <SortIcon field="price" />
                             </th>
                             <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('date')}>
-                                Date <SortIcon field="date" />
+                                Created At <SortIcon field="date" />
                             </th>
                             <th className="px-6 py-4 text-sm text-gray-500">Actions</th>
                         </tr>
@@ -163,7 +158,7 @@ const AdminChargersPage = () => {
                 </table>
             </div>
         )
-    }    
+    }
 
     const totalPages = Math.max(1, Math.ceil(reservations.length / itemsPerPage))
 
@@ -196,33 +191,24 @@ const AdminChargersPage = () => {
         <>
             <div className="space-y-8 mt-8">
                 <div className="card w-full">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <Calendar size={24} className="text-blue-700" />
-                            <h2 className="text-2xl font-bold text-gray-800">Current chargers</h2>
-                            <button
-                                onClick={handleAddCharger}
-                                className="btn bg-[#1E3A8A] hover:bg-blue-700 text-white flex items-center gap-2 ml-4"
-                            >
-                                <Plus size={20} />
-                                Add charger
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-3 mb-6">
+                        <Calendar size={24} className="text-blue-700" />
+                        <h2 className="text-2xl font-bold text-gray-800">Active Reservations</h2>
                     </div>
-                    <ChargerTable data={activeReservations} />
+                    <ReservationTable data={activeReservations} />
                 </div>
-            </div>
 
-            <div className="card w-full mt-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <History size={24} className="text-blue-700" />
-                    <h2 className="text-2xl font-bold text-gray-800">Chargers History</h2>
+                <div className="card w-full mt-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <History size={24} className="text-blue-700" />
+                        <h2 className="text-2xl font-bold text-gray-800">Reservation History</h2>
+                    </div>
+                    <ReservationTable data={historyReservations} />
+                    <Pagination />
                 </div>
-                <ChargerTable data={historyReservations} />
-                <Pagination />
             </div>
         </>
     )
 }
 
-export default AdminChargersPage
+export default AdminReservationsPage
