@@ -188,9 +188,30 @@ const AdminPage = () => {
     }
 
     const handleModalConfirm = (updatedCharger?: Charger) => {
-        if (!updatedCharger) return;
         setErrorMessage('')
-
+    
+        if (modalMode === 'delete' && selectedCharger) {
+            fetch(`${API_BASE}/api/slots/delete/${selectedCharger.id}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao apagar charger');
+                    }
+                    setChargers(prev => prev.filter(c => c.id !== selectedCharger.id));
+                    setIsModalOpen(false);
+                    setSelectedCharger(null);
+                })
+                .catch(error => {
+                    console.error(error);
+                    setErrorMessage(error.message);
+                });
+    
+            return;
+        }
+    
+        if (!updatedCharger) return;
+    
         const payload = {
             id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
             name: updatedCharger.name,
@@ -201,13 +222,13 @@ const AdminPage = () => {
             latitude: updatedCharger.latitude,
             longitude: updatedCharger.longitude
         };
-
+    
         const url = updatedCharger.id
             ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
             : `${API_BASE}/api/slots/dto`;
-
+    
         const method = updatedCharger.id ? 'PUT' : 'POST';
-
+    
         fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
@@ -229,14 +250,14 @@ const AdminPage = () => {
                     type: newSlot.chargingType,
                     power: newSlot.power
                 };
-
+    
                 setChargers(prev => {
                     const existing = prev.find(c => c.id === formattedCharger.id);
                     return existing
                         ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
                         : [...prev, formattedCharger];
                 });
-
+    
                 setIsModalOpen(false);
                 setErrorMessage('');
             })
@@ -244,7 +265,7 @@ const AdminPage = () => {
                 console.error('Error saving charger:', error);
                 setErrorMessage(error.message);
             });
-    };
+    };    
 
     const handleAdd = () => {
         setSelectedCharger(null)
