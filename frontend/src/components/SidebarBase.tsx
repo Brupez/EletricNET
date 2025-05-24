@@ -56,7 +56,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = ({ sidebarBgColor, onLogout, nav
         onClick={handleLogoClick}
         className="p-4 border-b border-white/20 flex justify-center items-center w-full gap-3"
       >
-        <img src={logo} alt="logo" className="h-16 w-auto" />
+        <img src={logo} alt="logo" className="h-[5rem] w-[11rem]" />
         <span className="text-lg font-semibold text-white tracking-wide">{label}</span>
       </button>
 
