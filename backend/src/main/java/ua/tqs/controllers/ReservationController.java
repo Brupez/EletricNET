@@ -19,6 +19,12 @@ public class ReservationController {
     @Autowired
     private ReservationService reservationService;
 
+    @GetMapping
+    public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {
+        List<ReservationResponseDTO> reservations = reservationService.getAllReservations();
+        return ResponseEntity.ok(reservations);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<ReservationResponseDTO> createReservation(@RequestBody ReservationRequestDTO dto) {
         Optional<ReservationResponseDTO> reservation = reservationService.createReservation(dto);

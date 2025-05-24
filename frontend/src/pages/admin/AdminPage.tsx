@@ -168,7 +168,8 @@ const AdminPage = () => {
     ]
     : chargers;
 
-    const totalPages = Math.ceil(filteredChargers.length / itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(filteredChargers.length / itemsPerPage));
+
     const paginatedChargers = filteredChargers.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage

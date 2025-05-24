@@ -119,4 +119,22 @@ public class ReservationService {
                 .mapToDouble(Reservation::getTotalCost)
                 .sum();
     }
+
+    public List<ReservationResponseDTO> getAllReservations() {
+        return reservationRepository.findAll().stream().map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setSlotId(reservation.getSlot().getId());
+            dto.setState(reservation.getStatus().name());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setChargingType(reservation.getSlot().getChargingType().name());
+            dto.setCreatedAt(reservation.getCreationDate());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 }
