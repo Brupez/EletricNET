@@ -64,6 +64,9 @@ const AdminPage = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         fetch(`${API_BASE}/api/slots/chargers`)
             .then(response => response.json())
@@ -150,12 +153,26 @@ const AdminPage = () => {
         }
     };
 
-    const combinedChargers = [
-        ...chargers,
+    const filteredChargers = searchQuery.trim()
+    ? [
+        ...chargers.filter(c =>
+            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.location.toLowerCase().includes(searchQuery.toLowerCase())
+        ),
         ...externalChargers
-            .filter(ext => !chargers.some(c => c.id === ext.place_id))
+            .filter(ext =>
+                ext.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (ext.vicinity ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+            )
             .map(formatExternalToCharger)
-    ];
+    ]
+    : chargers;
+
+    const totalPages = Math.ceil(filteredChargers.length / itemsPerPage);
+    const paginatedChargers = filteredChargers.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const handleEdit = (charger: Charger) => {
         if (!charger) return;
@@ -183,7 +200,7 @@ const AdminPage = () => {
             power: updatedCharger.power,
             latitude: updatedCharger.latitude,
             longitude: updatedCharger.longitude
-        };        
+        };
 
         const url = updatedCharger.id
             ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
@@ -388,14 +405,28 @@ const AdminPage = () => {
                     </button>
                 </div>
 
-                <div className="mb-4 flex gap-2">
-                    <input
-                        type="text"
-                        placeholder="Search charging stations..."
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="flex-grow px-3 py-2 border rounded"
-                    />
+                <div className="mb-4 flex gap-2 items-center">
+                    <div className="relative flex-grow">
+                        <input
+                            type="text"
+                            placeholder="Search charging stations..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full px-3 py-2 border rounded pr-10"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => {
+                                    setSearchQuery('');
+                                    setExternalChargers([]);
+                                    setCurrentPage(1);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                            >
+                                &#x2715;
+                            </button>
+                        )}
+                    </div>
                     <button
                         onClick={handleSearch}
                         disabled={isSearching}
@@ -407,13 +438,10 @@ const AdminPage = () => {
                 {searchError && (
                     <p className="text-red-600 mb-2">{searchError}</p>
                 )}
-
-
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                {/* <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">ID</th> */}
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Name</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Location</th>
                                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
@@ -422,12 +450,10 @@ const AdminPage = () => {
                                 <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
                             </tr>
                         </thead>
-
                         <tbody className="divide-y divide-gray-200">
-                            {combinedChargers.length > 0 ? (
-                                combinedChargers.map(charger => (
+                            {paginatedChargers.length > 0 ? (
+                                paginatedChargers.map(charger => (
                                     <tr key={charger.id} className="hover:bg-gray-50">
-                                        {/* <td className="px-6 py-4">{charger.id}</td> */}
                                         <td className="px-6 py-4">{charger.name}</td>
                                         <td className="px-6 py-4">
                                             {charger.type === 'EXTERNAL' ? (
@@ -482,19 +508,37 @@ const AdminPage = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <AdminChargerModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setErrorMessage('');
-                    setIsModalOpen(false);
-                }}
-                mode={modalMode}
-                charger={selectedCharger}
-                onConfirm={handleModalConfirm}
-                errorMessage={errorMessage}
-            />
+                <div className="flex justify-center items-center mt-4 gap-2">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                        className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                    >
+                        Prev
+                    </button>
+                    <span>Página {currentPage} de {totalPages}</span>
+                    <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                        className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+
+                <AdminChargerModal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setErrorMessage('');
+                        setIsModalOpen(false);
+                    }}
+                    mode={modalMode}
+                    charger={selectedCharger}
+                    onConfirm={handleModalConfirm}
+                    errorMessage={errorMessage}
+                />
+            </div>
         </div>
     )
 }
