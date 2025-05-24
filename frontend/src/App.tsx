@@ -1,13 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import Header from './components/Header'
-import Sidebar from './components/Sidebar'
+import SidebarUser from './components/SidebarUser.tsx'
+import SidebarAdmin from './components/SidebarAdmin.tsx'
 import HomePage from './pages/user/HomePage.tsx'
 import MapPage from './pages/user/MapPage.tsx'
 import BookingPage from './pages/user/BookingPage.tsx'
 import ChargerDetails from './pages/user/ChargerDetails.tsx'
 import AdminPage from './pages/admin/AdminPage.tsx'
 import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
+import { AuthProvider } from './utils/AuthContext'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import { jwtDecode } from 'jwt-decode'
@@ -54,7 +56,7 @@ const AppContent = () => {
                     localStorage.removeItem('jwt')
                     return
                 }
-    
+
                 const role = decoded.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
                 setIsAuthenticated(true)
                 setUserRole(role)
@@ -62,8 +64,8 @@ const AppContent = () => {
                 localStorage.removeItem('jwt')
             }
         }
-    }, [])    
-    
+    }, [])
+
 
     const handleLogin = async (email: string, password: string): Promise<string | null> => {
         try {
@@ -75,25 +77,25 @@ const AppContent = () => {
                 credentials: "include",
                 body: JSON.stringify({ email, password })
             })
-    
+
             if (!response.ok) return null
-    
+
             const data = await response.json()
             localStorage.setItem('jwt', data.token)
-    
+
             const payload: any = jwtDecode(data.token)
             const role = payload.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
-    
+
             setIsAuthenticated(true)
             setUserRole(role)
-    
+
             return role === 'admin' ? '/admin' : '/'
         } catch (err) {
             console.error('Error on login:', err)
             return null
         }
-    }    
-    
+    }
+
 
     const handleLogout = () => {
         setIsAuthenticated(false)
@@ -105,7 +107,7 @@ const AppContent = () => {
     if (isLoginPage && isAuthenticated) {
         return <Navigate to={userRole === 'admin' ? '/admin' : '/'} replace />
     }
-   
+
     if (isLoginPage) {
         return (
             <div className="min-h-screen bg-gray-100">
@@ -120,11 +122,11 @@ const AppContent = () => {
 
     return (
         <div className={`min-h-screen bg-gray-100`}>
-            <Sidebar
-                sidebarBgColor={isAdminPage ? 'bg-blue-900' : 'bg-green-900'}
-                onLogout={handleLogout}
-                userRole={userRole}
-            />
+            {userRole === 'admin' ? (
+                <SidebarAdmin onLogout={handleLogout} />
+            ) : (
+                <SidebarUser onLogout={handleLogout} />
+            )}
             {!isHomePage && !isAdminPage && <Header />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
@@ -140,6 +142,11 @@ const AppContent = () => {
                             </ProtectedRoute>
                         } />
                         <Route path="/admin/chargers" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole} requiredRole="admin">
+                                <AdminChargersPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin/bookings" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole} requiredRole="admin">
                                 <AdminChargersPage />
                             </ProtectedRoute>
@@ -170,7 +177,9 @@ const AppContent = () => {
 const App = () => {
     return (
         <Router>
-            <AppContent />
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
         </Router>
     )
 }
