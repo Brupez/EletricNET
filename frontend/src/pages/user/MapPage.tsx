@@ -35,6 +35,25 @@ const MapPage = () => {
     const [places, setPlaces] = useState<Place[]>([]);
     const [internalChargers, setInternalChargers] = useState<InternalCharger[]>([]);
 
+    const isNearby = (lat1: number, lng1: number, lat2: number, lng2: number, maxKm = 10): boolean => {
+        const toRad = (value: number) => value * Math.PI / 180;
+        const R = 6371; // km
+
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lng2 - lng1);
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c;
+
+        return d <= maxKm;
+    };
+
+
     const createCustomMarker = (google: any) => ({
         path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
         fillColor: '#243E16',
@@ -128,7 +147,8 @@ const MapPage = () => {
         results: any,
         status: any,
         mapInstance: MapInstance,
-        google: any
+        google: any,
+        data: InternalCharger[]
     ) => {
         if (status !== "OK" || !results[0]) return;
 
@@ -146,9 +166,17 @@ const MapPage = () => {
             (results, status) => handleNearbySearch(results, status, map, customMarker)
         );
 
-        internalChargers.forEach(charger => {
-            createInternalMarker(charger, map, google);
-        });
+        const centerLat = location.lat();
+        const centerLng = location.lng();
+        const filteredChargers = data.filter(ch =>
+            isNearby(centerLat, centerLng, ch.latitude, ch.longitude)
+        );
+
+        filteredChargers.forEach(charger =>
+            createInternalMarker(charger, map, google)
+        );
+
+        setInternalChargers(filteredChargers);
     };
 
     useEffect(() => {
@@ -162,29 +190,12 @@ const MapPage = () => {
 
                 const response = await fetch("http://localhost:8081/api/slots");
                 const data = await response.json();
-                setInternalChargers(data);
+                setInternalChargers([]);
 
                 geocoder.geocode({ address: location }, (results, status) => {
                     if (status !== "OK" || !results[0]) return;
 
-                    const { map, service, customMarker } = mapInstance;
-                    const center = results[0].geometry.location;
-
-                    map.setCenter(center);
-                    map.setZoom(14);
-
-                    service.nearbySearch(
-                        {
-                            location: center,
-                            radius: 5000,
-                            type: "charging_station",
-                        },
-                        (results, status) => handleNearbySearch(results, status, map, customMarker)
-                    );
-
-                    data.forEach((charger: InternalCharger) => {
-                        createInternalMarker(charger, map, google);
-                    });
+                    handleGeocodeResult(results, status, mapInstance, google, data);
                 });
             } catch (error) {
                 console.error("Erro ao carregar o mapa:", error);
