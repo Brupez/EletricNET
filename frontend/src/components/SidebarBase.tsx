@@ -1,4 +1,3 @@
-// src/components/SidebarBase.tsx
 import {
   User,
   LogOut,
@@ -25,9 +24,10 @@ interface SidebarBaseProps {
   sidebarBgColor: string
   onLogout: () => void
   navigationItems: NavigationItem[]
+  label: string
 }
 
-const SidebarBase: React.FC<SidebarBaseProps> = ({ sidebarBgColor, onLogout, navigationItems }) => {
+const SidebarBase: React.FC<SidebarBaseProps> = ({ sidebarBgColor, onLogout, navigationItems, label }) => {
   const { user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -52,8 +52,12 @@ const SidebarBase: React.FC<SidebarBaseProps> = ({ sidebarBgColor, onLogout, nav
 
   return (
     <aside className={`fixed left-0 top-0 h-screen w-64 text-white flex flex-col ${sidebarBgColor}`}>
-      <button onClick={handleLogoClick} className="p-4 border-b border-white/20 flex justify-center items-center w-full">
-        <img src={logo} alt="logo" className="h-20 w-auto" />
+      <button
+        onClick={handleLogoClick}
+        className="p-4 border-b border-white/20 flex justify-center items-center w-full gap-3"
+      >
+        <img src={logo} alt="logo" className="h-16 w-auto" />
+        <span className="text-lg font-semibold text-white tracking-wide">{label}</span>
       </button>
 
       <nav className="p-4 flex-1">

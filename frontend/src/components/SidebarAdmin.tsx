@@ -10,6 +10,7 @@ const SidebarAdmin = ({ onLogout }: { onLogout: () => void }) => {
     <SidebarBase
       sidebarBgColor="bg-blue-900"
       onLogout={onLogout}
+      label="Admin"
       navigationItems={[
         { icon: <LayoutDashboard size={24} />, text: 'Overview', path: '/admin' },
         { icon: <SmartphoneCharging size={24} />, text: 'Chargers', path: '/admin/chargers' },
