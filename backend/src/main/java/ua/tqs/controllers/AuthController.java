@@ -1,5 +1,6 @@
 package ua.tqs.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
@@ -39,7 +40,9 @@ public class AuthController {
         );
 
         String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
-        return ResponseEntity.ok(new AuthResponse(token, role));
+        Long userId = userDetailsService.getUserId(userDetails);
+
+        return ResponseEntity.ok(new AuthResponse(token, role, userId));
     }
 
     @PostMapping("/register")

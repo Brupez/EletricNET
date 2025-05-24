@@ -15,5 +15,9 @@ public class ReservationResponseDTO {
     private boolean paid;
     private String stationName;
     private String chargingType;
+
     private LocalDateTime createdAt;
+
+    private LocalDateTime startTime;
+    private Integer durationMinutes;
 }

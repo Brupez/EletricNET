@@ -50,4 +50,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         userRepository.save(user);
     }
+
+    public Long getUserId(UserDetails userDetails) {
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow()
+                .getId();
+    }
 }

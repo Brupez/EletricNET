@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 import ua.tqs.enums.ReservationStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -28,6 +30,10 @@ public class Reservation {
     private ReservationStatus status;
 
     private LocalDateTime creationDate;
+
+    private LocalDate startDate;
+    private LocalDateTime startTime;
+    private Integer durationMinutes;
 
     private Double consumptionKWh;
     private Double totalCost;

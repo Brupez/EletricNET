@@ -15,10 +15,9 @@ export async function onLogin(email: string, password: string): Promise<string |
     if (!response.ok) return null;
 
     const data = await response.json();
-
-    localStorage.setItem('token', data.token);
-
+    localStorage.setItem('jwt', data.token);
     localStorage.setItem('role', data.role);
+    localStorage.setItem('userId', data.userId.toString());
 
     return data.role === 'ADMIN' ? '/admin' : '/user';
 }

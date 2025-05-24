@@ -30,43 +30,33 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = null;
+            String source = null;
 
-        // 1. Tenta obter o token do header Authorization
         final String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+            source = "Authorization Header";
         }
 
-        // 2. Se não veio no header, tenta obter dos cookies (nome "JWT" por padrão)
-        if (token == null && request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("JWT".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
+        System.out.println("[JwtAuthFilter] Token source: " + source);
+        System.out.println("[JwtAuthFilter] Token: " + token);
 
-        // 3. Se ainda assim não há token, ignora o filtro
-        if (token == null) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        if (token != null && jwtUtil.validateToken(token)) {
+            String username = jwtUtil.getUsername(token);
+            System.out.println("[JwtAuthFilter] Username from token: " + username);
 
-        // 4. Extrai o username
-        String username = jwtUtil.getUsername(token);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        // 5. Autentica o user se ainda não estiver autenticado
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-            if (jwtUtil.validateToken(token)) {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
 
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                System.out.println("[JwtAuthFilter] User authenticated: " + username);
             }
+        } else {
+            System.out.println("[JwtAuthFilter] No valid token found. Skipping authentication.");
         }
 
         filterChain.doFilter(request, response);

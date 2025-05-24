@@ -51,6 +51,8 @@ public class ReservationService {
         reservation.setSlot(slot);
         reservation.setStatus(ReservationStatus.ACTIVE);
         reservation.setCreationDate(LocalDateTime.now());
+        reservation.setStartTime(dto.getStartTime());
+        reservation.setDurationMinutes(dto.getDurationMinutes());
 
         reservation.setConsumptionKWh(dto.getConsumptionKWh());
         double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
@@ -67,6 +69,8 @@ public class ReservationService {
         response.setConsumptionKWh(saved.getConsumptionKWh());
         response.setTotalCost(saved.getTotalCost());
         response.setPaid(saved.isPaid());
+        response.setStartTime(saved.getStartTime());
+        response.setDurationMinutes(saved.getDurationMinutes());
 
         return Optional.of(response);
     }
