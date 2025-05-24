@@ -19,6 +19,9 @@ interface InternalCharger {
     latitude: number;
     longitude: number;
     location: string;
+    station?: {
+        name: string;
+    };
 }
 
 interface MapInstance {
@@ -227,12 +230,18 @@ const MapPage = () => {
                             <p className="text-sm text-gray-600">{place.vicinity}</p>
                         </li>
                     ))}
-                    {internalChargers.map((charger) => (
-                        <li key={charger.id} className="mb-2 p-2 bg-emerald-50 rounded">
-                            <span className="font-medium">{charger.name}</span>
-                            <p className="text-sm text-emerald-700">{charger.location}</p>
-                        </li>
-                    ))}
+                    {internalChargers.map((charger) => {
+                        //console.log("Charger recebido:", charger);
+
+                        return (
+                            <li key={charger.id} className="mb-2 p-2 bg-emerald-50 rounded">
+                                <span className="font-medium">{charger.name}</span>
+                                {charger.station?.name && (
+                                    <p className="text-sm text-gray-600">{charger.station.name}</p>
+                                )}
+                            </li>
+                        );
+                    })}
                 </ul>
             </div>
         </div>
