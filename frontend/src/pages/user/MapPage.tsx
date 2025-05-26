@@ -191,7 +191,13 @@ const MapPage = () => {
                 const { google } = window as typeof window & { google: any };
                 const geocoder = new google.maps.Geocoder();
 
-                const response = await fetch("http://localhost:8081/api/slots");
+                const token = localStorage.getItem('jwt');
+
+                const response = await fetch("http://localhost:8081/api/slots", {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const data = await response.json();
                 setInternalChargers([]);
 

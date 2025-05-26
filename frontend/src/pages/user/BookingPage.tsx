@@ -11,6 +11,12 @@ const BookingPage = () => {
     useEffect(() => {
         const fetchBookings = async () => {
             const token = localStorage.getItem('jwt')
+            if (!token) {
+                alert('Please login to view your bookings.')
+                navigate('/login')
+                return
+            }
+    
             const res = await fetch('http://localhost:8081/api/reservations/myReservations', {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -19,10 +25,12 @@ const BookingPage = () => {
             if (res.ok) {
                 const data = await res.json()
                 setBookings(data)
+            } else {
+                console.error('Failed to fetch bookings')
             }
         }
         fetchBookings()
-    }, [])
+    }, [navigate])    
 
     const handleAddBooking = () => {
         navigate('/')

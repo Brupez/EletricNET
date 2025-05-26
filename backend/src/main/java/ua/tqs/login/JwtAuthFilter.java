@@ -30,33 +30,33 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = null;
-            String source = null;
+        String authHeader = request.getHeader("Authorization");
 
-        final String authHeader = request.getHeader("Authorization");
+        System.out.println("👉 Incoming request: " + request.getRequestURI());
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            source = "Authorization Header";
+            System.out.println("✅ Token found in header: " + token);
+        } else {
+            System.out.println("❌ No token found in Authorization header");
         }
-
-        System.out.println("[JwtAuthFilter] Token source: " + source);
-        System.out.println("[JwtAuthFilter] Token: " + token);
 
         if (token != null && jwtUtil.validateToken(token)) {
             String username = jwtUtil.getUsername(token);
-            System.out.println("[JwtAuthFilter] Username from token: " + username);
+            System.out.println("✅ Token is valid. Username: " + username);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
-
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                System.out.println("[JwtAuthFilter] User authenticated: " + username);
+                System.out.println("✅ User authenticated: " + username);
             }
         } else {
-            System.out.println("[JwtAuthFilter] No valid token found. Skipping authentication.");
+            System.out.println("⚠️ Token is null or invalid");
         }
 
         filterChain.doFilter(request, response);

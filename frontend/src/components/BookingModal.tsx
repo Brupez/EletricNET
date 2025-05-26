@@ -1,5 +1,5 @@
 import { X, CreditCard } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface BookingModalProps {
@@ -34,16 +34,30 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         cvv: ''
     })
 
+    const [token, setToken] = useState<string | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (isOpen) {
+            const jwt = localStorage.getItem('jwt')
+            const uid = localStorage.getItem('userId')
+            console.log('JWT:', jwt)
+            console.log('UserID:', uid)
+            setToken(jwt)
+            setUserId(uid)
+        }
+    }, [isOpen])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        const token = localStorage.getItem('jwt')
-        const userId = localStorage.getItem('userId')
-
-        if (!token || !userId) {
+        if (!token || !userId || isNaN(parseInt(userId))) {
             alert('User not authenticated!')
             return
-        }
+        }        
+
+        console.log('localStorage JWT:', localStorage.getItem('jwt'));
+        console.log('localStorage userId:', localStorage.getItem('userId'));
 
         const decoded = parseJwt(token)
         if (!decoded || !decoded.sub) {

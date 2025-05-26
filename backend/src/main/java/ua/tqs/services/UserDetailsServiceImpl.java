@@ -56,4 +56,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElseThrow()
                 .getId();
     }
+
+    public String getUserName(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        return user != null ? user.getName() : "Guest";
+    }
 }

@@ -42,7 +42,11 @@ public class AuthController {
         String role = userDetails.getAuthorities().iterator().next().getAuthority().replace("ROLE_", "");
         Long userId = userDetailsService.getUserId(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(token, role, userId));
+        String name = userDetailsService.getUserName(userDetails);
+        String email = userDetails.getUsername();
+
+        return ResponseEntity.ok(new AuthResponse(token, role, userId, name, email));
+
     }
 
     @PostMapping("/register")

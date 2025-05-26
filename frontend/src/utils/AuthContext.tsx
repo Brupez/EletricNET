@@ -20,16 +20,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem('jwt')
     if (token) {
-      const decoded: any = jwtDecode(token)
-      const now = Date.now() / 1000
-      if (decoded.exp && decoded.exp < now) {
-        localStorage.removeItem('jwt')
-      } else {
-        setUser({
-          name: decoded.name,
-          email: decoded.email,
-          role: decoded.role.includes('admin') ? 'admin' : 'user',
-        })
+      try {
+        const decoded: any = jwtDecode(token)
+        const now = Date.now() / 1000
+        if (decoded.exp && decoded.exp < now) {
+          localStorage.clear()
+          setUser(null)
+        } else {
+          setUser({
+            name: decoded.name || JSON.parse(localStorage.getItem('userInfo') || '{}').name,
+            email: decoded.email || JSON.parse(localStorage.getItem('userInfo') || '{}').email,
+            role: decoded.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
+          })
+        }
+      } catch (err) {
+        localStorage.clear()
+        setUser(null)
       }
     }
   }, [])
