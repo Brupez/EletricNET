@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 type SortDirection = 'asc' | 'desc' | null
-type SortField = 'id' | 'station' | 'category' | 'price' | 'date' | 'status' | null
+type SortField = 'id' | 'stationName' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
 
 interface ReservationResponseDTO {
     id: number
@@ -102,20 +102,20 @@ const AdminReservationsPage = () => {
                             <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
                                 ID <SortIcon field="id" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('station')}>
-                                Station <SortIcon field="station" />
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('stationName')}>
+                                Station <SortIcon field="stationName" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('status')}>
-                                Status <SortIcon field="status" />
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('state')}>
+                                Status <SortIcon field="state" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('category')}>
-                                Charging Type <SortIcon field="category" />
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('chargingType')}>
+                                Charging Type <SortIcon field="chargingType" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('price')}>
-                                Cost <SortIcon field="price" />
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('totalCost')}>
+                                Cost <SortIcon field="totalCost" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('date')}>
-                                Created At <SortIcon field="date" />
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
+                                Created At <SortIcon field="createdAt" />
                             </th>
                             <th className="px-6 py-4 text-sm text-gray-500">Actions</th>
                         </tr>

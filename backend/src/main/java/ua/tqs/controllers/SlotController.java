@@ -34,6 +34,10 @@ public class SlotController {
 
     @PostMapping("/dto")
     public ResponseEntity<?> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+        if (slotDTO.getId() != null) {
+            return ResponseEntity.badRequest().body("ID should not be provided when creating a new slot.");
+        }
+
         try {
             Slot created = slotService.saveOrUpdateSlotFromDTO(slotDTO);
             return ResponseEntity.ok(created);

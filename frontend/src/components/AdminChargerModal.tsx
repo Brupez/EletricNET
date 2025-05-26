@@ -66,9 +66,15 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        onConfirm(formData)
+        const payload: Partial<Charger> = { ...formData }
+    
+        if (mode === 'create') {
+            delete payload.id
+        }
+    
+        onConfirm(payload as Charger)
         cleanForm()
-    }
+    }    
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
