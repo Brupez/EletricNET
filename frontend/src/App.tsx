@@ -48,20 +48,24 @@ const AppContent = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('jwt')
-        if (token) {
+        const role = localStorage.getItem('role')
+        if (token && role) {
             try {
                 const decoded: any = jwtDecode(token)
                 const now = Date.now() / 1000
                 if (decoded.exp && decoded.exp < now) {
-                    localStorage.removeItem('jwt')
+                    localStorage.clear()
+                    setIsAuthenticated(false)
+                    setUserRole(null)
                     return
                 }
 
-                const role = decoded.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
                 setIsAuthenticated(true)
-                setUserRole(role)
+                setUserRole(role === 'admin' ? 'admin' : 'user')
             } catch {
-                localStorage.removeItem('jwt')
+                localStorage.clear()
+                setIsAuthenticated(false)
+                setUserRole(null)
             }
         }
     }, [])
@@ -81,11 +85,13 @@ const AppContent = () => {
             if (!response.ok) return null
 
             const data = await response.json()
+
             localStorage.setItem('jwt', data.token)
+            localStorage.setItem('role', data.role.toLowerCase())
+            localStorage.setItem('userId', data.userId.toString())
+            localStorage.setItem('userInfo', JSON.stringify({ name: data.name, email: data.email }))
 
-            const payload: any = jwtDecode(data.token)
-            const role = payload.role?.toLowerCase().includes('admin') ? 'admin' : 'user'
-
+            const role = data.role.toLowerCase() === 'admin' ? 'admin' : 'user'
             setIsAuthenticated(true)
             setUserRole(role)
 

@@ -19,7 +19,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('jwt')
-    if (token) {
+    const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    if (token && info.name && info.email) {
       try {
         const decoded: any = jwtDecode(token)
         const now = Date.now() / 1000
@@ -27,16 +28,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.clear()
           setUser(null)
         } else {
-          setUser({
-            name: decoded.name || JSON.parse(localStorage.getItem('userInfo') || '{}').name,
-            email: decoded.email || JSON.parse(localStorage.getItem('userInfo') || '{}').email,
-            role: decoded.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
-          })
+          const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
+          const role: 'admin' | 'user' = roleRaw === 'admin' ? 'admin' : 'user'
+          setUser({ name: info.name, email: info.email, role })
         }
       } catch (err) {
         localStorage.clear()
         setUser(null)
       }
+    } else {
+      setUser(null)
     }
   }, [])
 

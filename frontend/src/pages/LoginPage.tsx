@@ -1,26 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../utils/AuthContext'
 import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
-
-export async function onLogin(email: string, password: string): Promise<string | null> {
-    const response = await fetch('http://localhost:8081/api/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    localStorage.setItem('jwt', data.token);
-    localStorage.setItem('role', data.role);
-    localStorage.setItem('userId', data.userId.toString());
-
-    return data.role === 'ADMIN' ? '/admin' : '/user';
-}
 
 interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
@@ -37,16 +19,19 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
+    const { setUser } = useAuth()
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
-    
+
+        // Registo
         if (!isLoginMode) {
             if (password !== confirmPassword) {
                 setError('Passwords do not match')
                 return
             }
-    
+
             try {
                 const response = await fetch('http://localhost:8081/api/auth/register', {
                     method: 'POST',
@@ -55,27 +40,32 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                     },
                     body: JSON.stringify({ email, password, name, role })
                 })
-    
+
                 if (!response.ok) {
                     const msg = await response.text()
                     throw new Error(msg || 'Failed to register')
                 }
-    
+
                 setIsLoginMode(true)
             } catch (err: any) {
                 setError(err.message || 'Failed to register')
             }
-    
+
             return
         }
-    
+
+        // Login
         const redirectPath = await onLogin(email, password)
         if (redirectPath) {
+            const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+            const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
+            const role = roleRaw === 'admin' ? 'admin' : 'user'
+            setUser({ name: info.name, email: info.email, role })
             navigate(redirectPath)
         } else {
             setError('Invalid credentials')
         }
-    }    
+    }
 
     const handleToggleMode = () => {
         setIsLoginMode(!isLoginMode)
@@ -97,8 +87,6 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                         {isLoginMode ? 'Sign in to continue' : 'Sign up to get started'}
                     </p>
                 </div>
-
-
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {!isLoginMode && (
