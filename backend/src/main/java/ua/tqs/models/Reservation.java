@@ -1,5 +1,6 @@
 package ua.tqs.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -8,7 +9,6 @@ import ua.tqs.enums.ReservationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -24,6 +24,7 @@ public class Reservation {
     private User user;
 
     @OneToOne
+    @JsonManagedReference
     private Slot slot;
 
     @Enumerated(EnumType.STRING)

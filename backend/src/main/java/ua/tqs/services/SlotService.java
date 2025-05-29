@@ -24,6 +24,10 @@ public class SlotService {
         return slotRepository.findAll();
     }
 
+    public List<Slot> getAvailableSlots() {
+        return slotRepository.findByReservedFalse();
+    }
+
     public Optional<Slot> getSlotById(Long id) {
         return slotRepository.findById(id);
     }

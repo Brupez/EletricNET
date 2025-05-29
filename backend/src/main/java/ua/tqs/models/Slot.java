@@ -1,5 +1,6 @@
 package ua.tqs.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class Slot {
     private Station station;
 
     @OneToOne(mappedBy = "slot")
+    @JsonBackReference
     private Reservation reservation;
 
     @Enumerated(EnumType.STRING)
