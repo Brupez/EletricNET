@@ -36,14 +36,14 @@ class UserServiceTest {
         // Given
         User user1 = new User();
         user1.setId(1L);
-        user1.setUsername("user1@test.com");
+        user1.setEmail("user1@test.com");
         user1.setName("User One");
         user1.setRole(UserRole.valueOf("USER"));
         log.debug("Created user1: {}", user1);
 
         User user2 = new User();
         user2.setId(2L);
-        user2.setUsername("user2@test.com");
+        user2.setEmail("user2@test.com");
         user2.setName("User Two");
         user2.setRole(UserRole.valueOf("ADMIN"));
         log.debug("Created user2: {}", user2);

@@ -31,7 +31,7 @@ class ReservationControllerIT {
     @BeforeEach
     void setUp() throws Exception {
         AuthRequest authRequest = new AuthRequest();
-        authRequest.setUsername("user");
+        authRequest.setEmail("user@gmail.com");
         authRequest.setPassword("pass");
 
         String response = mockMvc.perform(post("/api/auth/login")
