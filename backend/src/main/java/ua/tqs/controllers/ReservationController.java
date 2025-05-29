@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ReservationController {
 
     @Autowired
-    private ReservationService reservationService;
+    public ReservationService reservationService;
 
     @GetMapping
     public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {

@@ -1,4 +1,3 @@
-// src/pages/NotFoundPage.tsx
 import { AlertTriangle } from 'lucide-react'
 
 const NotFoundPage = () => {

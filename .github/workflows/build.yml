@@ -7,7 +7,7 @@ on:
 
 jobs:
   sonarqube:
-    name: SonarQube Analysis
+    name: SonarQube Analysis and Report to Xray
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,14 +36,25 @@ jobs:
 
       - name: Build and analyze with SonarQube
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd backend
-          mvn -B -DskipTests verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B clean test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
+      
+
+      - name: Upload to Xray
+        uses: mikepenz/xray-action@v3
+        with:
+          xrayCloud: true
+          username: ${{ secrets.XRAY_CLIENT_ID }}
+          password: ${{ secrets.XRAY_CLIENT_SECRET }}
+          testFormat: 'junit'
+          projectKey: 'EN'
+          testExecKey: ''
+          testPaths: '**/target/surefire-reports/*.xml'
 
   deploy:
     name: Deploy Application
@@ -59,6 +70,7 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
+          export COMPOSE_BAKE=true
           docker compose down -v || true
           docker compose up -d --build
 
@@ -191,3 +203,18 @@ jobs:
           docker container prune -f
           docker image prune -af
           docker builder prune -af
+
+  check-required:
+    name: Check Required Status
+    needs: [sonarqube, deploy, lighthouse]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Status
+        run: |
+          if [ "${{ needs.sonarqube.result }}" != "success" ] || \
+             [ "${{ needs.deploy.result }}" != "success" ] || \
+             [ "${{ needs.lighthouse.result }}" != "success" ]; then
+            echo "Some analysis failed."
+            exit 1
+          fi
