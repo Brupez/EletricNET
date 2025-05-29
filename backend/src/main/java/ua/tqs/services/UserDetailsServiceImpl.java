@@ -21,36 +21,44 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Autenticação
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
+                user.getEmail(),
                 user.getPassword(),
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }
 
-    // Verificar se já existe um utilizador
     public boolean userExists(String username) {
-        return userRepository.findByUsername(username).isPresent();
+        return userRepository.findByEmail(username).isPresent();
     }
 
-    // Registar novo utilizador
     public void registerUser(String username, String password, String name, String role) {
         if (userExists(username)) {
             throw new IllegalArgumentException("User already exists");
         }
 
         User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setEmail(username);
+        user.setPassword(password);
         user.setName(name);
         user.setRole(UserRole.valueOf(role.toUpperCase()));
 
         userRepository.save(user);
+    }
+
+    public Long getUserId(UserDetails userDetails) {
+        return userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow()
+                .getId();
+    }
+
+    public String getUserName(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        return user != null ? user.getName() : "Guest";
     }
 }

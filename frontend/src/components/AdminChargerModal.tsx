@@ -1,5 +1,7 @@
-import { X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import LocationModalPage from './LocationModalPage';
+
 
 interface Charger {
     id: string
@@ -8,17 +10,20 @@ interface Charger {
     status: 'Active' | 'Inactive'
     type: string
     power: string
+    latitude?: number
+    longitude?: number
 }
 
 interface AdminChargerModalProps {
     isOpen: boolean
     onClose: () => void
-    mode: 'edit' | 'delete'
+    mode: 'create' | 'edit' | 'delete'
     charger: Charger | null
     onConfirm: (charger?: Charger) => void
+    errorMessage?: string
 }
 
-const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminChargerModalProps) => {
+const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMessage }: AdminChargerModalProps) => {
     const [formData, setFormData] = useState<Charger>({
         id: '',
         name: '',
@@ -28,19 +33,48 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
         power: ''
     })
 
+    const chargingTypes = ['NORMAL', 'FAST', 'ULTRA_FAST']
+    const [showMap, setShowMap] = useState(false)
+
     useEffect(() => {
-        if (charger) {
+        if (mode == 'edit' && charger) {
             setFormData(charger)
+        } else if (mode == 'create') {
+            setFormData({
+                id: '',
+                name: '',
+                location: '',
+                status: 'Active',
+                type: '',
+                power: ''
+            })
         }
-    }, [charger])
+    }, [mode, charger])
 
     if (!isOpen) return null
 
+    const cleanForm = () => {
+        setFormData({
+            id: '',
+            name: '',
+            location: '',
+            status: 'Active',
+            type: '',
+            power: ''
+        })
+    }
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        onConfirm(formData)
-        onClose()
-    }
+        const payload: Partial<Charger> = { ...formData }
+    
+        if (mode === 'create') {
+            delete payload.id
+        }
+    
+        onConfirm(payload as Charger)
+        cleanForm()
+    }    
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
@@ -53,7 +87,9 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                 </button>
 
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {mode === 'edit' ? 'Edit Charger' : 'Delete Charger'}
+                    {mode === 'create' && 'Create Charger'}
+                    {mode === 'edit' && 'Edit Charger'}
+                    {mode === 'delete' && 'Delete Charger'}
                 </h2>
 
                 {mode === 'delete' ? (
@@ -99,13 +135,32 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Location
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.location}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={formData.location}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({ ...prev, location: e.target.value }))
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Ex: Aveiro"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMap(true)}
+                                        className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        title="Open Map"
+                                    >
+                                        📍 Map
+                                    </button>
+                                </div>
+                                {formData.latitude && formData.longitude && (
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Selected coords: {formData.latitude.toFixed(5)},{" "}
+                                        {formData.longitude.toFixed(5)}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -126,13 +181,19 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Type
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     value={formData.type}
                                     onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
-                                />
+                                >
+                                    <option value="" disabled>Select charging type</option>
+                                    {chargingTypes.map(type => (
+                                        <option key={type} value={type}>
+                                            {type.replace('_', ' ')}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>
@@ -148,6 +209,10 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                                 />
                             </div>
                         </div>
+
+                        {errorMessage && (
+                            <p className="text-red-600 mt-4 font-semibold">{errorMessage}</p>
+                        )}
 
                         <div className="flex justify-end gap-3 mt-6">
                             <button
@@ -166,6 +231,22 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm }: AdminC
                         </div>
                     </form>
                 )}
+
+                {showMap && (
+                    <LocationModalPage
+                        onClose={() => setShowMap(false)}
+                        onSelect={(lat, lng, placeName) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                latitude: lat,
+                                longitude: lng,
+                                location: placeName || prev.location,
+                            }));
+                            setShowMap(false);
+                        }}
+                    />
+                )}
+
             </div>
         </div>
     )

@@ -1,4 +1,4 @@
-import { Search, Calendar, Clock } from 'lucide-react'
+import { Search } from 'lucide-react'
 import map from '../../assets/map.jpg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
