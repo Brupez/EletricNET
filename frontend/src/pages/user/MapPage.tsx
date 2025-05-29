@@ -4,13 +4,16 @@ import { loadGoogleMapsApi } from "../../utils/loadGoogleMapsApi";
 import { PlaceResult } from "../../utils/types";
 
 interface Place extends PlaceResult {
+    place_id: string;
+    name: string;
     geometry: {
       location: google.maps.LatLng;
     };
-    place_id: string;
-    isOpen?: boolean;
-    name: string;
     vicinity?: string;
+    isOpen?: boolean;
+    rating?: number;
+    openingHoursText?: string[];
+    businessStatus?: google.maps.places.BusinessStatus;
 }
 
 interface MapInstance {
@@ -68,6 +71,7 @@ const MapPage = () => {
                     location: place.vicinity,
                     latitude: place.geometry.location.lat(),
                     longitude: place.geometry.location.lng(),
+                    isOpen: place.isOpen,
                 },
             });
         });
@@ -81,15 +85,20 @@ const MapPage = () => {
             service.getDetails(
                 {
                     placeId: place.place_id,
-                    fields: ['opening_hours'],
+                    fields: ['opening_hours', 'rating', 'business_status'],
                 },
                 (result, status) => {
                     if (status === google.maps.places.PlacesServiceStatus.OK && result?.opening_hours) {
-                        resolve({
+                        const updatedPlace : Place = {
                             ...place,
-                            isOpen: result.opening_hours.isOpen(),
-                        });
+                            isOpen: result.opening_hours ? result.opening_hours.isOpen() : undefined,
+                            openingHoursText: result.opening_hours ? result.opening_hours.weekday_text : undefined,
+                            rating: result.rating !== undefined ? result.rating : undefined,
+                            businessStatus: result.business_status,
+                        };
+                        resolve(updatedPlace);
                     } else {
+                        console.warn(`Could not get full details for ${place.name} (ID: ${place.place_id}). Status: ${status}`);
                         resolve(place);
                     }
                 }
@@ -98,8 +107,8 @@ const MapPage = () => {
     };
 
     const handleNearbySearch = async (
-        results: Place[],
-        status: string,
+        results: google.maps.places.PlaceResult[],
+        status: google.maps.places.PlacesServiceStatus,
         map: google.maps.Map,
         customMarker: google.maps.Symbol,
         service: google.maps.places.PlacesService
@@ -107,21 +116,36 @@ const MapPage = () => {
         console.log('Places API Status:', status);
         console.log('Places API Results:', JSON.stringify(results, null, 2));
 
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            const mappedResults: Place[] = results.map(result => ({
+                place_id: result.place_id!,
+                name: result.name!,
+                geometry: {
+                    location: result.geometry!.location!,
+                },
+                vicinity: result.vicinity,
+            })).filter(place => place.place_id);
+
             const placesWithDetails = await Promise.all(
-                results.map(place => getPlaceDetails(place, service))
+                mappedResults.map(place => getPlaceDetails(place, service))
             );
             setPlaces(placesWithDetails);
             placesWithDetails.forEach(place => createMarker(place, map, customMarker));
+        } else {
+            console.error("Nearby search failed with status:", status);
+            setPlaces([]);
         }
     };
 
     const handleGeocodeResult = (
-        results: any,
-        status: any,
+        results: google.maps.GeocoderResult[],
+        status: google.maps.GeocoderStatus,
         mapInstance: MapInstance
     ) => {
-        if (status !== "OK" || !results[0]) return;
+        if (status != google.maps.GeocoderStatus.OK || !results[0]) {
+            console.error("Geocode was not successful for the following reason:", status);
+            return;
+        }
 
         const { map, service, customMarker } = mapInstance;
         map.setCenter(results[0].geometry.location);
@@ -131,7 +155,7 @@ const MapPage = () => {
             {
                 location: results[0].geometry.location,
                 radius: 5000,
-                types: "electric_vehicle_charging_station"
+                type: "electric_vehicle_charging_station"
             },
             (results, status) => handleNearbySearch(results, status, map, customMarker, service)
         );
@@ -177,9 +201,25 @@ const MapPage = () => {
                         <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
                             <span className="font-medium">{place.name}</span>
                             <p className="text-sm text-gray-600">{place.vicinity}</p>
-                            <p className={`text-sm ${place.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                                {place.isOpen ? "Open Now" : "Closed"}
+                            {/* Display Rating */}
+                            {place.rating !== undefined && (
+                                <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
+                            )}
+                            {/* Display Open/Closed Status */}
+                            <p className={`text-sm ${place.businessStatus == "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
+                                {place.businessStatus !== undefined ? (place.businessStatus == "OPERATIONAL" ? "Open Now" : "Closed"): "Closed"}
                             </p>
+                            {/* Display Opening Hours Text */}
+                            {place.openingHoursText && place.openingHoursText.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                    <p className="font-semibold">Opening Hours:</p>
+                                    <ul className="list-disc list-inside">
+                                        {place.openingHoursText.map((text, index) => (
+                                            <li key={index}>{text}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </li>
                     ))}
                 </ul>
