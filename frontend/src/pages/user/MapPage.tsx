@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { loadGoogleMapsApi } from "../../utils/loadGoogleMapsApi";
 import { PlaceResult } from "../../utils/types";
 
+
 interface Place extends PlaceResult {
     place_id: string;
     name: string;
