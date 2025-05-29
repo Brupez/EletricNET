@@ -27,7 +27,7 @@ class AuthControllerIT {
     @Test
     void testLoginWithValidCredentials() throws Exception {
         AuthRequest request = new AuthRequest();
-        request.setUsername("admin");
+        request.setEmail("admin@gmail.com");
         request.setPassword("adminpass");
 
         mockMvc.perform(post("/api/auth/login")
@@ -40,7 +40,7 @@ class AuthControllerIT {
     @Test
     void testRegisterNewUser() throws Exception {
         AuthRequest request = new AuthRequest();
-        request.setUsername("newuser");
+        request.setEmail("newuser@gmail.com");
         request.setPassword("password");
         request.setName("John Doe");
         request.setRole("USER");
