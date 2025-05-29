@@ -1,15 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header'
-import Sidebar from './components/Sidebar'
+import SidebarUser from './components/SidebarUser.tsx'
+import SidebarAdmin from './components/SidebarAdmin.tsx'
 import HomePage from './pages/user/HomePage.tsx'
 import MapPage from './pages/user/MapPage.tsx'
 import BookingPage from './pages/user/BookingPage.tsx'
 import ChargerDetails from './pages/user/ChargerDetails.tsx'
 import AdminPage from './pages/admin/AdminPage.tsx'
 import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
+import { AuthProvider } from './utils/AuthContext'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import { jwtDecode } from 'jwt-decode'
+import * as React from "react";
 
 type UserRole = 'admin' | 'user' | null
 
@@ -42,24 +46,72 @@ const AppContent = () => {
     const isHomePage = location.pathname === '/'
     const isAdminPage = location.pathname.startsWith('/admin')
 
-    const handleLogin = (email: string, password: string) => {
-        // Mock authentication
-        if (email === 'admin@gmail.com' && password === 'admin') {
-            setIsAuthenticated(true)
-            setUserRole('admin')
-            return '/admin'
-        } else if (email === 'user@gmail.com' && password === 'user') {
-            setIsAuthenticated(true)
-            setUserRole('user')
-            return '/'
+    useEffect(() => {
+        const token = localStorage.getItem('jwt')
+        const role = localStorage.getItem('role')
+        if (token && role) {
+            try {
+                const decoded: any = jwtDecode(token)
+                const now = Date.now() / 1000
+                if (decoded.exp && decoded.exp < now) {
+                    localStorage.clear()
+                    setIsAuthenticated(false)
+                    setUserRole(null)
+                    return
+                }
+
+                setIsAuthenticated(true)
+                setUserRole(role === 'admin' ? 'admin' : 'user')
+            } catch {
+                localStorage.clear()
+                setIsAuthenticated(false)
+                setUserRole(null)
+            }
         }
-        return null
+    }, [])
+
+
+    const handleLogin = async (email: string, password: string): Promise<string | null> => {
+        try {
+            const response = await fetch('http://localhost:8081/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include",
+                body: JSON.stringify({ email, password })
+            })
+
+            if (!response.ok) return null
+
+            const data = await response.json()
+
+            localStorage.setItem('jwt', data.token)
+            localStorage.setItem('role', data.role.toLowerCase())
+            localStorage.setItem('userId', data.userId.toString())
+            localStorage.setItem('userInfo', JSON.stringify({ name: data.name, email: data.email }))
+
+            const role = data.role.toLowerCase() === 'admin' ? 'admin' : 'user'
+            setIsAuthenticated(true)
+            setUserRole(role)
+
+            return role === 'admin' ? '/admin' : '/'
+        } catch (err) {
+            console.error('Error on login:', err)
+            return null
+        }
     }
+
 
     const handleLogout = () => {
         setIsAuthenticated(false)
         setUserRole(null)
+        localStorage.removeItem('jwt')
         navigate('/')
+    }
+
+    if (isLoginPage && isAuthenticated) {
+        return <Navigate to={userRole === 'admin' ? '/admin' : '/'} replace />
     }
 
     if (isLoginPage) {
@@ -76,11 +128,11 @@ const AppContent = () => {
 
     return (
         <div className={`min-h-screen bg-gray-100`}>
-            <Sidebar
-                sidebarBgColor={isAdminPage ? 'bg-blue-900' : 'bg-green-900'}
-                onLogout={handleLogout}
-                userRole={userRole}
-            />
+            {userRole === 'admin' ? (
+                <SidebarAdmin onLogout={handleLogout} />
+            ) : (
+                <SidebarUser onLogout={handleLogout} />
+            )}
             {!isHomePage && !isAdminPage && <Header />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
@@ -100,6 +152,11 @@ const AppContent = () => {
                                 <AdminChargersPage />
                             </ProtectedRoute>
                         } />
+                        <Route path="/admin/bookings" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated} userRole={userRole} requiredRole="admin">
+                                <AdminChargersPage />
+                            </ProtectedRoute>
+                        } />
                         <Route path="/map" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <MapPage />
@@ -110,7 +167,7 @@ const AppContent = () => {
                                 <BookingPage />
                             </ProtectedRoute>
                         } />
-                        <Route path="/chargerDetails" element={
+                        <Route path="/charger/:id" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <ChargerDetails />
                             </ProtectedRoute>
@@ -126,7 +183,9 @@ const AppContent = () => {
 const App = () => {
     return (
         <Router>
-            <AppContent />
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
         </Router>
     )
 }

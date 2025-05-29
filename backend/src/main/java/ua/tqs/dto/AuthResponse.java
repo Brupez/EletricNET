@@ -1,16 +1,14 @@
 package ua.tqs.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
-@Getter
-@Setter
+@AllArgsConstructor
 public class AuthResponse {
     private String token;
-
-    public AuthResponse(String token) {
-        this.token = token;
-    }
+    private String role;
+    private Long userId;
+    private String name;
+    private String email;
 }

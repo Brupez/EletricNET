@@ -1,23 +1,38 @@
 import { Battery, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import BookingModal from '../../components/BookingModal.tsx'
+import { useParams, useLocation } from 'react-router-dom'
+
+interface LocationState {
+    name: string;
+    location: string;
+    latitude: number;
+    longitude: number;
+}
 
 const ChargerDetails = () => {
+    const { id } = useParams()
+    const location = useLocation()
+    const markerData = location.state as LocationState
 
     const [isModalOpen, setIsModalOpen] = useState(false)
 
 
     const chargerDetails = {
-        id: '001',
-        name: 'Charger A',
-        location: 'EDP Comercial',
+        id: id,
+        name: markerData?.name,
+        location: markerData?.location,
         type: 'Fast Charging Station',
         power: '150 kW',
         status: 'Available',
         pricePerKwh: '$0.25',
         operatingHours: '24/7',
         connectorType: 'CCS2',
-        lastMaintenance: '2024-02-15'
+        lastMaintenance: '2024-02-15',
+        coordinates: {
+            lat: markerData?.latitude,
+            lng: markerData?.longitude
+        }
     }
 
     return (
@@ -65,6 +80,14 @@ const ChargerDetails = () => {
                                     <tr>
                                         <th className="py-2 text-gray-600">Last Maintenance:</th>
                                         <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 text-gray-600">Latitude:</td>
+                                        <td className="py-2 font-medium">{chargerDetails.coordinates.lat}</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="py-2 text-gray-600">Longitude:</td>
+                                        <td className="py-2 font-medium">{chargerDetails.coordinates.lng}</td>
                                     </tr>
                                     <tr>
                                         <th className="py-2 text-gray-600">Promotions:</th>

@@ -1,169 +1,190 @@
-import { Calendar, Plus, ChevronUp, ChevronDown, History, Eye } from 'lucide-react'
-import { useState } from 'react'
+import { Calendar, Plus, History, Eye } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-type SortDirection = 'asc' | 'desc' | null
-type SortField = 'id' | 'station' | 'category' | 'price' | 'date' | 'status' | null
+interface ReservationResponseDTO {
+    id: number
+    slotId: number
+    stationName: string
+    chargingType: string
+    state: 'ACTIVE' | 'CANCELED' | 'COMPLETED'
+    totalCost: number
+    consumptionKWh: number
+    startTime: string
+}
+
+const itemsPerPage = 5
 
 const BookingPage = () => {
     const navigate = useNavigate()
-    const [sortField, setSortField] = useState<SortField>(null)
-    const [sortDirection, setSortDirection] = useState<SortDirection>(null)
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 5
-    const totalPages = 5
+    const [bookings, setBookings] = useState<ReservationResponseDTO[]>([])
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            const token = localStorage.getItem('jwt')
+            if (!token) {
+                alert('Please login to view your bookings.')
+                navigate('/login')
+                return
+            }
+
+            const res = await fetch('http://localhost:8081/api/reservations/myReservations', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            if (res.ok) {
+                const data = await res.json()
+                setBookings(data)
+            } else {
+                console.error('Failed to fetch bookings')
+            }
+        }
+        fetchBookings()
+    }, [navigate])
 
     const handleAddBooking = () => {
         navigate('/')
     }
 
-    const handleViewDetails = (id: string) => {
-        navigate(`/charger/${id}`)
+    const handleViewDetails = (slotId: number) => {
+        navigate(`/charger/${slotId}`)
     }
 
-    const Pagination = () => (
-        <div className="mt-4 flex items-center justify-between px-4">
-            <div className="text-sm text-gray-600">
-                Showing {itemsPerPage} of {itemsPerPage * totalPages} results
-            </div>
-            <div className="flex gap-2">
-                <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 rounded border border-gray-200 disabled:opacity-50"
-                >
-                    Previous
-                </button>
-                <span className="px-3 py-1">Page {currentPage} of {totalPages}</span>
-                <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 rounded border border-gray-200 disabled:opacity-50"
-                >
-                    Next
-                </button>
-            </div>
-        </div>
-    )
+    const BookingTable = ({
+        title,
+        data
+    }: {
+        title: string
+        data: ReservationResponseDTO[]
+    }) => {
+        const [currentPage, setCurrentPage] = useState(1)
 
-    const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
-        } else {
-            setSortField(field)
-            setSortDirection('asc')
-        }
-    }
+        const paginatedData = data.slice(
+            (currentPage - 1) * itemsPerPage,
+            currentPage * itemsPerPage
+        )
 
-    const SortIcon = ({ field }: { field: SortField }) => {
-        if (sortField !== field) return <ChevronUp className="opacity-0 group-hover:opacity-50" size={16} />
-        return sortDirection === 'asc' ?
-            <ChevronUp className="text-green-700" size={16} /> :
-            <ChevronDown className="text-green-700" size={16} />
-    }
-
-    const BookingTable = () => {
-        const bookings = [
-            { id: '001', station: 'Station A', status: 'Active', category: 'Fast', price: '$25.00', date: '2024-03-20 14:30' },
-            { id: '002', station: 'Station B', status: 'Pending', category: 'Ultra', price: '$35.00', date: '2024-03-21 10:15' },
-            { id: '003', station: 'Station C', status: 'Completed', category: 'Fast', price: '$28.00', date: '2024-03-19 16:45' },
-        ]
+        const totalPages = Math.ceil(data.length / itemsPerPage)
 
         return (
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
-                            ID <SortIcon field="id" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('station')}>
-                            Charger Station <SortIcon field="station" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('status')}>
-                            Status <SortIcon field="status" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('category')}>
-                            Category <SortIcon field="category" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('price')}>
-                            Price <SortIcon field="price" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('date')}>
-                            Date <SortIcon field="date" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                            Actions
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                    {bookings.map(booking => (
-                        <tr key={booking.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4">{booking.id}</td>
-                            <td className="px-6 py-4">{booking.station}</td>
-                            <td className="px-6 py-4">
-                                    <span className={`badge ${
-                                        booking.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                            booking.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-gray-100 text-gray-800'
-                                    }`}>
-                                        {booking.status}
-                                    </span>
-                            </td>
-                            <td className="px-6 py-4">{booking.category}</td>
-                            <td className="px-6 py-4">{booking.price}</td>
-                            <td className="px-6 py-4">{booking.date}</td>
-                            <td className="px-6 py-4">
-                                <button
-                                    onClick={() => handleViewDetails(booking.id)}
-                                    className="text-green-700 hover:text-green-800 flex items-center gap-1"
-                                >
-                                    <Eye size={16} />
-                                    View
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
-
-    return (
-        <>
-            <div className="space-y-8 mt-8">
-                <div className="card w-full">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
+            <div className="card w-full mt-8">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        {title === 'Current Bookings' ? (
                             <Calendar size={24} className="text-green-700" />
-                            <h2 className="text-2xl font-bold text-gray-800">
-                                Current Bookings
-                            </h2>
+                        ) : (
+                            <History size={24} className="text-green-700" />
+                        )}
+                        <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+                        {title === 'Current Bookings' && (
                             <button
                                 onClick={handleAddBooking}
                                 className="btn bg-[#243E16] hover:bg-green-700 text-white flex items-center gap-2 ml-4"
                             >
-                                <Plus size={20} />
-                                Add Booking
+                                <Plus size={20} /> Add Booking
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-4">ID</th>
+                                <th className="px-6 py-4">Charger Station</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Charging Type</th>
+                                <th className="px-6 py-4">Price</th>
+                                <th className="px-6 py-4">KWh</th>
+                                <th className="px-6 py-4">Start Time</th>
+                                <th className="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {paginatedData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} className="text-center text-gray-500 py-6">
+                                        {title === 'Current Bookings'
+                                            ? 'No current bookings found.'
+                                            : 'No booking history found.'}
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginatedData.map((res) => (
+                                    <tr key={res.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">{res.id}</td>
+                                        <td className="px-6 py-4">{res.stationName}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`badge ${
+                                                res.state === 'ACTIVE'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : res.state === 'CANCELED'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                            }`}>
+                                                {res.state}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">{res.chargingType}</td>
+                                        <td className="px-6 py-4">€{res.totalCost.toFixed(2)}</td>
+                                        <td className="px-6 py-4">{res.consumptionKWh} kWh</td>
+                                        <td className="px-6 py-4">
+                                            {new Date(res.startTime).toLocaleString('pt-PT')}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <button
+                                                onClick={() => handleViewDetails(res.slotId)}
+                                                className="text-green-700 hover:text-green-800 flex items-center gap-1"
+                                            >
+                                                <Eye size={16} /> View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {data.length > itemsPerPage && (
+                    <div className="mt-4 flex items-center justify-between px-4 text-sm text-gray-600">
+                        <div>
+                            Showing {paginatedData.length} of {data.length} results
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1 rounded border border-gray-200 disabled:opacity-50"
+                            >
+                                Previous
+                            </button>
+                            <span>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1 rounded border border-gray-200 disabled:opacity-50"
+                            >
+                                Next
                             </button>
                         </div>
                     </div>
-                    <BookingTable />
-                </div>
+                )}
             </div>
+        )
+    }
 
-            <div className="card w-full mt-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <History size={24} className="text-green-700" />
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        Booking History
-                    </h2>
-                </div>
-                <BookingTable />
-                <Pagination />
-            </div>
+    const currentBookings = bookings.filter((b) => b.state === 'ACTIVE')
+    const bookingHistory = bookings.filter((b) => b.state !== 'ACTIVE')
+
+    return (
+        <>
+            <BookingTable title="Current Bookings" data={currentBookings} />
+            <BookingTable title="Booking History" data={bookingHistory} />
         </>
     )
 }

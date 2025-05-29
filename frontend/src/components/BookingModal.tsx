@@ -1,5 +1,5 @@
 import { X, CreditCard } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface BookingModalProps {
@@ -10,6 +10,14 @@ interface BookingModalProps {
         name: string
         pricePerKwh: string
         type: string
+    }
+}
+
+function parseJwt(token: string) {
+    try {
+        return JSON.parse(atob(token.split('.')[1]))
+    } catch (e) {
+        return null
     }
 }
 
@@ -26,11 +34,73 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         cvv: ''
     })
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [token, setToken] = useState<string | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (isOpen) {
+            const jwt = localStorage.getItem('jwt')
+            const uid = localStorage.getItem('userId')
+            console.log('JWT:', jwt)
+            console.log('UserID:', uid)
+            setToken(jwt)
+            setUserId(uid)
+        }
+    }, [isOpen])
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('Booking submitted:', { chargerDetails, bookingData })
-        onClose()
-        navigate('/bookings')
+
+        if (!token || !userId || isNaN(parseInt(userId))) {
+            alert('User not authenticated!')
+            return
+        }        
+
+        console.log('localStorage JWT:', localStorage.getItem('jwt'));
+        console.log('localStorage userId:', localStorage.getItem('userId'));
+
+        const decoded = parseJwt(token)
+        if (!decoded || !decoded.sub) {
+            alert('Invalid token!')
+            return
+        }
+
+        const slotId = parseInt(chargerDetails.id)
+        const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace('$', ''))
+        const durationMinutes = parseInt(bookingData.duration)
+        const startTime = `${bookingData.date}T${bookingData.startTime}:00`
+
+        const payload = {
+            userId: parseInt(userId),
+            slotId,
+            pricePerKWh,
+            consumptionKWh: 15.0,
+            startTime,
+            durationMinutes
+        }
+
+        try {
+            const res = await fetch('http://localhost:8081/api/reservations/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            })
+
+            if (!res.ok) {
+                throw new Error('Reservation failed')
+            }
+
+            const data = await res.json()
+            console.log('Reservation successful:', data)
+            onClose()
+            navigate('/bookings')
+        } catch (err) {
+            console.error(err)
+            alert('Failed to create reservation')
+        }
     }
 
     if (!isOpen) return null
