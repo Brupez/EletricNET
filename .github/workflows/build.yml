@@ -20,6 +20,30 @@ jobs:
           java-version: 21
           distribution: 'temurin'
 
+      - name: Install Playwright Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+          libcups2 libdrm2 libdbus-1-3 libxcb1 libxkbcommon0 libx11-6 libxcomposite1 libxdamage1 \
+          libxext6 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 \
+          libwayland-client0
+
+      - name: Start application with Docker Compose
+        run: |
+          docker compose up -d --build
+          echo "Waiting for services to be healthy..."
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy"; then
+              if curl -s http://localhost:80 > /dev/null; then
+                echo "All services are healthy!"
+                break
+              fi
+            fi
+            echo "Attempt $i/30: Waiting for services..."
+            docker compose ps
+            sleep 10
+          done
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -34,12 +58,18 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Install Playwright Browser
+        run: |
+          cd backend
+          mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
+
+
       - name: Build and analyze with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd backend
-          mvn -B clean test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=Brupez_EletricNET \
           -Dsonar.organization=eletricnet \
           -Dsonar.host.url=https://sonarcloud.io
@@ -55,6 +85,10 @@ jobs:
           projectKey: 'EN'
           testExecKey: ''
           testPaths: '**/target/surefire-reports/*.xml'
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v
 
   deploy:
     name: Deploy Application
