@@ -1,19 +1,47 @@
-import { Search } from 'lucide-react'
-import { useState } from 'react'
+import { Search, Bell } from 'lucide-react'
+import {useRef, useState} from 'react'
 import * as React from "react";
+import { useClickOutside } from '../hooks/useClickOutside'
 
 interface HeaderProps {
     onFilterOpenChange: (isOpenOnly: boolean) => void;
 }
 
+interface Notification {
+    id: string;
+    message: string;
+    timestamp: Date;
+    read: boolean;
+}
+
 const Header = ({ onFilterOpenChange } : HeaderProps) => {
     const [isOpenOnly, setIsOpenOnly] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([
+        {
+            id: '1',
+            message: 'Your reservation at Station XYZ is completed',
+            timestamp: new Date(),
+            read: false
+        }
+    ]);
+    const notificationRef = useRef<HTMLDivElement>(null);
+    useClickOutside(notificationRef, () => setShowNotifications(false));
+
 
     const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const checked = event.target.checked;
         setIsOpenOnly(checked);
         onFilterOpenChange(checked);
     }
+
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    const markAsRead = (id: string) => {
+        setNotifications(notifications.map(notification =>
+            notification.id === id ? { ...notification, read: true } : notification
+        ));
+    };
 
     return (
         <header className="fixed top-0 right-0 left-64 h-16 glass shadow-sm z-10">
@@ -36,6 +64,61 @@ const Header = ({ onFilterOpenChange } : HeaderProps) => {
                         />
                         <span>Open Now</span>
                     </label>
+                </div>
+
+                {/* Notification Bell */}
+                <div ref={notificationRef} className="relative">
+                    <button
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        className="relative p-2 hover:bg-green-900-100 rounded-full transition-colors"
+                    >
+                        <Bell className="text-gray-600" size={20} />
+                        {unreadCount > 0 && (
+                            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {unreadCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Notifications Dropdown */}
+                    {showNotifications && (
+                        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div className="p-3 border-b border-gray-200">
+                                <h3 className="font-semibold text-gray-700">Notifications</h3>
+                            </div>
+                            <div className="max-h-96 overflow-y-auto">
+                                {notifications.length === 0 ? (
+                                    <div className="p-4 text-center text-gray-500">
+                                        No notifications
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {notifications.map((notification) => (
+                                            <button
+                                                key={notification.id}
+                                                onClick={() => markAsRead(notification.id)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        markAsRead(notification.id);
+                                                    }
+                                                }}
+                                                tabIndex={0}
+                                                className={`w-full text-left p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                                                    !notification.read ? 'bg-blue-50' : ''
+                                                }`}
+                                            >
+                                                <p className="text-sm text-gray-800">{notification.message}</p>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    {notification.timestamp.toLocaleTimeString()}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>
