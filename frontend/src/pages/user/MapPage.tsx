@@ -2,26 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { loadGoogleMapsApi } from "../../utils/loadGoogleMapsApi";
 import { PlaceResult } from "../../utils/types";
+import Header from "../../components/Header";
 
 interface Place extends PlaceResult {
-    geometry: {
-        location: google.maps.LatLng;
-    };
     place_id: string;
-    types?: string[];
     name: string;
-    vicinity?: string;
-}
-
-interface InternalCharger {
-    id: string;
-    name: string;
-    latitude: number;
-    longitude: number;
-    location: string;
-    station?: {
-        name: string;
+    geometry: {
+      location: google.maps.LatLng;
     };
+    vicinity?: string;
+    isOpen?: boolean;
+    rating?: number;
+    openingHoursText?: string[];
+    businessStatus?: google.maps.places.BusinessStatus;
 }
 
 interface MapInstance {
@@ -36,26 +29,16 @@ const MapPage = () => {
     const location = searchParams.get("location");
     const mapRef = useRef<HTMLDivElement>(null);
     const [places, setPlaces] = useState<Place[]>([]);
-    const [internalChargers, setInternalChargers] = useState<InternalCharger[]>([]);
+    const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
 
-    const isNearby = (lat1: number, lng1: number, lat2: number, lng2: number, maxKm = 10): boolean => {
-        const toRad = (value: number) => value * Math.PI / 180;
-        const R = 6371; // km
-
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lng2 - lng1);
-        const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) ** 2;
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const d = R * c;
-
-        return d <= maxKm;
+    // Add filter handler
+    const handleFilterChange = (showOpenOnly: boolean) => {
+        if (showOpenOnly) {
+            setFilteredPlaces(places.filter(place => place.businessStatus === "OPERATIONAL"));
+        } else {
+            setFilteredPlaces(places);
+        }
     };
-
 
     const createCustomMarker = (google: any) => ({
         path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
@@ -80,7 +63,7 @@ const MapPage = () => {
         return { map, service, customMarker };
     };
 
-    const createPlaceMarker = (
+    const createMarker = (
         place: Place,
         map: google.maps.Map,
         customMarker: google.maps.Symbol
@@ -99,123 +82,122 @@ const MapPage = () => {
                     location: place.vicinity,
                     latitude: place.geometry.location.lat(),
                     longitude: place.geometry.location.lng(),
+                    isOpen: place.isOpen,
                 },
             });
         });
     };
 
-    const createInternalMarker = (
-        charger: InternalCharger,
-        map: google.maps.Map,
-        google: any
-    ) => {
-        const marker = new google.maps.Marker({
-            position: { lat: charger.latitude, lng: charger.longitude },
-            map,
-            title: charger.name,
-            icon: {
-                path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-                fillColor: "#0f766e",
-                fillOpacity: 1,
-                strokeWeight: 0,
-                scale: 10,
-            },
-        });
-
-        marker.addListener("click", () => {
-            navigate(`/charger/${charger.id}`, {
-                state: {
-                    name: charger.name,
-                    location: charger.location,
-                    latitude: charger.latitude,
-                    longitude: charger.longitude,
+    const getPlaceDetails = async (
+        place: Place,
+        service: google.maps.places.PlacesService
+    ): Promise<Place> => {
+        return new Promise((resolve) => {
+            service.getDetails(
+                {
+                    placeId: place.place_id,
+                    fields: ['opening_hours', 'rating', 'business_status'],
                 },
-            });
+                (result, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && result?.opening_hours) {
+                        const updatedPlace : Place = {
+                            ...place,
+                            isOpen: result.opening_hours ? result.opening_hours.isOpen() : undefined,
+                            openingHoursText: result.opening_hours ? result.opening_hours.weekday_text : undefined,
+                            rating: result.rating !== undefined ? result.rating : undefined,
+                            businessStatus: result.business_status,
+                        };
+                        resolve(updatedPlace);
+                    } else {
+                        console.warn(`Could not get full details for ${place.name} (ID: ${place.place_id}). Status: ${status}`);
+                        resolve(place);
+                    }
+                }
+            );
         });
     };
 
-    const handleNearbySearch = (
-        results: Place[],
-        status: string,
+    const handleNearbySearch = async (
+        results: google.maps.places.PlaceResult[],
+        status: google.maps.places.PlacesServiceStatus,
         map: google.maps.Map,
-        customMarker: google.maps.Symbol
+        customMarker: google.maps.Symbol,
+        service: google.maps.places.PlacesService
     ) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-            setPlaces(results);
-            results.forEach(place => createPlaceMarker(place, map, customMarker));
+        console.log('Places API Status:', status);
+        console.log('Places API Results:', JSON.stringify(results, null, 2));
+
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+            const mappedResults: Place[] = results.map(result => ({
+                place_id: result.place_id!,
+                name: result.name!,
+                geometry: {
+                    location: result.geometry!.location!,
+                },
+                vicinity: result.vicinity,
+            })).filter(place => place.place_id);
+
+            const placesWithDetails = await Promise.all(
+                mappedResults.map(place => getPlaceDetails(place, service))
+            );
+
+            setPlaces(placesWithDetails);
+            setFilteredPlaces(placesWithDetails);
+            placesWithDetails.forEach(place => createMarker(place, map, customMarker));
+        } else {
+            console.error("Nearby search failed with status:", status);
+            setPlaces([]);
+            setFilteredPlaces([]);
         }
     };
 
     const handleGeocodeResult = (
-        results: any,
-        status: any,
-        mapInstance: MapInstance,
-        google: any,
-        data: InternalCharger[]
+        results: google.maps.GeocoderResult[],
+        status: google.maps.GeocoderStatus,
+        mapInstance: MapInstance
     ) => {
-        if (status !== "OK" || !results[0]) return;
+        if (status != google.maps.GeocoderStatus.OK || !results[0]) {
+            console.error("Geocode was not successful for the following reason:", status);
+            return;
+        }
 
         const { map, service, customMarker } = mapInstance;
-        const location = results[0].geometry.location;
-        map.setCenter(location);
+        map.setCenter(results[0].geometry.location);
         map.setZoom(14);
 
         service.nearbySearch(
             {
-                location,
+                location: results[0].geometry.location,
                 radius: 5000,
-                type: "charging_station",
+                type: "electric_vehicle_charging_station"
             },
-            (results, status) => handleNearbySearch(results, status, map, customMarker)
+            (results, status) => handleNearbySearch(results, status, map, customMarker, service)
         );
-
-        const centerLat = location.lat();
-        const centerLng = location.lng();
-        const filteredChargers = data.filter(ch =>
-            isNearby(centerLat, centerLng, ch.latitude, ch.longitude)
-        );
-
-        filteredChargers.forEach(charger =>
-            createInternalMarker(charger, map, google)
-        );
-
-        setInternalChargers(filteredChargers);
     };
 
     useEffect(() => {
         if (!location || !mapRef.current) return;
 
-        const loadMapAndData = async () => {
+        const loadMap = async () => {
             try {
                 const mapInstance = await initializeMap(mapRef.current!);
-                const { google } = window as typeof window & { google: any };
                 const geocoder = new google.maps.Geocoder();
 
-                const token = localStorage.getItem('jwt');
-
-                const response = await fetch("http://localhost:8081/api/slots", {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = await response.json();
-                setInternalChargers([]);
-
-                geocoder.geocode({ address: location }, (results, status) => {
-                    if (status !== "OK" || !results[0]) return;
-
-                    handleGeocodeResult(results, status, mapInstance, google, data);
-                });
+                geocoder.geocode(
+                    { address: location },
+                    (results, status) => handleGeocodeResult(results, status, mapInstance)
+                );
             } catch (error) {
-                console.error("Erro ao carregar o mapa:", error);
+                console.error("Error loading the map:", error);
             }
         };
 
-        loadMapAndData();
+        loadMap();
     }, [location, navigate]);
 
     return (
         <div className="card p-4">
+            <Header onFilterOpenChange={handleFilterChange} />
             <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                     Charging Stations Map
@@ -228,26 +210,32 @@ const MapPage = () => {
             ></div>
 
             <div className="mt-4">
-                <h3 className="font-semibold text-gray-700 mb-2">Nearby Stations</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">
+                    Nearby Stations ({filteredPlaces.length})
+                </h3>
                 <ul>
-                    {places.map((place) => (
+                    {filteredPlaces.map((place) => (
                         <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
                             <span className="font-medium">{place.name}</span>
                             <p className="text-sm text-gray-600">{place.vicinity}</p>
+                            {place.rating !== undefined && (
+                                <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
+                            )}
+                            <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
+                                {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
+                            </p>
+                            {place.openingHoursText && place.openingHoursText.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                    <p className="font-semibold">Opening Hours:</p>
+                                    <ul className="list-disc list-inside">
+                                        {place.openingHoursText.map((text, index) => (
+                                            <li key={index}>{text}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </li>
                     ))}
-                    {internalChargers.map((charger) => {
-                        //console.log("Charger recebido:", charger);
-
-                        return (
-                            <li key={charger.id} className="mb-2 p-2 bg-emerald-50 rounded">
-                                <span className="font-medium">{charger.name}</span>
-                                {charger.station?.name && (
-                                    <p className="text-sm text-gray-600">{charger.station.name}</p>
-                                )}
-                            </li>
-                        );
-                    })}
                 </ul>
             </div>
         </div>

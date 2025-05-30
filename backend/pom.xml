@@ -31,6 +31,8 @@
         <!-- Sonarqube -->
         <sonar.organization>eletricnet</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
         <java.version>17</java.version>
 
     </properties>
@@ -134,9 +136,11 @@
             <artifactId>junit-platform-suite</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.42.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -203,12 +207,27 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
                 <configuration>
-                    <includes>
-                        <include>**/dto/*.java</include>
-                        <include>**/services/*.java</include>
-                    </includes>
                     <reportsDirectory>target/surefire-reports</reportsDirectory>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
