@@ -36,7 +36,7 @@ const AdminReservationsPage = () => {
             .then(res => res.json())
             .then(data => setReservations(data))
             .catch(err => console.error("Error fetching reservations", err))
-    }, [])
+    }, [])    
 
     const handleViewDetails = (id: number) => {
         navigate(`/admin/reservation/${id}`)

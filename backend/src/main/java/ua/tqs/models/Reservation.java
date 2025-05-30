@@ -23,7 +23,7 @@ public class Reservation {
     @ManyToOne
     private User user;
 
-    @OneToOne
+    @ManyToOne
     @JsonManagedReference
     private Slot slot;
 

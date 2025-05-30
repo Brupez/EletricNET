@@ -71,6 +71,9 @@ public class ReservationService {
         response.setPaid(saved.isPaid());
         response.setStartTime(saved.getStartTime());
         response.setDurationMinutes(saved.getDurationMinutes());
+        response.setStationName(slot.getStation().getName());
+        response.setChargingType(slot.getChargingType().name());
+        response.setCreatedAt(saved.getCreationDate());
 
         return Optional.of(response);
     }

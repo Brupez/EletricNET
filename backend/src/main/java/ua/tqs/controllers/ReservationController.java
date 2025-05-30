@@ -19,7 +19,7 @@ public class ReservationController {
     @Autowired
     public ReservationService reservationService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {
         List<ReservationResponseDTO> reservations = reservationService.getAllReservations();
         return ResponseEntity.ok(reservations);
