@@ -59,9 +59,11 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+
       - name: Install Playwright
         run: |
           cd backend
+          run: npx playwright install
           mvn com.microsoft.playwright:playwright-maven-plugin:install
 
       - name: SonarQube Analysis
