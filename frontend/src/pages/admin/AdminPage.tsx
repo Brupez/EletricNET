@@ -75,7 +75,7 @@ const AdminPage = () => {
                     id: slot.id,
                     name: slot.name || `Slot ${slot.id}`,
                     location: slot.station?.name || 'Unknown',
-                    status: slot.reserved ? 'Inactive' : 'Active',
+                    status: slot.station?.status === 'UNAVAILABLE' ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
                 }))
@@ -247,7 +247,7 @@ const AdminPage = () => {
                     id: newSlot.id,
                     name: newSlot.name || `Slot ${newSlot.id}`,
                     location: newSlot.station?.name || 'Unknown',
-                    status: newSlot.reserved ? 'Inactive' : 'Active',
+                    status: newSlot.station?.status === 'UNAVAILABLE' ? 'Inactive' : 'Active',
                     type: newSlot.chargingType,
                     power: newSlot.power
                 };
