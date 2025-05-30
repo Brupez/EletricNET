@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { loadGoogleMapsApi } from "../../utils/loadGoogleMapsApi";
 import { PlaceResult } from "../../utils/types";
+import Header from "../../components/Header";
 
 interface Place extends PlaceResult {
     place_id: string;
@@ -28,6 +29,16 @@ const MapPage = () => {
     const location = searchParams.get("location");
     const mapRef = useRef<HTMLDivElement>(null);
     const [places, setPlaces] = useState<Place[]>([]);
+    const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
+
+    // Add filter handler
+    const handleFilterChange = (showOpenOnly: boolean) => {
+        if (showOpenOnly) {
+            setFilteredPlaces(places.filter(place => place.businessStatus === "OPERATIONAL"));
+        } else {
+            setFilteredPlaces(places);
+        }
+    };
 
     const createCustomMarker = (google: any) => ({
         path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
@@ -129,11 +140,14 @@ const MapPage = () => {
             const placesWithDetails = await Promise.all(
                 mappedResults.map(place => getPlaceDetails(place, service))
             );
+
             setPlaces(placesWithDetails);
+            setFilteredPlaces(placesWithDetails); // Initially show all places
             placesWithDetails.forEach(place => createMarker(place, map, customMarker));
         } else {
             console.error("Nearby search failed with status:", status);
             setPlaces([]);
+            setFilteredPlaces([]);
         }
     };
 
@@ -183,6 +197,7 @@ const MapPage = () => {
 
     return (
         <div className="card p-4">
+            <Header onFilterOpenChange={handleFilterChange} />
             <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                     Charging Stations Map
@@ -195,21 +210,20 @@ const MapPage = () => {
             ></div>
 
             <div className="mt-4">
-                <h3 className="font-semibold text-gray-700 mb-2">Nearby Stations</h3>
+                <h3 className="font-semibold text-gray-700 mb-2">
+                    Nearby Stations ({filteredPlaces.length})
+                </h3>
                 <ul>
-                    {places.map((place) => (
+                    {filteredPlaces.map((place) => (
                         <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
                             <span className="font-medium">{place.name}</span>
                             <p className="text-sm text-gray-600">{place.vicinity}</p>
-                            {/* Display Rating */}
                             {place.rating !== undefined && (
                                 <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
                             )}
-                            {/* Display Open/Closed Status */}
-                            <p className={`text-sm ${place.businessStatus == "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
-                                {place.businessStatus !== undefined ? (place.businessStatus == "OPERATIONAL" ? "Open Now" : "Closed"): "Closed"}
+                            <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
+                                {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
                             </p>
-                            {/* Display Opening Hours Text */}
                             {place.openingHoursText && place.openingHoursText.length > 0 && (
                                 <div className="text-xs text-gray-500 mt-1">
                                     <p className="font-semibold">Opening Hours:</p>
