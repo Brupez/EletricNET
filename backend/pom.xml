@@ -137,7 +137,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Playwright dependency -->
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
