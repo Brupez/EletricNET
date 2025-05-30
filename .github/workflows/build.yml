@@ -61,10 +61,10 @@ jobs:
 
 
       - name: Install Playwright
+        working-directory: backend
         run: |
-          cd backend
-          npx playwright install chromium
-          mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
+          mvn clean compile
+          mvn exec:java -D exec.mainClass="com.microsoft.playwright.CLI" -D exec.args="install chromium" -D exec.classpathScope=test
 
       - name: SonarQube Analysis
         env:
