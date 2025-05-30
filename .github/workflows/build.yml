@@ -63,8 +63,8 @@ jobs:
       - name: Install Playwright
         run: |
           cd backend
-          run: npx playwright install
-          mvn com.microsoft.playwright:playwright-maven-plugin:install
+          npx playwright install chromium
+          mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
 
       - name: SonarQube Analysis
         env:
