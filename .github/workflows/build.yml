@@ -23,6 +23,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Disable service restarts
+        run: |
+          sudo mkdir -p /etc/needrestart/conf.d/
+          echo "\$nrconf{restart} = 'a';" | sudo tee /etc/needrestart/conf.d/50-disable-restarts.conf
+
       - uses: actions/setup-java@v4
         with:
           java-version: 21
@@ -60,7 +65,7 @@ jobs:
       - name: Install Playwright
         run: |
           cd backend
-          mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install chromium"
+          mvn com.microsoft.playwright:playwright-maven-plugin:install
 
       - name: SonarQube Analysis
         env:
