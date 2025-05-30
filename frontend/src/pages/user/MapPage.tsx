@@ -30,8 +30,8 @@ const MapPage = () => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [places, setPlaces] = useState<Place[]>([]);
     const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
+    const [searchLocation, setSearchLocation] = useState('');
 
-    // Add filter handler
     const handleFilterChange = (showOpenOnly: boolean) => {
         if (showOpenOnly) {
             setFilteredPlaces(places.filter(place => place.businessStatus === "OPERATIONAL"));
@@ -117,6 +117,11 @@ const MapPage = () => {
         });
     };
 
+    const handleSearch = () => {
+        if (!searchLocation) return;
+        navigate(`/map?location=${encodeURIComponent(searchLocation)}`);
+    };
+
     const handleNearbySearch = async (
         results: google.maps.places.PlaceResult[],
         status: google.maps.places.PlacesServiceStatus,
@@ -197,7 +202,12 @@ const MapPage = () => {
 
     return (
         <div className="card p-4">
-            <Header onFilterOpenChange={handleFilterChange} />
+            <Header
+                onFilterOpenChange={handleFilterChange}
+                searchLocation={searchLocation}
+                onSearchChange={setSearchLocation}
+                onSearch={handleSearch}
+            />
             <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                     Charging Stations Map

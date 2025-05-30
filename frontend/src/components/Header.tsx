@@ -5,6 +5,9 @@ import { useClickOutside } from '../hooks/useClickOutside'
 
 interface HeaderProps {
     onFilterOpenChange: (isOpenOnly: boolean) => void;
+    searchLocation: string;
+    onSearchChange: (value: string) => void;
+    onSearch: () => void;
 }
 
 interface Notification {
@@ -14,7 +17,7 @@ interface Notification {
     read: boolean;
 }
 
-const Header = ({ onFilterOpenChange } : HeaderProps) => {
+const Header = ({ onFilterOpenChange, onSearchChange, onSearch, searchLocation } : HeaderProps) => {
     const [isOpenOnly, setIsOpenOnly] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([
@@ -52,6 +55,14 @@ const Header = ({ onFilterOpenChange } : HeaderProps) => {
                         <input
                             type="search"
                             placeholder="Location..."
+                            value={searchLocation}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    onSearch();
+                                }
+                            }}
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />
                     </div>
