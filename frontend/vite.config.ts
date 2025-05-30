@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   server: {
     host: '0.0.0.0',
+    allowedHosts: ['deti-tqs-05.ua.pt'],
     proxy: {
         '/api': 'http://localhost:8081', // SpringBoot port
         },

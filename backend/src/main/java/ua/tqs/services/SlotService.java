@@ -24,6 +24,10 @@ public class SlotService {
         return slotRepository.findAll();
     }
 
+    public List<Slot> getAvailableSlots() {
+        return slotRepository.findByReservedFalse();
+    }
+
     public Optional<Slot> getSlotById(Long id) {
         return slotRepository.findById(id);
     }
@@ -79,15 +83,24 @@ public class SlotService {
                     return stationRepository.save(newStation);
                 });
 
-        Slot slot = (dto.getId() != null)
-                ? slotRepository.findById(dto.getId()).orElse(new Slot())
-                : new Slot();
+        Slot slot;
+        if (dto.getId() != null) {
+            Optional<Slot> existingSlot = slotRepository.findById(dto.getId());
+            if (existingSlot.isEmpty()) {
+                throw new IllegalArgumentException("Slot with given ID not found");
+            }
+            slot = existingSlot.get();
+        } else {
+            slot = new Slot();
+        }
 
         slot.setName(dto.getName());
         slot.setStation(station);
         slot.setReserved(dto.isReserved());
         slot.setChargingType(dto.getChargingType());
         slot.setPower(dto.getPower());
+        slot.setLatitude(dto.getLatitude());
+        slot.setLongitude(dto.getLongitude());
 
         return slotRepository.save(slot);
     }

@@ -1,30 +1,171 @@
-import { Calendar, Plus, ChevronUp, ChevronDown, History, Eye } from 'lucide-react'
-import { useState } from 'react'
+import {
+    Calendar,
+    ChevronUp,
+    ChevronDown,
+    History,
+    Eye
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 type SortDirection = 'asc' | 'desc' | null
-type SortField = 'id' | 'station' | 'category' | 'price' | 'date' | 'status' | null
+type SortField = 'id' | 'stationName' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
 
-const AdminChargersPage = () => {
+interface ReservationResponseDTO {
+    id: number
+    stationName: string
+    chargingType: string
+    totalCost: number
+    state: string
+    createdAt: string
+}
+
+const API_BASE = 'http://localhost:8081'
+
+const AdminReservationsPage = () => {
     const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
     const [sortDirection, setSortDirection] = useState<SortDirection>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
-    const totalPages = 5
 
-    const handleAddCharger = () => {
-        navigate('/admin/chargers/add')
+    const [reservations, setReservations] = useState<ReservationResponseDTO[]>([])
+
+    useEffect(() => {
+        fetch(`${API_BASE}/api/reservations/all`)
+            .then(res => res.json())
+            .then(data => setReservations(data))
+            .catch(err => console.error("Error fetching reservations", err))
+    }, [])
+
+    const handleViewDetails = (id: number) => {
+        navigate(`/admin/reservation/${id}`)
     }
 
-    const handleViewDetails = (id: string) => {
-        navigate(`/admin/charger/${id}`)
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'))
+        } else {
+            setSortField(field)
+            setSortDirection('asc')
+        }
     }
+
+    const getSortedData = (data: ReservationResponseDTO[]) => {
+        if (!sortField || !sortDirection) return data
+        return [...data].sort((a, b) => {
+            const valA = a[sortField as keyof ReservationResponseDTO]
+            const valB = b[sortField as keyof ReservationResponseDTO]
+            if (valA == null || valB == null) return 0
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return sortDirection === 'asc'
+                    ? valA.localeCompare(valB)
+                    : valB.localeCompare(valA)
+            }
+            if (typeof valA === 'number' && typeof valB === 'number') {
+                return sortDirection === 'asc' ? valA - valB : valB - valA
+            }
+            return 0
+        })
+    }
+
+    const SortIcon = ({ field }: { field: SortField }) => {
+        if (sortField !== field)
+            return <ChevronUp className="opacity-0 group-hover:opacity-50" size={16} />
+        return sortDirection === 'asc' ? (
+            <ChevronUp className="text-blue-700" size={16} />
+        ) : (
+            <ChevronDown className="text-blue-700" size={16} />
+        )
+    }
+
+    const statusStyles = {
+        ACTIVE: 'bg-green-100 text-green-800',
+        CANCELED: 'bg-yellow-100 text-yellow-800',
+        COMPLETED: 'bg-gray-100 text-gray-800'
+    } as const
+
+    const activeReservations = reservations.filter(r => r.state === 'ACTIVE')
+    const historyReservations = reservations.filter(r => r.state !== 'ACTIVE')
+
+    const ReservationTable = ({ data }: { data: ReservationResponseDTO[] }) => {
+        const sorted = getSortedData(data)
+        const paginated = sorted.slice(
+            (currentPage - 1) * itemsPerPage,
+            currentPage * itemsPerPage
+        )
+        return (
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
+                                ID <SortIcon field="id" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('stationName')}>
+                                Station <SortIcon field="stationName" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('state')}>
+                                Status <SortIcon field="state" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('chargingType')}>
+                                Charging Type <SortIcon field="chargingType" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('totalCost')}>
+                                Cost <SortIcon field="totalCost" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
+                                Created At <SortIcon field="createdAt" />
+                            </th>
+                            <th className="px-6 py-4 text-sm text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {paginated.length > 0 ? (
+                            paginated.map(r => (
+                                <tr key={r.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4">{r.id}</td>
+                                    <td className="px-6 py-4">{r.stationName}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`badge ${statusStyles[r.state as keyof typeof statusStyles] || ''}`}>
+                                            {r.state}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">{r.chargingType}</td>
+                                    <td className="px-6 py-4">€{r.totalCost.toFixed(2)}</td>
+                                    <td className="px-6 py-4">
+                                        {new Date(r.createdAt).toLocaleString('pt-PT')}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <button
+                                            onClick={() => handleViewDetails(r.id)}
+                                            className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
+                                        >
+                                            <Eye size={16} />
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={7} className="px-6 py-6 text-center text-gray-500">
+                                    No reservations found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        )
+    }
+
+    const totalPages = Math.max(1, Math.ceil(reservations.length / itemsPerPage))
 
     const Pagination = () => (
         <div className="mt-4 flex items-center justify-between px-4">
             <div className="text-sm text-gray-600">
-                Showing {itemsPerPage} of {itemsPerPage * totalPages} results
+                Showing {itemsPerPage} per page
             </div>
             <div className="flex gap-2">
                 <button
@@ -46,131 +187,28 @@ const AdminChargersPage = () => {
         </div>
     )
 
-    const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
-        } else {
-            setSortField(field)
-            setSortDirection('asc')
-        }
-    }
-
-    const SortIcon = ({ field }: { field: SortField }) => {
-        if (sortField !== field) return <ChevronUp className="opacity-0 group-hover:opacity-50" size={16} />
-        return sortDirection === 'asc' ?
-            <ChevronUp className="text-blue-700" size={16} /> :
-            <ChevronDown className="text-blue-700" size={16} />
-    }
-
-    const statusStyles = {
-        Active: 'bg-green-100 text-green-800',
-        Pending: 'bg-yellow-100 text-yellow-800',
-        Completed: 'bg-gray-100 text-gray-800'
-    } as const
-
-    type Status = keyof typeof statusStyles
-
-
-    const ChargerTable = () => {
-        const chargers = [
-            { id: '001', station: 'Station A', status: 'Active', category: 'Fast', price: '$25.00', date: '2024-03-20 14:30' },
-            { id: '002', station: 'Station B', status: 'Pending', category: 'Ultra', price: '$35.00', date: '2024-03-21 10:15' },
-            { id: '003', station: 'Station C', status: 'Completed', category: 'Fast', price: '$28.00', date: '2024-03-19 16:45' },
-        ]
-
-        return (
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
-                            ID <SortIcon field="id" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('station')}>
-                            Charger Station <SortIcon field="station" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('status')}>
-                            Status <SortIcon field="status" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('category')}>
-                            Category <SortIcon field="category" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('price')}>
-                            Price <SortIcon field="price" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 cursor-pointer group" onClick={() => handleSort('date')}>
-                            Date <SortIcon field="date" />
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
-                            Actions
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                    {chargers.map(charger => (
-                        <tr key={charger.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4">{charger.id}</td>
-                            <td className="px-6 py-4">{charger.station}</td>
-                            <td className="px-6 py-4">
-                                    <span className={`badge ${statusStyles[charger.status as Status]}`}>
-                                        {charger.status}
-                                    </span>
-                            </td>
-                            <td className="px-6 py-4">{charger.category}</td>
-                            <td className="px-6 py-4">{charger.price}</td>
-                            <td className="px-6 py-4">{charger.date}</td>
-                            <td className="px-6 py-4">
-                                <button
-                                    onClick={() => handleViewDetails(charger.id)}
-                                    className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
-                                >
-                                    <Eye size={16} />
-                                    View
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
-
     return (
         <>
             <div className="space-y-8 mt-8">
                 <div className="card w-full">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <Calendar size={24} className="text-blue-700" />
-                            <h2 className="text-2xl font-bold text-gray-800">
-                                Current chargers
-                            </h2>
-                            <button
-                                onClick={handleAddCharger}
-                                className="btn bg-[#1E3A8A] hover:bg-blue-700 text-white flex items-center gap-2 ml-4"
-                            >
-                                <Plus size={20} />
-                                Add charger
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-3 mb-6">
+                        <Calendar size={24} className="text-blue-700" />
+                        <h2 className="text-2xl font-bold text-gray-800">Active Reservations</h2>
                     </div>
-                    <ChargerTable />
+                    <ReservationTable data={activeReservations} />
                 </div>
-            </div>
 
-            <div className="card w-full mt-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <History size={24} className="text-blue-700" />
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        Chargers History
-                    </h2>
+                <div className="card w-full mt-8">
+                    <div className="flex items-center gap-3 mb-6">
+                        <History size={24} className="text-blue-700" />
+                        <h2 className="text-2xl font-bold text-gray-800">Reservation History</h2>
+                    </div>
+                    <ReservationTable data={historyReservations} />
+                    <Pagination />
                 </div>
-                <ChargerTable />
-                <Pagination />
             </div>
         </>
     )
 }
 
-export default AdminChargersPage
+export default AdminReservationsPage

@@ -25,6 +25,11 @@ public class SlotController {
         return ResponseEntity.ok(slotService.getAllSlots());
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<List<Slot>> getAvailableSlots() {
+        return ResponseEntity.ok(slotService.getAvailableSlots());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getSlotById(@PathVariable Long id) {
         Optional<Slot> slot = slotService.getSlotById(id);
@@ -34,6 +39,10 @@ public class SlotController {
 
     @PostMapping("/dto")
     public ResponseEntity<?> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+        if (slotDTO.getId() != null) {
+            return ResponseEntity.badRequest().body("ID should not be provided when creating a new slot.");
+        }
+
         try {
             Slot created = slotService.saveOrUpdateSlotFromDTO(slotDTO);
             return ResponseEntity.ok(created);

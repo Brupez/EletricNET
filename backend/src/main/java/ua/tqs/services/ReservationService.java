@@ -51,6 +51,8 @@ public class ReservationService {
         reservation.setSlot(slot);
         reservation.setStatus(ReservationStatus.ACTIVE);
         reservation.setCreationDate(LocalDateTime.now());
+        reservation.setStartTime(dto.getStartTime());
+        reservation.setDurationMinutes(dto.getDurationMinutes());
 
         reservation.setConsumptionKWh(dto.getConsumptionKWh());
         double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
@@ -67,6 +69,8 @@ public class ReservationService {
         response.setConsumptionKWh(saved.getConsumptionKWh());
         response.setTotalCost(saved.getTotalCost());
         response.setPaid(saved.isPaid());
+        response.setStartTime(saved.getStartTime());
+        response.setDurationMinutes(saved.getDurationMinutes());
 
         return Optional.of(response);
     }
@@ -119,4 +123,22 @@ public class ReservationService {
                 .mapToDouble(Reservation::getTotalCost)
                 .sum();
     }
+
+    public List<ReservationResponseDTO> getAllReservations() {
+        return reservationRepository.findAll().stream().map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setSlotId(reservation.getSlot().getId());
+            dto.setState(reservation.getStatus().name());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setChargingType(reservation.getSlot().getChargingType().name());
+            dto.setCreatedAt(reservation.getCreationDate());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 }
