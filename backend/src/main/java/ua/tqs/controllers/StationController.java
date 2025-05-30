@@ -13,8 +13,12 @@ import java.util.Optional;
 @RequestMapping("/api/stations")
 public class StationController {
 
+    private final StationService stationService;
+
     @Autowired
-    private StationService stationService;
+    public StationController(StationService stationService) {
+        this.stationService = stationService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Station>> getAllStations() {
@@ -22,7 +26,7 @@ public class StationController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getStationById(@PathVariable Long id) {
+    public ResponseEntity<Station> getStationById(@PathVariable Long id) {
         Optional<Station> station = stationService.getStationById(id);
         return station.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -34,9 +38,9 @@ public class StationController {
     }
 
     @PostMapping("/{id}/discount")
-    public ResponseEntity<?> toggleDiscount(@PathVariable Long id,
-                                            @RequestParam boolean active,
-                                            @RequestParam double value) {
+    public ResponseEntity<String> toggleDiscount(@PathVariable Long id,
+                                               @RequestParam boolean active,
+                                               @RequestParam double value) {
         boolean updated = stationService.toggleDiscount(id, active, value);
         if (updated) {
             return ResponseEntity.ok("Discount updated successfully.");

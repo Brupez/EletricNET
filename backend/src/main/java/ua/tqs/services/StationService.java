@@ -11,8 +11,12 @@ import java.util.Optional;
 @Service
 public class StationService {
 
+    private final StationRepository stationRepository;
+
     @Autowired
-    private StationRepository stationRepository;
+    public StationService(StationRepository stationRepository) {
+        this.stationRepository = stationRepository;
+    }
 
     public List<Station> getAllStations() {
         return stationRepository.findAll();

@@ -16,8 +16,12 @@ import java.util.Optional;
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
+    private final ReservationService reservationService;
+
     @Autowired
-    public ReservationService reservationService;
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {

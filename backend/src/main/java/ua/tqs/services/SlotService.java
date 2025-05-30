@@ -14,11 +14,14 @@ import java.util.Optional;
 @Service
 public class SlotService {
 
-    @Autowired
-    private SlotRepository slotRepository;
+    private final SlotRepository slotRepository;
+    private final StationRepository stationRepository;
 
     @Autowired
-    private StationRepository stationRepository;
+    public SlotService(SlotRepository slotRepository, StationRepository stationRepository) {
+        this.slotRepository = slotRepository;
+        this.stationRepository = stationRepository;
+    }
 
     public List<Slot> getAllSlots() {
         return slotRepository.findAll();
@@ -32,13 +35,6 @@ public class SlotService {
         return slotRepository.findById(id);
     }
 
-    public boolean existsByName(String name) {
-        return slotRepository.existsByName(name);
-    }
-
-    public boolean existsByNameExceptId(String name, Long id) {
-        return slotRepository.existsByNameAndIdNot(name, id);
-    }
 
     public List<Slot> getSlotsByStationId(Long stationId) {
         return slotRepository.findAll()

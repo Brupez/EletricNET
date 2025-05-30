@@ -17,8 +17,13 @@ import java.util.Optional;
 @RequestMapping("/api/slots")
 public class SlotController {
 
+    private final SlotService slotService;
+
     @Autowired
-    private SlotService slotService;
+    public SlotController(SlotService slotService) {
+        this.slotService = slotService;
+    }
+
 
     @GetMapping
     public ResponseEntity<List<Slot>> getAllSlots() {
@@ -31,14 +36,14 @@ public class SlotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSlotById(@PathVariable Long id) {
+    public ResponseEntity<Slot> getSlotById(@PathVariable Long id) {
         Optional<Slot> slot = slotService.getSlotById(id);
         return slot.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/dto")
-    public ResponseEntity<?> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+    public ResponseEntity<Object> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
         if (slotDTO.getId() != null) {
             return ResponseEntity.badRequest().body("ID should not be provided when creating a new slot.");
         }
@@ -57,7 +62,7 @@ public class SlotController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteSlot(@PathVariable Long id) {
+    public ResponseEntity<String> deleteSlot(@PathVariable Long id) {
         boolean success = slotService.deleteSlot(id);
         if (success) {
             return ResponseEntity.ok("Slot deleted successfully.");
@@ -85,7 +90,7 @@ public class SlotController {
     }
 
     @PutMapping("/dto/{id}")
-    public ResponseEntity<?> updateSlotFromDto(@PathVariable Long id, @RequestBody SlotDTO slotDTO) {
+    public ResponseEntity<Object> updateSlotFromDto(@PathVariable Long id, @RequestBody SlotDTO slotDTO) {
         Optional<Slot> existingSlot = slotService.getSlotById(id);
         if (existingSlot.isEmpty()) {
             return ResponseEntity.notFound().build();

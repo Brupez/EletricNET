@@ -10,7 +10,6 @@ import ua.tqs.repositories.SlotRepository;
 import ua.tqs.repositories.UserRepository;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
-import java.util.stream.Collectors;
 import java.util.List;
 
 import java.time.LocalDateTime;
@@ -19,17 +18,21 @@ import java.util.Optional;
 @Service
 public class ReservationService {
 
-    @Autowired
-    private ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
+    private final SlotRepository slotRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    private SlotRepository slotRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    public ReservationService(ReservationRepository reservationRepository,
+                              SlotRepository slotRepository,
+                              UserRepository userRepository,
+                              JwtUtil jwtUtil) {
+        this.reservationRepository = reservationRepository;
+        this.slotRepository = slotRepository;
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+    }
 
     public Optional<ReservationResponseDTO> createReservation(ReservationRequestDTO dto) {
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
@@ -115,7 +118,7 @@ public class ReservationService {
             dto.setChargingType(reservation.getSlot().getChargingType().name());
 
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     public double getTotalRevenue() {
@@ -138,7 +141,6 @@ public class ReservationService {
             dto.setChargingType(reservation.getSlot().getChargingType().name());
             dto.setCreatedAt(reservation.getCreationDate());
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
-
 }
