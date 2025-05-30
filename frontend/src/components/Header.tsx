@@ -27,7 +27,6 @@ const Header = ({ onFilterOpenChange } : HeaderProps) => {
                             className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         />
                     </div>
-                    {/* New Filter Checkbox */}
                     <label className="flex items-center space-x-2 text-gray-700">
                         <input
                             type="checkbox"

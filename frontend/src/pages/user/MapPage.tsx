@@ -142,7 +142,7 @@ const MapPage = () => {
             );
 
             setPlaces(placesWithDetails);
-            setFilteredPlaces(placesWithDetails); // Initially show all places
+            setFilteredPlaces(placesWithDetails);
             placesWithDetails.forEach(place => createMarker(place, map, customMarker));
         } else {
             console.error("Nearby search failed with status:", status);
