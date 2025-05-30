@@ -132,6 +132,8 @@ public class ReservationService {
             ReservationResponseDTO dto = new ReservationResponseDTO();
             dto.setId(reservation.getId());
             dto.setUserId(reservation.getUser().getId());
+            dto.setUserEmail(reservation.getUser().getEmail());
+            dto.setUserName(reservation.getUser().getName());
             dto.setSlotId(reservation.getSlot().getId());
             dto.setState(reservation.getStatus().name());
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
@@ -143,5 +145,27 @@ public class ReservationService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    public Optional<ReservationResponseDTO> getReservationById(Long id) {
+        return reservationRepository.findById(id).map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setUserEmail(reservation.getUser().getEmail());
+            dto.setUserName(reservation.getUser().getName());
+            dto.setSlotId(reservation.getSlot().getId());
+            dto.setState(reservation.getStatus().name());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setChargingType(reservation.getSlot().getChargingType().name());
+            dto.setCreatedAt(reservation.getCreationDate());
+            dto.setStartTime(reservation.getStartTime());
+            dto.setDurationMinutes(reservation.getDurationMinutes());
+            return dto;
+        });
+    }
+
 
 }

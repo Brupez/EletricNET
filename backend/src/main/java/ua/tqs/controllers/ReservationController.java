@@ -59,4 +59,11 @@ public class ReservationController {
 
         return ResponseEntity.ok(revenue);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationResponseDTO> getReservationById(@PathVariable Long id) {
+        return reservationService.getReservationById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

@@ -6,7 +6,7 @@ import {
     Eye
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import ReservationModalAdmin from '../../components/ReservationModalAdmin'
 
 type SortDirection = 'asc' | 'desc' | null
 type SortField = 'id' | 'stationName' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
@@ -18,12 +18,13 @@ interface ReservationResponseDTO {
     totalCost: number
     state: string
     createdAt: string
+    userName: string
+    userEmail: string
 }
 
 const API_BASE = 'http://localhost:8081'
 
 const AdminReservationsPage = () => {
-    const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
     const [sortDirection, setSortDirection] = useState<SortDirection>(null)
     const [currentPage, setCurrentPage] = useState(1)
@@ -31,16 +32,14 @@ const AdminReservationsPage = () => {
 
     const [reservations, setReservations] = useState<ReservationResponseDTO[]>([])
 
+    const [selectedReservation, setSelectedReservation] = useState<ReservationResponseDTO | null>(null)
+
     useEffect(() => {
         fetch(`${API_BASE}/api/reservations/all`)
             .then(res => res.json())
             .then(data => setReservations(data))
             .catch(err => console.error("Error fetching reservations", err))
-    }, [])    
-
-    const handleViewDetails = (id: number) => {
-        navigate(`/admin/reservation/${id}`)
-    }
+    }, [])
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -138,7 +137,7 @@ const AdminReservationsPage = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <button
-                                            onClick={() => handleViewDetails(r.id)}
+                                            onClick={() => setSelectedReservation(r)}
                                             className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
                                         >
                                             <Eye size={16} />
@@ -207,6 +206,11 @@ const AdminReservationsPage = () => {
                     <Pagination />
                 </div>
             </div>
+
+
+            {selectedReservation && (
+                <ReservationModalAdmin reservation={selectedReservation} onClose={() => setSelectedReservation(null)} />
+            )}
         </>
     )
 }
