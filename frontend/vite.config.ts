@@ -7,9 +7,14 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: ['deti-tqs-05.ua.pt'],
     proxy: {
-        '/api': 'http://localhost:8081', // SpringBoot port
-        },
+        '/api': {
+        target: 'http://deti-tqs-05.ua.pt', 
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
     },
+  },
   plugins: [react()],
   build: {
     sourcemap: false, 

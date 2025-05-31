@@ -1,15 +1,19 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { jwtDecode } from 'jwt-decode'
 
 interface User {
+  id: string;
   name: string
   email: string
   role: 'admin' | 'user'
+  token: string; // Adicionado token ao objeto user
 }
 
 interface AuthContextType {
   user: User | null
-  setUser: (user: User | null) => void
+  login: (token: string, userData: Omit<User, 'token'>) => void
+  logout: () => void
+  isAuthenticated: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,30 +23,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('jwt')
-    const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    if (token && info.name && info.email) {
+    if (token) {
       try {
         const decoded: any = jwtDecode(token)
         const now = Date.now() / 1000
+        
         if (decoded.exp && decoded.exp < now) {
-          localStorage.clear()
-          setUser(null)
+          logout()
         } else {
-          const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
-          const role: 'admin' | 'user' = roleRaw === 'admin' ? 'admin' : 'user'
-          setUser({ name: info.name, email: info.email, role })
+          const userData = JSON.parse(localStorage.getItem('userInfo') || '{}')
+          setUser({
+            id: decoded.sub || userData.userId,
+            name: userData.name,
+            email: userData.email,
+            role: decoded.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
+            token
+          })
         }
       } catch (err) {
-        localStorage.clear()
-        setUser(null)
+        logout()
       }
-    } else {
-      setUser(null)
     }
   }, [])
 
+  const login = useCallback((token: string, userData: Omit<User, 'token'>) => {
+    localStorage.setItem('jwt', token)
+    localStorage.setItem('userInfo', JSON.stringify(userData))
+    
+    setUser({
+      ...userData,
+      token
+    })
+  }, [])
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('jwt')
+    localStorage.removeItem('userInfo')
+    setUser(null)
+  }, [])
+
+  const isAuthenticated = useCallback(() => {
+    return !!user && !!user.token
+  }, [user])
+
+  const value = {
+    user,
+    login,
+    logout,
+    isAuthenticated
+  }
+
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

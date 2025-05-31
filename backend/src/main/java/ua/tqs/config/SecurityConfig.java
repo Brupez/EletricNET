@@ -48,10 +48,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://deti-tqs-05.ua.pt:*"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://deti-tqs-05.ua.pt:*", "https://deti-tqs-05.ua.pt:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization"));  
+        configuration.setExposedHeaders(List.of("Authorization", "X-Custom-Header"));  
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

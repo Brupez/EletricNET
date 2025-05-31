@@ -4,11 +4,7 @@ import { useAuth } from '../utils/AuthContext'
 import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
 
-interface LoginPageProps {
-    onLogin: (email: string, password: string) => Promise<string | null>
-}
-
-const LoginPage = ({ onLogin }: LoginPageProps) => {
+const LoginPage = () => {
     const navigate = useNavigate()
     const [isLoginMode, setIsLoginMode] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
@@ -19,7 +15,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
-    const { setUser } = useAuth()
+    const { login } = useAuth() 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -47,6 +43,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                 }
 
                 setIsLoginMode(true)
+                setError('') 
             } catch (err: any) {
                 setError(err.message || 'Failed to register')
             }
@@ -54,16 +51,33 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
             return
         }
 
-        // Login
-        const redirectPath = await onLogin(email, password)
-        if (redirectPath) {
-            const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
-            const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
-            const role = roleRaw === 'admin' ? 'admin' : 'user'
-            setUser({ name: info.name, email: info.email, role })
-            navigate(redirectPath)
-        } else {
-            setError('Invalid credentials')
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            })
+
+            if (!response.ok) {
+                const errorMsg = await response.text()
+                throw new Error(errorMsg || 'Login failed')
+            }
+
+            const data = await response.json()
+  
+            login(data.token, {
+                id: data.userId,
+                name: data.name,
+                email: data.email,
+                role: data.role.toLowerCase() as 'admin' | 'user'
+            })
+
+            navigate(data.role === 'ADMIN' ? '/admin' : '/dashboard')
+
+        } catch (err: any) {
+            setError(err.message || 'Invalid credentials')
         }
     }
 
