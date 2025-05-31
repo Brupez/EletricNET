@@ -13,7 +13,7 @@ class ReservationDTOTest {
         ReservationResponseDTO dto = new ReservationResponseDTO();
         dto.setId(1L);
         dto.setUserId(2L);
-        dto.setSlotId(3L);
+        dto.setSlotId("3");
         dto.setState("PENDING");
         dto.setConsumptionKWh(50.0);
         dto.setTotalCost(75.0);

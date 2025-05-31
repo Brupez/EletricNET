@@ -15,6 +15,7 @@ interface Place extends PlaceResult {
     rating?: number;
     openingHoursText?: string[];
     businessStatus?: google.maps.places.BusinessStatus;
+    global_code?: string; 
 }
 
 interface MapInstance {
@@ -90,6 +91,7 @@ const MapPage = () => {
                     rating: place.rating,
                     businessStatus: place.businessStatus,
                     openingHoursText: place.openingHoursText,
+                    slotId: place.global_code
                 },
             });
         });
@@ -116,7 +118,6 @@ const MapPage = () => {
                         };
                         resolve(updatedPlace);
                     } else {
-                        console.warn(`Could not get full details for ${place.name} (ID: ${place.place_id}). Status: ${status}`);
                         resolve(place);
                     }
                 }
@@ -147,6 +148,7 @@ const MapPage = () => {
                     location: result.geometry!.location!,
                 },
                 vicinity: result.vicinity,
+                global_code: result.plus_code?.global_code,
             })).filter(place => place.place_id);
 
             const placesWithDetails = await Promise.all(

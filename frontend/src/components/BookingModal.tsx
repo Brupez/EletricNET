@@ -10,6 +10,7 @@ interface BookingModalProps {
         name: string
         pricePerKwh: string
         type: string
+        slotId: string
     }
 }
 
@@ -61,7 +62,11 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             return
         }
 
-        const slotId = parseInt(chargerDetails.id)
+        const slotId = chargerDetails.slotId || chargerDetails.id
+        if (!slotId) {
+            alert('Invalid charger ID!')
+            return
+        }
         const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace('$', ''))
         const durationMinutes = parseInt(bookingData.duration)
         const startTime = `${bookingData.date}T${bookingData.startTime}:00`
@@ -73,11 +78,16 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             consumptionKWh: 15.0,
             startTime,
             durationMinutes,
-            stationName: chargerDetails.name,
-            chargingType: chargerDetails.type,
-            paymentMethod: bookingData.paymentMethod,
-            status: 'ACTIVE'
         }
+
+        console.log('Booking payload:', payload, 'Types:', {
+            userId: typeof payload.userId,
+            slotId: typeof payload.slotId,
+            pricePerKWh: typeof payload.pricePerKWh,
+            consumptionKWh: typeof payload.consumptionKWh,
+            startTime: typeof payload.startTime,
+            durationMinutes: typeof payload.durationMinutes,
+        });
 
         try {
             const res = await fetch('http://localhost:8081/api/reservations/create', {
