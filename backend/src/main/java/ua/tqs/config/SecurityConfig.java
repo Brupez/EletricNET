@@ -22,6 +22,8 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+
     @SuppressWarnings("squid:S4502")
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtFilter) throws Exception {
@@ -36,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/slots/dto/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/slots/delete/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/all").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations/create").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -50,8 +53,18 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://deti-tqs-05.ua.pt:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization"));  
+        configuration.setAllowedHeaders(List.of(
+                AUTHORIZATION_HEADER,
+                "Content-Type",
+                "Origin",
+                "Accept",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
+        configuration.setExposedHeaders(List.of(AUTHORIZATION_HEADER));
+        configuration.setAllowedHeaders(List.of(AUTHORIZATION_HEADER, "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of(AUTHORIZATION_HEADER));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

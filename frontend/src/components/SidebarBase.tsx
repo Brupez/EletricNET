@@ -112,8 +112,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = ({ sidebarBgColor, onLogout, nav
             <User size={24} />
           </div>
           <div>
-            <p className="text-sm font-medium">{user?.name || 'Guest'}</p>
-            <p className="text-xs text-green-100">{user?.email || 'No email'}</p>
+            <p className="text-sm font-medium">{user?.name ?? 'Guest'}</p>
+            <p className="text-xs text-green-100">{user?.email ?? 'No email'}</p>
           </div>
         </div>
         <button onClick={handleLogout} className="mt-4 nav-link hover:bg-white/10 w-full flex items-center">

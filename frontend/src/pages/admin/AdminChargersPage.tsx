@@ -186,7 +186,6 @@ const AdminReservationsPage = () => {
     )
 
     return (
-        <>
             <div className="space-y-8 mt-8">
                 <div className="card w-full">
                     <div className="flex items-center gap-3 mb-6">
@@ -205,7 +204,6 @@ const AdminReservationsPage = () => {
                     <Pagination />
                 </div>
             </div>
-        </>
     )
 }
 

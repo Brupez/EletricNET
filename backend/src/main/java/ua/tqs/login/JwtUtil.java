@@ -13,7 +13,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private final SecretKey secretKey;
-    private static final long jwtExpirationMs = 86400000; // 1 dia
+    private static final long JWT_EXPIRATION_MS = 86400000; // 1 dia
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
         byte[] decodedKey = Base64.getDecoder().decode(secret);
@@ -25,7 +25,7 @@ public class JwtUtil {
                 .setSubject(username)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION_MS))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }

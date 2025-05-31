@@ -10,15 +10,12 @@ interface BookingModalProps {
         name: string
         pricePerKwh: string
         type: string
+        slotId: string
     }
 }
 
 function parseJwt(token: string) {
-    try {
-        return JSON.parse(atob(token.split('.')[1]))
-    } catch (e) {
-        return null
-    }
+    return JSON.parse(atob(token.split('.')[1]))
 }
 
 const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) => {
@@ -60,12 +57,16 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         console.log('localStorage userId:', localStorage.getItem('userId'));
 
         const decoded = parseJwt(token)
-        if (!decoded || !decoded.sub) {
+        if (!decoded?.sub) {
             alert('Invalid token!')
             return
         }
 
-        const slotId = parseInt(chargerDetails.id)
+        const slotId = chargerDetails.slotId || chargerDetails.id
+        if (!slotId) {
+            alert('Invalid charger ID!')
+            return
+        }
         const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace('$', ''))
         const durationMinutes = parseInt(bookingData.duration)
         const startTime = `${bookingData.date}T${bookingData.startTime}:00`
@@ -76,8 +77,17 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             pricePerKWh,
             consumptionKWh: 15.0,
             startTime,
-            durationMinutes
+            durationMinutes,
         }
+
+        console.log('Booking payload:', payload, 'Types:', {
+            userId: typeof payload.userId,
+            slotId: typeof payload.slotId,
+            pricePerKWh: typeof payload.pricePerKWh,
+            consumptionKWh: typeof payload.consumptionKWh,
+            startTime: typeof payload.startTime,
+            durationMinutes: typeof payload.durationMinutes,
+        });
 
         try {
             const res = await fetch('/api/reservations/create', {
@@ -96,7 +106,15 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             const data = await res.json()
             console.log('Reservation successful:', data)
             onClose()
-            navigate('/bookings')
+            navigate('/bookings', {
+                state: {
+                    newBooking: {
+                        ...data,
+                        stationName: chargerDetails.name,
+                        chargingType: chargerDetails.type,
+                    }
+                }
+            })
         } catch (err) {
             console.error(err)
             alert('Failed to create reservation')

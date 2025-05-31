@@ -8,6 +8,10 @@ interface LocationState {
     location: string;
     latitude: number;
     longitude: number;
+    isOpen: boolean;
+    rating?: number;
+    businessStatus?: string;
+    openingHoursText?: string[];
 }
 
 const ChargerDetails = () => {
@@ -22,13 +26,12 @@ const ChargerDetails = () => {
         id: id,
         name: markerData?.name,
         location: markerData?.location,
+        rating: markerData?.rating,
         type: 'Fast Charging Station',
         power: '150 kW',
-        status: 'Available',
+        status: markerData?.businessStatus === 'OPERATIONAL' ? 'Available' : 'Unavailable',
         pricePerKwh: '$0.25',
-        operatingHours: '24/7',
-        connectorType: 'CCS2',
-        lastMaintenance: '2024-02-15',
+        operatingHours: markerData?.openingHoursText?.join('\n'),
         coordinates: {
             lat: markerData?.latitude,
             lng: markerData?.longitude
@@ -73,14 +76,12 @@ const ChargerDetails = () => {
                                         <th className="py-2 text-gray-600">Operating Hours:</th>
                                         <td className="py-2 font-medium">{chargerDetails.operatingHours}</td>
                                     </tr>
-                                    <tr>
-                                        <th className="py-2 text-gray-600">Connector Type:</th>
-                                        <td className="py-2 font-medium">{chargerDetails.connectorType}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="py-2 text-gray-600">Last Maintenance:</th>
-                                        <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
-                                    </tr>
+                                    {chargerDetails.rating && (
+                                        <tr>
+                                            <th className="py-2 text-gray-600">Rating:</th>
+                                            <td className="py-2 font-medium">{chargerDetails.rating.toFixed(1)}</td>
+                                        </tr>
+                                    )}
                                     <tr>
                                         <td className="py-2 text-gray-600">Latitude:</td>
                                         <td className="py-2 font-medium">{chargerDetails.coordinates.lat}</td>
@@ -88,14 +89,6 @@ const ChargerDetails = () => {
                                     <tr>
                                         <td className="py-2 text-gray-600">Longitude:</td>
                                         <td className="py-2 font-medium">{chargerDetails.coordinates.lng}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="py-2 text-gray-600">Promotions:</th>
-                                        <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-2 text-gray-600">Payment:</td>
-                                        <td className="py-2 font-medium">{chargerDetails.lastMaintenance}</td>
                                     </tr>
                                     </tbody>
                                 </table>
