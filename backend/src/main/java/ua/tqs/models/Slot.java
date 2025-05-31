@@ -8,6 +8,7 @@ import lombok.Setter;
 import ua.tqs.enums.ChargingType;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,9 +37,9 @@ public class Slot {
     @ManyToOne
     private Station station;
 
-    @OneToOne(mappedBy = "slot")
+    @OneToMany(mappedBy = "slot")
     @JsonBackReference
-    private Reservation reservation;
+    private List<Reservation> reservations;
 
     @Enumerated(EnumType.STRING)
     private ChargingType chargingType;

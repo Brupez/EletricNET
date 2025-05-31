@@ -19,7 +19,7 @@ public class ReservationController {
     @Autowired
     public ReservationService reservationService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<ReservationResponseDTO>> getAllReservations() {
         List<ReservationResponseDTO> reservations = reservationService.getAllReservations();
         return ResponseEntity.ok(reservations);
@@ -58,5 +58,12 @@ public class ReservationController {
         revenue.put("totalRevenue", totalRevenue);
 
         return ResponseEntity.ok(revenue);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationResponseDTO> getReservationById(@PathVariable Long id) {
+        return reservationService.getReservationById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

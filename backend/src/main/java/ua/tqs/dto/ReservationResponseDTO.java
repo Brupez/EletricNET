@@ -16,6 +16,9 @@ public class ReservationResponseDTO {
     private String stationName;
     private String chargingType;
 
+    private String userName;
+    private String userEmail;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime startTime;

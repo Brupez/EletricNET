@@ -71,6 +71,9 @@ public class ReservationService {
         response.setPaid(saved.isPaid());
         response.setStartTime(saved.getStartTime());
         response.setDurationMinutes(saved.getDurationMinutes());
+        response.setStationName(slot.getStation().getName());
+        response.setChargingType(slot.getChargingType().name());
+        response.setCreatedAt(saved.getCreationDate());
 
         return Optional.of(response);
     }
@@ -129,6 +132,8 @@ public class ReservationService {
             ReservationResponseDTO dto = new ReservationResponseDTO();
             dto.setId(reservation.getId());
             dto.setUserId(reservation.getUser().getId());
+            dto.setUserEmail(reservation.getUser().getEmail());
+            dto.setUserName(reservation.getUser().getName());
             dto.setSlotId(reservation.getSlot().getId());
             dto.setState(reservation.getStatus().name());
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
@@ -140,5 +145,27 @@ public class ReservationService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    public Optional<ReservationResponseDTO> getReservationById(Long id) {
+        return reservationRepository.findById(id).map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setUserEmail(reservation.getUser().getEmail());
+            dto.setUserName(reservation.getUser().getName());
+            dto.setSlotId(reservation.getSlot().getId());
+            dto.setState(reservation.getStatus().name());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setChargingType(reservation.getSlot().getChargingType().name());
+            dto.setCreatedAt(reservation.getCreationDate());
+            dto.setStartTime(reservation.getStartTime());
+            dto.setDurationMinutes(reservation.getDurationMinutes());
+            return dto;
+        });
+    }
+
 
 }
