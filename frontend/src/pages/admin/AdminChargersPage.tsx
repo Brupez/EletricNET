@@ -20,8 +20,6 @@ interface ReservationResponseDTO {
     createdAt: string
 }
 
-const API_BASE = 'http://localhost:8081'
-
 const AdminReservationsPage = () => {
     const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
@@ -32,7 +30,7 @@ const AdminReservationsPage = () => {
     const [reservations, setReservations] = useState<ReservationResponseDTO[]>([])
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/reservations/all`)
+        fetch(`/api/reservations/all`)
             .then(res => res.json())
             .then(data => setReservations(data))
             .catch(err => console.error("Error fetching reservations", err))
