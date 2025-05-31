@@ -14,12 +14,14 @@ import ua.tqs.repositories.SlotRepository;
 import ua.tqs.repositories.StationRepository;
 import ua.tqs.services.SlotService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SlotServiceTest {
@@ -141,5 +143,85 @@ class SlotServiceTest {
         Slot savedSlot = slotService.saveOrUpdateSlotFromDTO(slotDTO);
 
         assertThat(savedSlot.getStation().getName()).isEqualTo("New Station");
+    }
+
+    @Test
+    void getAllSlots_shouldReturnAllSlots() {
+        List<Slot> expectedSlots = Collections.singletonList(slot);
+        when(slotRepository.findAll()).thenReturn(expectedSlots);
+
+        List<Slot> actualSlots = slotService.getAllSlots();
+
+        assertThat(actualSlots).isEqualTo(expectedSlots);
+    }
+
+    @Test
+    void getAvailableSlots_shouldReturnNonReservedSlots() {
+        List<Slot> availableSlots = Collections.singletonList(slot);
+        when(slotRepository.findByReservedFalse()).thenReturn(availableSlots);
+
+        List<Slot> result = slotService.getAvailableSlots();
+
+        assertThat(result).isEqualTo(availableSlots);
+    }
+
+    @Test
+    void getSlotById_shouldReturnSlot() {
+        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+
+        Optional<Slot> result = slotService.getSlotById("1");
+
+        assertThat(result).isPresent()
+                .contains(slot);
+    }
+
+    @Test
+    void getSlotsByStationId_shouldReturnSlotsForStation() {
+        List<Slot> allSlots = Collections.singletonList(slot);
+        when(slotRepository.findAll()).thenReturn(allSlots);
+
+        List<Slot> result = slotService.getSlotsByStationId(1L);
+
+        assertThat(result).hasSize(1)
+                .containsExactly(slot);
+    }
+
+    @Test
+    void deleteSlot_shouldReturnTrueWhenExists() {
+        when(slotRepository.existsById("1")).thenReturn(true);
+
+        boolean result = slotService.deleteSlot("1");
+
+        assertThat(result).isTrue();
+        verify(slotRepository).deleteById("1");
+    }
+
+    @Test
+    void deleteSlot_shouldReturnFalseWhenNotExists() {
+        when(slotRepository.existsById("1")).thenReturn(false);
+
+        boolean result = slotService.deleteSlot("1");
+
+        assertThat(result).isFalse();
+        verify(slotRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void getTotalChargers_shouldReturnCount() {
+        when(slotRepository.count()).thenReturn(1L);
+
+        long result = slotService.getTotalChargers();
+
+        assertThat(result).isEqualTo(1L);
+    }
+
+    @Test
+    void getActiveChargers_shouldReturnNonReservedCount() {
+        List<Slot> allSlots = Collections.singletonList(slot);
+        when(slotRepository.findAll()).thenReturn(allSlots);
+
+        long result = slotService.getActiveChargers();
+
+        assertThat(result).isEqualTo(1L);
     }
 }

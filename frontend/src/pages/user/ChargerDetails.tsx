@@ -26,6 +26,7 @@ const ChargerDetails = () => {
         id: id,
         name: markerData?.name,
         location: markerData?.location,
+        rating: markerData?.rating,
         type: 'Fast Charging Station',
         power: '150 kW',
         status: markerData?.businessStatus === 'OPERATIONAL' ? 'Available' : 'Unavailable',
@@ -81,14 +82,6 @@ const ChargerDetails = () => {
                                             <td className="py-2 font-medium">{chargerDetails.rating.toFixed(1)}</td>
                                         </tr>
                                     )}
-                                    <tr>
-                                        <th className="py-2 text-gray-600">Connector Type:</th>
-                                        <td className="py-2 font-medium">{chargerDetails.connectorType}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="py-2 text-gray-600">Last Maintenance:</th>
-                                        <th className="py-2 font-medium">{chargerDetails.lastMaintenance}</th>
-                                    </tr>
                                     <tr>
                                         <td className="py-2 text-gray-600">Latitude:</td>
                                         <td className="py-2 font-medium">{chargerDetails.coordinates.lat}</td>

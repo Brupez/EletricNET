@@ -1,6 +1,6 @@
 import { Calendar, Plus, History, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 interface ReservationResponseDTO {
     id: number
