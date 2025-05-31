@@ -27,8 +27,6 @@ ChartJS.register(
     ArcElement
 )
 
-const API_BASE = 'http://localhost:8081'
-
 interface Charger {
     id: string
     name: string
@@ -68,7 +66,7 @@ const AdminPage = () => {
     const itemsPerPage = 10;
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/slots/chargers`)
+        fetch(`/api/slots/chargers`)
             .then(response => response.json())
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
@@ -85,7 +83,7 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/users/total-users`)
+        fetch(`/api/users/total-users`)
             .then(response => response.json())
             .then(data => setTotalUsers(data))
             .catch(error => console.error('Error fetching total users:', error));
@@ -192,7 +190,7 @@ const AdminPage = () => {
         setErrorMessage('')
     
         if (modalMode === 'delete' && selectedCharger) {
-            fetch(`${API_BASE}/api/slots/delete/${selectedCharger.id}`, {
+            fetch(`/api/slots/delete/${selectedCharger.id}`, {
                 method: 'DELETE'
             })
                 .then(response => {
@@ -225,8 +223,8 @@ const AdminPage = () => {
         };
     
         const url = updatedCharger.id
-            ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
-            : `${API_BASE}/api/slots/dto`;
+            ? `/api/slots/dto/${updatedCharger.id}`
+            : `/api/slots/dto`;
     
         const method = updatedCharger.id ? 'PUT' : 'POST';
     

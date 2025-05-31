@@ -30,7 +30,7 @@ const BookingPage = () => {
                 return
             }
 
-            const res = await fetch('http://localhost:8081/api/reservations/myReservations', {
+            const res = await fetch('/api/reservations/myReservations', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

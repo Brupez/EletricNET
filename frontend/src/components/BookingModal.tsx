@@ -90,7 +90,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         });
 
         try {
-            const res = await fetch('http://localhost:8081/api/reservations/create', {
+            const res = await fetch('/api/reservations/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
