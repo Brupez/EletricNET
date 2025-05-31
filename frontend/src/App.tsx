@@ -73,7 +73,7 @@ const AppContent = () => {
 
     const handleLogin = async (email: string, password: string): Promise<string | null> => {
         try {
-            const response = await fetch('http://localhost:8081/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -133,7 +133,9 @@ const AppContent = () => {
             ) : (
                 <SidebarUser onLogout={handleLogout} />
             )}
-            {!isHomePage && !isAdminPage && <Header />}
+            {!isHomePage && !isAdminPage && <Header onFilterOpenChange={function (): void {
+                throw new Error('Function not implemented.')
+            } } />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
                     <Routes>
