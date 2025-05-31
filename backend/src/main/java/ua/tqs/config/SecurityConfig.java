@@ -51,7 +51,6 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://deti-tqs-05.ua.pt:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-<<<<<<< HEAD
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type",
@@ -62,10 +61,8 @@ public class SecurityConfig {
                 "Access-Control-Request-Headers"
         ));
         configuration.setExposedHeaders(List.of("Authorization"));
-=======
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Authorization"));  
->>>>>>> origin/master
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
