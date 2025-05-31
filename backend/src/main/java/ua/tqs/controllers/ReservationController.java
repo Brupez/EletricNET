@@ -5,6 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
+import ua.tqs.login.JwtUtil;
+import ua.tqs.models.User;
+import ua.tqs.repositories.UserRepository;
 import ua.tqs.services.ReservationService;
 
 import java.util.HashMap;
@@ -17,10 +20,14 @@ import java.util.Optional;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, UserRepository userRepository, JwtUtil jwtUtil) {
         this.reservationService = reservationService;
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -30,11 +37,32 @@ public class ReservationController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ReservationResponseDTO> createReservation(@RequestBody ReservationRequestDTO dto) {
-        Optional<ReservationResponseDTO> reservation = reservationService.createReservation(dto);
-        return reservation
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.badRequest().build());
+    public ResponseEntity<ReservationResponseDTO> createReservation(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody ReservationRequestDTO dto) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String userEmail = jwtUtil.getUsername(token);
+            Optional<User> user = userRepository.findByEmail(userEmail);
+
+            if (user.isEmpty()) {
+                return ResponseEntity.status(403).build();
+            }
+
+            // Verify the user ID matches the token
+            if (!user.get().getId().equals(dto.getUserId())) {
+                return ResponseEntity.status(403).build();
+            }
+
+            Optional<ReservationResponseDTO> reservation = reservationService.createReservation(dto);
+            return reservation
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.badRequest().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
+
+
     }
 
     @PutMapping("/{id}/cancel")

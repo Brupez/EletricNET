@@ -14,11 +14,7 @@ interface BookingModalProps {
 }
 
 function parseJwt(token: string) {
-    try {
-        return JSON.parse(atob(token.split('.')[1]))
-    } catch (e) {
-        return null
-    }
+    return JSON.parse(atob(token.split('.')[1]))
 }
 
 const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) => {
@@ -60,7 +56,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         console.log('localStorage userId:', localStorage.getItem('userId'));
 
         const decoded = parseJwt(token)
-        if (!decoded || !decoded.sub) {
+        if (!decoded?.sub) {
             alert('Invalid token!')
             return
         }
@@ -76,7 +72,11 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             pricePerKWh,
             consumptionKWh: 15.0,
             startTime,
-            durationMinutes
+            durationMinutes,
+            stationName: chargerDetails.name,
+            chargingType: chargerDetails.type,
+            paymentMethod: bookingData.paymentMethod,
+            status: 'ACTIVE'
         }
 
         try {
@@ -96,7 +96,15 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             const data = await res.json()
             console.log('Reservation successful:', data)
             onClose()
-            navigate('/bookings')
+            navigate('/bookings', {
+                state: {
+                    newBooking: {
+                        ...data,
+                        stationName: chargerDetails.name,
+                        chargingType: chargerDetails.type,
+                    }
+                }
+            })
         } catch (err) {
             console.error(err)
             alert('Failed to create reservation')

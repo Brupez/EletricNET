@@ -48,6 +48,10 @@ const MapPage = () => {
         scale: 10
     });
 
+    const handleChargerClick = (id: string) => {
+        navigate(`/charger/${id}`);
+    };
+
     const initializeMap = async (element: HTMLDivElement): Promise<MapInstance> => {
         await loadGoogleMapsApi();
         const { google } = window as typeof window & { google: any };
@@ -83,6 +87,9 @@ const MapPage = () => {
                     latitude: place.geometry.location.lat(),
                     longitude: place.geometry.location.lng(),
                     isOpen: place.isOpen,
+                    rating: place.rating,
+                    businessStatus: place.businessStatus,
+                    openingHoursText: place.openingHoursText,
                 },
             });
         });
@@ -225,25 +232,30 @@ const MapPage = () => {
                 </h3>
                 <ul>
                     {filteredPlaces.map((place) => (
-                        <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
-                            <span className="font-medium">{place.name}</span>
-                            <p className="text-sm text-gray-600">{place.vicinity}</p>
-                            {place.rating !== undefined && (
-                                <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
-                            )}
-                            <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
-                                {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
-                            </p>
-                            {place.openingHoursText && place.openingHoursText.length > 0 && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                    <p className="font-semibold">Opening Hours:</p>
-                                    <ul className="list-disc list-inside">
-                                        {place.openingHoursText.map((text, index) => (
-                                            <li key={index}>{text}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+                        <li key={place.place_id} className="mb-2">
+                            <button
+                                onClick={() => handleChargerClick(place.place_id)}
+                                className="w-full p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-left"
+                            >
+                                <span className="font-medium block">{place.name}</span>
+                                <p className="text-sm text-gray-600">{place.vicinity}</p>
+                                {place.rating !== undefined && (
+                                    <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
+                                )}
+                                <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
+                                    {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
+                                </p>
+                                {place.openingHoursText && place.openingHoursText.length > 0 && (
+                                    <div className="text-xs text-gray-500 mt-1" onClick={e => e.stopPropagation()}>
+                                        <p className="font-semibold">Opening Hours:</p>
+                                        <ul className="list-disc list-inside">
+                                            {place.openingHoursText.map((text, index) => (
+                                                <li key={index}>{text}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </button>
                         </li>
                     ))}
                 </ul>

@@ -17,9 +17,11 @@ const itemsPerPage = 5
 
 const BookingPage = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const [bookings, setBookings] = useState<ReservationResponseDTO[]>([])
 
     useEffect(() => {
+        // Check if user is logged in
         const fetchBookings = async () => {
             const token = localStorage.getItem('jwt')
             if (!token) {
@@ -33,6 +35,7 @@ const BookingPage = () => {
                     'Authorization': `Bearer ${token}`
                 }
             })
+
             if (res.ok) {
                 const data = await res.json()
                 setBookings(data)
@@ -40,7 +43,12 @@ const BookingPage = () => {
                 console.error('Failed to fetch bookings')
             }
         }
+
         fetchBookings()
+
+        if (location.state?.newBooking) {
+            setBookings(prev => [location.state.newBooking, ...prev])
+        }
     }, [navigate])
 
     const handleAddBooking = () => {
