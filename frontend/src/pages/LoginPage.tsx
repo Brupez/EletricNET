@@ -34,6 +34,7 @@ const LoginPage = () => {
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ email, password, name, role })
                 })
 
@@ -57,6 +58,7 @@ const LoginPage = () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify({ email, password })
             })
 
@@ -74,7 +76,7 @@ const LoginPage = () => {
                 role: data.role.toLowerCase() as 'admin' | 'user'
             })
 
-            navigate(data.role === 'ADMIN' ? '/admin' : '/dashboard')
+            navigate(data.role === 'admin' ? '/admin' : '/')
 
         } catch (err: any) {
             setError(err.message || 'Invalid credentials')

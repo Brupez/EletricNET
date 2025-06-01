@@ -8,7 +8,7 @@ export default defineConfig({
     allowedHosts: ['deti-tqs-05.ua.pt'],
     proxy: {
         '/api': {
-        target: 'http://deti-tqs-05.ua.pt', 
+        target: 'http://deti-tqs-05.ua.pt:8081', 
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')

@@ -133,9 +133,7 @@ const AppContent = () => {
             ) : (
                 <SidebarUser onLogout={handleLogout} />
             )}
-            {!isHomePage && !isAdminPage && <Header onFilterOpenChange={function (): void {
-                throw new Error('Function not implemented.')
-            } } />}
+            {!isHomePage && !isAdminPage && <Header onFilterOpenChange={function (): void {} } searchLocation={''} onSearchChange={function (): void {} } onSearch={function (): void {} } />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
                     <Routes>
