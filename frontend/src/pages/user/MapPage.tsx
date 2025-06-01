@@ -15,7 +15,7 @@ interface Place extends PlaceResult {
     rating?: number;
     openingHoursText?: string[];
     businessStatus?: google.maps.places.BusinessStatus;
-    global_code?: string; 
+    slotId?: number; 
 }
 
 interface MapInstance {
@@ -81,6 +81,7 @@ const MapPage = () => {
         });
 
         marker.addListener("click", () => {
+            const numericId = parseInt(place.place_id.replace(/\D/g, '')) % 1000000;
             navigate(`/charger/${place.place_id}`, {
                 state: {
                     name: place.name,
@@ -91,8 +92,8 @@ const MapPage = () => {
                     rating: place.rating,
                     businessStatus: place.businessStatus,
                     openingHoursText: place.openingHoursText,
-                    slotId: place.global_code
-                },
+                    slotId: numericId
+                }
             });
         });
     };
@@ -148,8 +149,8 @@ const MapPage = () => {
                     location: result.geometry!.location!,
                 },
                 vicinity: result.vicinity,
-                global_code: result.plus_code?.global_code,
-            })).filter(place => place.place_id);
+                slotId: result.place_id,
+            })).filter(place => place.place_id && place.slotId);
 
             const placesWithDetails = await Promise.all(
                 mappedResults.map(place => getPlaceDetails(place, service))

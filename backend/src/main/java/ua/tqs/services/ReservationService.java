@@ -35,8 +35,19 @@ public class ReservationService {
     }
 
     public Optional<ReservationResponseDTO> createReservation(ReservationRequestDTO dto) {
+        System.out.println("Received reservation request: " + dto);
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
+        if (userOpt.isEmpty()) {
+            System.out.println("User not found: " + dto.getUserId());
+            return Optional.empty();
+        }
+
+
         Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
+        if (slotOpt.isEmpty()) {
+            System.out.println("Slot not found: " + dto.getSlotId());
+            return Optional.empty();
+        }
 
         if (userOpt.isEmpty() || slotOpt.isEmpty()) return Optional.empty();
 

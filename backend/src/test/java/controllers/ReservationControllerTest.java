@@ -63,14 +63,14 @@ class ReservationControllerTest {
 
         testReservationRequest = new ReservationRequestDTO();
         testReservationRequest.setUserId(1L);
-        testReservationRequest.setSlotId("slot1");
+        testReservationRequest.setSlotId(1586L);
         testReservationRequest.setStartTime(LocalDateTime.now());
         testReservationRequest.setDurationMinutes(60);
 
         testReservationResponse = new ReservationResponseDTO();
         testReservationResponse.setId(1L);
         testReservationResponse.setUserId(1L);
-        testReservationResponse.setSlotId("slot1");
+        testReservationResponse.setSlotId(1586L);
         testReservationResponse.setState("ACTIVE");
         testReservationResponse.setStartTime(LocalDateTime.now());
         testReservationResponse.setDurationMinutes(60);

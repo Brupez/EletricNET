@@ -2,16 +2,18 @@ import { X, CreditCard } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+interface ChargerDetailsProps {
+    id: string;
+    name: string | undefined;
+    pricePerKwh: string;
+    type: string;
+    slotId: number;
+}
+
 interface BookingModalProps {
-    isOpen: boolean
-    onClose: () => void
-    chargerDetails: {
-        id: string
-        name: string
-        pricePerKwh: string
-        type: string
-        slotId: string
-    }
+    isOpen: boolean;
+    onClose: () => void;
+    chargerDetails: ChargerDetailsProps;
 }
 
 function parseJwt(token: string) {
@@ -51,7 +53,8 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         if (!token || !userId || isNaN(parseInt(userId))) {
             alert('User not authenticated!')
             return
-        }        
+        }
+
 
         console.log('localStorage JWT:', localStorage.getItem('jwt'));
         console.log('localStorage userId:', localStorage.getItem('userId'));
@@ -62,18 +65,22 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             return
         }
 
-        const slotId = chargerDetails.slotId || chargerDetails.id
-        if (!slotId) {
+        console.log('chargerDetails.slotId:', chargerDetails.slotId, 'type:', typeof chargerDetails.slotId)
+        console.log('chargerDetails.id:', chargerDetails.id, 'type:', typeof chargerDetails.id)
+
+
+        const numericSlotId = parseInt(chargerDetails.slotId.toString())
+        if (isNaN(numericSlotId)) {
             alert('Invalid charger ID!')
             return
         }
-        const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace('$', ''))
+        const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace(/[^\d.]/g, ''))
         const durationMinutes = parseInt(bookingData.duration)
         const startTime = `${bookingData.date}T${bookingData.startTime}:00`
 
         const payload = {
             userId: parseInt(userId),
-            slotId,
+            slotId: numericSlotId,
             pricePerKWh,
             consumptionKWh: 15.0,
             startTime,
@@ -90,17 +97,22 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         });
 
         try {
-            const res = await fetch('/api/reservations/create', {
+            const res = await fetch('http://localhost:8081/api/reservations/create', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Origin': window.location.origin
                 },
                 body: JSON.stringify(payload)
             })
 
             if (!res.ok) {
-                throw new Error('Reservation failed')
+                const errorData = await res.json().catch(() => null)
+                console.error('API Error:', errorData)
+                throw new Error(errorData?.message ?? 'Reservation failed')
             }
 
             const data = await res.json()
@@ -116,8 +128,8 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
                 }
             })
         } catch (err) {
-            console.error(err)
-            alert('Failed to create reservation')
+            console.error('Reservation error:', err)
+            alert(err instanceof Error ? err.message : 'Failed to create reservation')
         }
     }
 

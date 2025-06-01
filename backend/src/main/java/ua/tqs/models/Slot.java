@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @Table(name = "slots")
 public class Slot {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String name;

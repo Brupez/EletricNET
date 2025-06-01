@@ -46,11 +46,13 @@ public class ReservationController {
             Optional<User> user = userRepository.findByEmail(userEmail);
 
             if (user.isEmpty()) {
+                System.out.println("User not found for email: " + userEmail);
                 return ResponseEntity.status(403).build();
             }
 
             // Verify the user ID matches the token
             if (!user.get().getId().equals(dto.getUserId())) {
+                System.out.println("User ID in token does not match the provided user ID.");
                 return ResponseEntity.status(403).build();
             }
 

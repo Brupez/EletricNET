@@ -12,6 +12,7 @@ interface LocationState {
     rating?: number;
     businessStatus?: string;
     openingHoursText?: string[];
+    slotId: number;
 }
 
 const ChargerDetails = () => {
@@ -35,7 +36,8 @@ const ChargerDetails = () => {
         coordinates: {
             lat: markerData?.latitude,
             lng: markerData?.longitude
-        }
+        },
+        slotId: markerData?.slotId ?? 0
     }
 
     return (
@@ -135,10 +137,11 @@ const ChargerDetails = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 chargerDetails={{
-                    id: chargerDetails.id,
+                    id: id ?? '',
                     name: chargerDetails.name,
                     pricePerKwh: chargerDetails.pricePerKwh,
-                    type: chargerDetails.type
+                    type: chargerDetails.type,
+                    slotId: chargerDetails.slotId,
                 }}
             />
         </div>
