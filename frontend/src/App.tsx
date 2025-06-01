@@ -24,7 +24,7 @@ interface ProtectedRouteProps {
     requiredRole?: UserRole
 }
 
-const ProtectedRoute = ({ children, isAuthenticated, userRole, requiredRole }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, isAuthenticated, userRole, requiredRole }: ProtectedRouteProps) => {    
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />
     }
@@ -48,9 +48,11 @@ const AppContent = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('jwt')
-        const role = localStorage.getItem('role')
+        const userInfo = localStorage.getItem('userInfo')
+        const role = userInfo ? JSON.parse(userInfo).role : null
         if (token && role) {
             try {
+                localStorage.setItem('jwt', token)
                 const decoded: any = jwtDecode(token)
                 const now = Date.now() / 1000
                 if (decoded.exp && decoded.exp < now) {
@@ -69,7 +71,6 @@ const AppContent = () => {
             }
         }
     }, [])
-
 
     const handleLogin = async (email: string, password: string): Promise<string | null> => {
         try {

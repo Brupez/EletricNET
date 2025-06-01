@@ -6,7 +6,7 @@ interface User {
   name: string
   email: string
   role: 'admin' | 'user'
-  token: string; // Adicionado token ao objeto user
+  token: string; 
 }
 
 interface AuthContextType {
@@ -23,6 +23,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('jwt')
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+
     if (token) {
       try {
         const decoded: any = jwtDecode(token)
@@ -31,11 +33,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (decoded.exp && decoded.exp < now) {
           logout()
         } else {
-          const userData = JSON.parse(localStorage.getItem('userInfo') || '{}')
           setUser({
-            id: decoded.sub || userData.userId,
-            name: userData.name,
-            email: userData.email,
+            id: decoded.sub || userInfo.userId,
+            name: userInfo.name,
+            email: userInfo.email,
             role: decoded.role?.toLowerCase() === 'admin' ? 'admin' : 'user',
             token
           })
@@ -49,10 +50,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = useCallback((token: string, userData: Omit<User, 'token'>) => {
     localStorage.setItem('jwt', token)
     localStorage.setItem('userInfo', JSON.stringify(userData))
-    
+
     setUser({
-      ...userData,
-      token
+        ...userData,
+        token
     })
   }, [])
 

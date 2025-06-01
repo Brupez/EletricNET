@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../utils/AuthContext'
 import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
+import { useAuth } from '../utils/AuthContext'
 
-const LoginPage = () => {
+interface LoginPageProps {
+    onLogin: (email: string, password: string) => Promise<string | null>
+}
+
+const LoginPage = ({ onLogin }: LoginPageProps) => {
     const navigate = useNavigate()
     const [isLoginMode, setIsLoginMode] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
@@ -15,7 +19,7 @@ const LoginPage = () => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
-    const { login } = useAuth() 
+    const { login } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -52,37 +56,23 @@ const LoginPage = () => {
             return
         }
 
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email, password })
-            })
-
-            if (!response.ok) {
-                const errorMsg = await response.text()
-                throw new Error(errorMsg || 'Login failed')
+        const redirectPath = await onLogin(email, password)
+        if (redirectPath) {
+            const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
+            const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
+            const role = roleRaw === 'admin' ? 'admin' : 'user'
+            const token = localStorage.getItem('jwt') 
+            if (!token) {
+                setError('No token found, please log in again')
+                return
             }
-
-            const data = await response.json()
-  
-            login(data.token, {
-                id: data.userId,
-                name: data.name,
-                email: data.email,
-                role: data.role.toLowerCase() as 'admin' | 'user'
-            })
-
-            navigate(data.role === 'admin' ? '/admin' : '/')
-
-        } catch (err: any) {
-            setError(err.message || 'Invalid credentials')
+            login(token, { id: info.userId || info.id, name: info.name, email: info.email, role })
+            navigate(redirectPath)
+        } else {
+            setError('Invalid credentials')
         }
-    }
 
+    }
     const handleToggleMode = () => {
         setIsLoginMode(!isLoginMode)
         setEmail('')
