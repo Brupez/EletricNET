@@ -30,7 +30,9 @@ const AdminReservationsPage = () => {
     const [reservations, setReservations] = useState<ReservationResponseDTO[]>([])
 
     useEffect(() => {
-        fetch(`/api/reservations/all`)
+        fetch(`/api/reservations/all`, {
+            credentials: "include",
+        })
             .then(res => res.json())
             .then(data => setReservations(data))
             .catch(err => console.error("Error fetching reservations", err))

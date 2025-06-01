@@ -108,6 +108,9 @@ const AppContent = () => {
         setIsAuthenticated(false)
         setUserRole(null)
         localStorage.removeItem('jwt')
+        localStorage.removeItem('role')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userInfo')
         navigate('/')
     }
 

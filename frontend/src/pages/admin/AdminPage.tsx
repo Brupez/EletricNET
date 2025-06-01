@@ -66,7 +66,9 @@ const AdminPage = () => {
     const itemsPerPage = 10;
 
     useEffect(() => {
-        fetch(`/api/slots/chargers`)
+        fetch(`/api/slots/chargers`, {
+            credentials: "include",
+        })
             .then(response => response.json())
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
@@ -83,7 +85,9 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`/api/users/total-users`)
+        fetch(`/api/users/total-users`, {
+            credentials: "include",
+        })
             .then(response => response.json())
             .then(data => setTotalUsers(data))
             .catch(error => console.error('Error fetching total users:', error));
@@ -191,7 +195,8 @@ const AdminPage = () => {
     
         if (modalMode === 'delete' && selectedCharger) {
             fetch(`/api/slots/delete/${selectedCharger.id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: "include"
             })
                 .then(response => {
                     if (!response.ok) {

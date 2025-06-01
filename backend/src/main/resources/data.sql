@@ -3,4 +3,4 @@ INSERT INTO users (id, email, password, name, role) VALUES
     (2, 'tiago@gmail.com', 'password', 'Tiago', 'USER')
     ON CONFLICT (id) DO NOTHING;
 
-SELECT setval('users_id_seq', (SELECT MAX(id) FROM users) + 1);
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
