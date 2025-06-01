@@ -99,7 +99,7 @@ public class ReservationService {
                 activeReservations.increment();
 
                 return Optional.of(mapToResponseDTO(saved));
-            } catch (Exception _) {
+            } catch (Exception e) {
                 meterRegistry.counter("reservations.errors").increment();
                 return Optional.empty();
             }
