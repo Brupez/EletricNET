@@ -7,9 +7,9 @@ import ua.tqs.models.Slot;
 import java.util.List;
 
 @Repository
-public interface SlotRepository extends JpaRepository<Slot, Long> {
+public interface SlotRepository extends JpaRepository<Slot, String> {
     boolean existsByName(String name);
-    boolean existsByNameAndIdNot(String name, Long id);
+    boolean existsByNameAndIdNot(String name, String id);
 
     List<Slot> findByReservedFalse();
 }

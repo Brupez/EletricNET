@@ -13,7 +13,7 @@ class ReservationDTOTest {
         ReservationResponseDTO dto = new ReservationResponseDTO();
         dto.setId(1L);
         dto.setUserId(2L);
-        dto.setSlotId(3L);
+        dto.setSlotId("3");
         dto.setState("PENDING");
         dto.setConsumptionKWh(50.0);
         dto.setTotalCost(75.0);
@@ -23,7 +23,7 @@ class ReservationDTOTest {
             .isNotNull()
             .hasFieldOrPropertyWithValue("id", 1L)
             .hasFieldOrPropertyWithValue("userId", 2L)
-            .hasFieldOrPropertyWithValue("slotId", 3L)
+            .hasFieldOrPropertyWithValue("slotId", "3")
             .hasFieldOrPropertyWithValue("state", "PENDING")
             .hasFieldOrPropertyWithValue("consumptionKWh", 50.0)
             .hasFieldOrPropertyWithValue("totalCost", 75.0)

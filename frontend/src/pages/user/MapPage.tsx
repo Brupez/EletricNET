@@ -15,6 +15,7 @@ interface Place extends PlaceResult {
     rating?: number;
     openingHoursText?: string[];
     businessStatus?: google.maps.places.BusinessStatus;
+    global_code?: string; 
 }
 
 interface MapInstance {
@@ -30,8 +31,8 @@ const MapPage = () => {
     const mapRef = useRef<HTMLDivElement>(null);
     const [places, setPlaces] = useState<Place[]>([]);
     const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
+    const [searchLocation, setSearchLocation] = useState('');
 
-    // Add filter handler
     const handleFilterChange = (showOpenOnly: boolean) => {
         if (showOpenOnly) {
             setFilteredPlaces(places.filter(place => place.businessStatus === "OPERATIONAL"));
@@ -47,6 +48,10 @@ const MapPage = () => {
         strokeWeight: 0,
         scale: 10
     });
+
+    const handleChargerClick = (id: string) => {
+        navigate(`/charger/${id}`);
+    };
 
     const initializeMap = async (element: HTMLDivElement): Promise<MapInstance> => {
         await loadGoogleMapsApi();
@@ -83,6 +88,10 @@ const MapPage = () => {
                     latitude: place.geometry.location.lat(),
                     longitude: place.geometry.location.lng(),
                     isOpen: place.isOpen,
+                    rating: place.rating,
+                    businessStatus: place.businessStatus,
+                    openingHoursText: place.openingHoursText,
+                    slotId: place.global_code
                 },
             });
         });
@@ -109,12 +118,16 @@ const MapPage = () => {
                         };
                         resolve(updatedPlace);
                     } else {
-                        console.warn(`Could not get full details for ${place.name} (ID: ${place.place_id}). Status: ${status}`);
                         resolve(place);
                     }
                 }
             );
         });
+    };
+
+    const handleSearch = () => {
+        if (!searchLocation) return;
+        navigate(`/map?location=${encodeURIComponent(searchLocation)}`);
     };
 
     const handleNearbySearch = async (
@@ -135,6 +148,7 @@ const MapPage = () => {
                     location: result.geometry!.location!,
                 },
                 vicinity: result.vicinity,
+                global_code: result.plus_code?.global_code,
             })).filter(place => place.place_id);
 
             const placesWithDetails = await Promise.all(
@@ -197,7 +211,12 @@ const MapPage = () => {
 
     return (
         <div className="card p-4">
-            <Header onFilterOpenChange={handleFilterChange} />
+            <Header
+                onFilterOpenChange={handleFilterChange}
+                searchLocation={searchLocation}
+                onSearchChange={setSearchLocation}
+                onSearch={handleSearch}
+            />
             <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                     Charging Stations Map
@@ -215,25 +234,30 @@ const MapPage = () => {
                 </h3>
                 <ul>
                     {filteredPlaces.map((place) => (
-                        <li key={place.place_id} className="mb-2 p-2 bg-gray-50 rounded">
-                            <span className="font-medium">{place.name}</span>
-                            <p className="text-sm text-gray-600">{place.vicinity}</p>
-                            {place.rating !== undefined && (
-                                <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
-                            )}
-                            <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
-                                {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
-                            </p>
-                            {place.openingHoursText && place.openingHoursText.length > 0 && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                    <p className="font-semibold">Opening Hours:</p>
-                                    <ul className="list-disc list-inside">
-                                        {place.openingHoursText.map((text, index) => (
-                                            <li key={index}>{text}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+                        <li key={place.place_id} className="mb-2">
+                            <button
+                                onClick={() => handleChargerClick(place.place_id)}
+                                className="w-full p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-left"
+                            >
+                                <span className="font-medium block">{place.name}</span>
+                                <p className="text-sm text-gray-600">{place.vicinity}</p>
+                                {place.rating !== undefined && (
+                                    <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
+                                )}
+                                <p className={`text-sm ${place.businessStatus === "OPERATIONAL" ? 'text-green-600' : 'text-red-600'}`}>
+                                    {place.businessStatus !== undefined ? (place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed") : "Closed"}
+                                </p>
+                                {place.openingHoursText && place.openingHoursText.length > 0 && (
+                                    <div className="text-xs text-gray-500 mt-1" onClick={e => e.stopPropagation()}>
+                                        <p className="font-semibold">Opening Hours:</p>
+                                        <ul className="list-disc list-inside">
+                                            {place.openingHoursText.map((text, index) => (
+                                                <li key={index}>{text}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </button>
                         </li>
                     ))}
                 </ul>

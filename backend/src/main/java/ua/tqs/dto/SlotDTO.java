@@ -9,7 +9,7 @@ import ua.tqs.enums.ChargingType;
 @Getter
 @Setter
 public class SlotDTO {
-    private Long id;
+    private String id;
     private String name;
     private String stationName;
     private boolean reserved;

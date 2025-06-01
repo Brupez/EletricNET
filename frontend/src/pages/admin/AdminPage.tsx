@@ -71,8 +71,8 @@ const AdminPage = () => {
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
                     id: slot.id,
-                    name: slot.name || `Slot ${slot.id}`,
-                    location: slot.station?.name || 'Unknown',
+                    name: slot.name ?? `Slot ${slot.id}`,
+                    location: slot.station?.name ?? 'Unknown',
                     status: slot.reserved ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
@@ -92,7 +92,7 @@ const AdminPage = () => {
     const formatExternalToCharger = (place: Place): Charger => ({
         id: place.place_id,
         name: place.name,
-        location: place.vicinity || 'Unknown',
+        location: place.vicinity ?? 'Unknown',
         status: 'Active',
         type: 'EXTERNAL',
         power: '-',
