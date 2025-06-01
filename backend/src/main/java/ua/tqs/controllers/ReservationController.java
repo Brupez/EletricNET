@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {

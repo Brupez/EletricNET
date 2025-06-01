@@ -63,8 +63,6 @@ public class SecurityConfig {
                 "Access-Control-Request-Headers"
         ));
         configuration.setExposedHeaders(List.of(AUTHORIZATION_HEADER));
-        configuration.setAllowedHeaders(List.of(AUTHORIZATION_HEADER, "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of(AUTHORIZATION_HEADER));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

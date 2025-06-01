@@ -24,7 +24,7 @@ interface ProtectedRouteProps {
     requiredRole?: UserRole
 }
 
-const ProtectedRoute = ({ children, isAuthenticated, userRole, requiredRole }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, isAuthenticated, userRole, requiredRole }: ProtectedRouteProps) => {    
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />
     }
@@ -48,9 +48,11 @@ const AppContent = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('jwt')
-        const role = localStorage.getItem('role')
+        const userInfo = localStorage.getItem('userInfo')
+        const role = userInfo ? JSON.parse(userInfo).role : null
         if (token && role) {
             try {
+                localStorage.setItem('jwt', token)
                 const decoded: any = jwtDecode(token)
                 const now = Date.now() / 1000
                 if (decoded.exp && decoded.exp < now) {
@@ -69,7 +71,6 @@ const AppContent = () => {
             }
         }
     }, [])
-
 
     const handleLogin = async (email: string, password: string): Promise<string | null> => {
         try {
@@ -107,6 +108,9 @@ const AppContent = () => {
         setIsAuthenticated(false)
         setUserRole(null)
         localStorage.removeItem('jwt')
+        localStorage.removeItem('role')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userInfo')
         navigate('/')
     }
 
@@ -133,9 +137,7 @@ const AppContent = () => {
             ) : (
                 <SidebarUser onLogout={handleLogout} />
             )}
-            {!isHomePage && !isAdminPage && <Header onFilterOpenChange={function (): void {
-                throw new Error('Function not implemented.')
-            } } />}
+            {!isHomePage && !isAdminPage && <Header onFilterOpenChange={function (): void {} } searchLocation={''} onSearchChange={function (): void {} } onSearch={function (): void {} } />}
             <main className={`ml-64 ${isHomePage ? 'h-screen flex items-center justify-center' : 'pt-16'} ${isAdminPage ? 'pt-6' : ''}`}>
                 <div className={`${isHomePage ? 'w-full max-w-3xl' : 'max-w-7xl mx-auto'}`}>
                     <Routes>

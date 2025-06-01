@@ -9,6 +9,7 @@ import ua.tqs.services.StationService;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/stations")
 public class StationController {
