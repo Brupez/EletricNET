@@ -36,7 +36,7 @@ const BookingDetails = () => {
     fetchBooking()
   }, [id])
 
-  if (!booking) return <div className="p-6">A carregar detalhes da reserva...</div>
+  if (!booking) return <div className="p-6">Loading reservation details...</div>
 
   return (
     <div className="card w-full h-full mt-8 mb-8">
@@ -61,7 +61,7 @@ const BookingDetails = () => {
 
             <div className="flex items-center gap-2 text-gray-600">
               <MapPin size={20} />
-              <span>ID da Reserva: {booking.id}</span>
+              <span>Reservation ID: {booking.id}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-6 p-4">
@@ -69,36 +69,36 @@ const BookingDetails = () => {
                 <table className="w-full text-lg">
                   <tbody className="space-y-2">
                     <tr>
-                      <th className="py-2 text-gray-600">Cliente:</th>
+                      <th className="py-2 text-gray-600">Client:</th>
                       <td className="py-2 font-medium">{booking.userName} ({booking.userEmail})</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Tipo de Carregamento:</th>
+                      <th className="py-2 text-gray-600">Charging Type:</th>
                       <td className="py-2 font-medium">{booking.chargingType}</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">KWh Consumidos:</th>
+                      <th className="py-2 text-gray-600">Energy Consumed:</th>
                       <td className="py-2 font-medium">{booking.consumptionKWh} kWh</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Preço Total:</th>
+                      <th className="py-2 text-gray-600">Total Cost:</th>
                       <td className="py-2 font-medium">€{booking.totalCost.toFixed(2)}</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Data de Início:</th>
+                      <th className="py-2 text-gray-600">Start Date:</th>
                       <td className="py-2 font-medium">{booking.startDate}</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Hora de Início:</th>
+                      <th className="py-2 text-gray-600">Start Time:</th>
                       <td className="py-2 font-medium">{booking.startTime}</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Duração:</th>
-                      <td className="py-2 font-medium">{booking.durationMinutes} minutos</td>
+                      <th className="py-2 text-gray-600">Duration:</th>
+                      <td className="py-2 font-medium">{booking.durationMinutes} minutes</td>
                     </tr>
                     <tr>
-                      <th className="py-2 text-gray-600">Criado em:</th>
-                      <td className="py-2 font-medium">{new Date(booking.createdAt).toLocaleString('pt-PT')}</td>
+                      <th className="py-2 text-gray-600">Created At:</th>
+                      <td className="py-2 font-medium">{new Date(booking.createdAt).toLocaleString('en-GB')}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -113,19 +113,19 @@ const BookingDetails = () => {
             <div className="space-y-8">
               <div className="flex items-center gap-4">
                 <div className="w-5 h-5 rounded-full bg-gray-300 relative z-10"></div>
-                <span className="text-gray-500">Cliente</span>
+                <span className="text-gray-500">Client</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-5 h-5 rounded-full bg-gray-300 relative z-10"></div>
-                <span className="text-gray-500">Carregamento</span>
+                <span className="text-gray-500">Charging</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-5 h-5 rounded-full bg-gray-300 relative z-10"></div>
-                <span className="text-gray-500">Preço</span>
+                <span className="text-gray-500">Pricing</span>
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-5 h-5 rounded-full bg-gray-300 relative z-10"></div>
-                <span className="text-gray-500">Início</span>
+                <span className="text-gray-500">Start</span>
               </div>
             </div>
           </div>
