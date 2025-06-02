@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.tqs.dto.SlotDTO;
+import ua.tqs.dto.SlotResponseDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.services.SlotService;
 
@@ -31,9 +32,9 @@ public class SlotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getSlotById(@PathVariable Long id) {
-        Optional<Slot> slot = slotService.getSlotById(id);
-        return slot.map(ResponseEntity::ok)
+    public ResponseEntity<SlotResponseDTO> getSlotById(@PathVariable Long id) {
+        return slotService.getSlotById(id)
+                .map(slot -> ResponseEntity.ok(slotService.convertToResponseDTO(slot)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

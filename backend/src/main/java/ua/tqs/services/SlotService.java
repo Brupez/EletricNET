@@ -3,6 +3,7 @@ package ua.tqs.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.tqs.dto.SlotDTO;
+import ua.tqs.dto.SlotResponseDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.models.Station;
 import ua.tqs.repositories.SlotRepository;
@@ -103,5 +104,25 @@ public class SlotService {
         slot.setLongitude(dto.getLongitude());
 
         return slotRepository.save(slot);
+    }
+
+    public SlotResponseDTO convertToResponseDTO(Slot slot) {
+        SlotResponseDTO dto = new SlotResponseDTO();
+        dto.setId(slot.getId());
+        dto.setName(slot.getName());
+        dto.setStationName(slot.getStation().getName());
+        dto.setReserved(slot.isReserved());
+        dto.setChargingType(slot.getChargingType());
+        dto.setPower(slot.getPower());
+        dto.setLatitude(slot.getLatitude());
+        dto.setLongitude(slot.getLongitude());
+
+        String location = slot.getLatitude() != null && slot.getLongitude() != null
+                ? slot.getLatitude() + ", " + slot.getLongitude()
+                : "Unknown";
+
+        dto.setLocation(location);
+
+        return dto;
     }
 }

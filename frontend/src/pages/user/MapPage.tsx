@@ -94,14 +94,15 @@ const MapPage = () => {
 
         marker.addListener("click", () => {
             navigate(`/charger/${place.place_id}`, {
-                state: {
-                    name: place.name,
-                    location: place.vicinity,
-                    latitude: place.geometry.location.lat(),
-                    longitude: place.geometry.location.lng(),
-                },
+              state: {
+                name: place.name,
+                location: place.vicinity,
+                latitude: place.geometry.location.lat(),
+                longitude: place.geometry.location.lng(),
+                isExternal: true,
+              },
             });
-        });
+          });          
     };
 
     const createInternalMarker = (
