@@ -2,6 +2,7 @@ import { Battery, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import BookingModal from '../../components/BookingModal.tsx'
 import { useParams, useLocation } from 'react-router-dom'
+import { getAddressFromCoords } from '../../utils/geocodeUtils'
 
 interface LocationState {
   name: string
@@ -18,10 +19,9 @@ const ChargerDetails = () => {
   const [chargerDetails, setChargerDetails] = useState<any | null>(null)
 
   useEffect(() => {
-    const markerData = location.state as LocationState | undefined
-
-    // EXTERNO (Google Maps)
-    if (markerData?.isExternal) {
+    const markerData = location.state as LocationState & { isExternal?: boolean }
+  
+    const loadExternalDetails = () => {
       setChargerDetails({
         id,
         name: markerData.name,
@@ -37,40 +37,44 @@ const ChargerDetails = () => {
           lat: markerData.latitude,
           lng: markerData.longitude
         }
-      })
-    } 
-    // INTERNO (Slot criado pelo admin)
-    else {
-      const fetchSlotDetails = async () => {
-        try {
-          const res = await fetch(`http://localhost:8081/api/slots/${id}`)
-          if (!res.ok) throw new Error('Failed to fetch slot data')
-          const data = await res.json()
-
-          setChargerDetails({
-            id: data.id,
-            name: data.name ?? 'Unnamed',
-            location: data.location ?? `${data.latitude}, ${data.longitude}`,
-            type: data.chargingType?.charAt(0) + data.chargingType?.slice(1).toLowerCase(),
-            power: data.power ? `${data.power} kW` : 'Unknown',
-            status: data.reserved ? 'Occupied' : 'Available',
-            pricePerKwh: '—',
-            operatingHours: '24/7',
-            connectorType: '—',
-            lastMaintenance: '—',
-            coordinates: {
-              lat: data.latitude,
-              lng: data.longitude
-            }
-          })
-        } catch (err) {
-          console.error(err)
-        }
+      });
+    };
+  
+    const fetchInternalDetails = async () => {
+      try {
+        const res = await fetch(`http://localhost:8081/api/slots/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch slot data');
+        const data = await res.json();
+  
+        const address = await getAddressFromCoords(data.latitude, data.longitude);
+  
+        setChargerDetails({
+          id: data.id,
+          name: data.name ?? 'Unnamed',
+          location: address,
+          type: data.chargingType?.charAt(0) + data.chargingType?.slice(1).toLowerCase(),
+          power: data.power ? `${data.power} kW` : 'Unknown',
+          status: data.reserved ? 'Occupied' : 'Available',
+          pricePerKwh: '—',
+          operatingHours: '24/7',
+          connectorType: '—',
+          lastMaintenance: '—',
+          coordinates: {
+            lat: data.latitude,
+            lng: data.longitude
+          }
+        });
+      } catch (err) {
+        console.error(err);
       }
-
-      fetchSlotDetails()
+    };
+  
+    if (markerData?.isExternal) {
+      loadExternalDetails();
+    } else {
+      fetchInternalDetails();
     }
-  }, [id, location.state])
+  }, [id, location.state]);  
 
   if (!chargerDetails) return <div className="p-6">Loading charger details...</div>
 
