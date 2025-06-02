@@ -77,9 +77,9 @@ const BookingPage = () => {
         navigate('/')
     }
 
-    const handleViewDetails = (id: number) => {
-        navigate(`/booking/${id}`)
-    }    
+    const handleViewDetails = (reservationId: number) => {
+        navigate(`/booking/${reservationId}`)
+    }        
 
     const BookingTable = ({
         title,
@@ -164,7 +164,7 @@ const BookingPage = () => {
                                         </td>
                                         <td className="px-6 py-4 flex gap-3">
                                             <button
-                                                onClick={() => handleViewDetails(res.slotId)}
+                                                onClick={() => handleViewDetails(res.id)}
                                                 className="text-green-700 hover:text-green-800"
                                                 title="Ver detalhes da reserva"
                                             >
