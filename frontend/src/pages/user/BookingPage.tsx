@@ -77,9 +77,9 @@ const BookingPage = () => {
         navigate('/')
     }
 
-    const handleViewDetails = (slotId: number) => {
-        navigate(`/charger/${slotId}`)
-    }
+    const handleViewDetails = (id: number) => {
+        navigate(`/booking/${id}`)
+    }    
 
     const BookingTable = ({
         title,
