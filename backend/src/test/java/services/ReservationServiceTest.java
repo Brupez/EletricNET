@@ -1,9 +1,10 @@
 package services;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.tqs.dto.ReservationRequestDTO;
@@ -46,7 +47,6 @@ class ReservationServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
-    @InjectMocks
     private ReservationService reservationService;
 
     private User user;
@@ -57,6 +57,16 @@ class ReservationServiceTest {
 
     @BeforeEach
     void setUp() {
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+        reservationService = new ReservationService(
+                meterRegistry,
+                reservationRepository,
+                slotRepository,
+                userRepository,
+                jwtUtil
+        );
+
         user = new User();
         user.setId(1L);
         user.setEmail("test@test.com");
