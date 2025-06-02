@@ -106,6 +106,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
                     'Accept': 'application/json',
                     'Origin': window.location.origin
                 },
+                credentials: "include",
                 body: JSON.stringify(payload)
             })
 

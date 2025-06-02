@@ -10,6 +10,7 @@ import ua.tqs.dto.AuthResponse;
 import ua.tqs.login.JwtUtil;
 import ua.tqs.services.UserDetailsServiceImpl;
 
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

@@ -31,7 +31,6 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/slots/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/slots/dto").permitAll()
@@ -39,7 +38,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/slots/dto/**").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/slots/delete/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reservations/all").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/reservations/create").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reservations/create").permitAll()
                         .requestMatchers("/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -52,11 +51,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        configuration.setAllowedOrigins(List.of("http://localhost", "http://localhost:5173","http://localhost:3000"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://deti-tqs-05.ua.pt:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedHeaders(List.of(
                 AUTHORIZATION_HEADER,
                 "Content-Type",
@@ -66,7 +62,7 @@ public class SecurityConfig {
                 "Access-Control-Request-Method",
                 "Access-Control-Request-Headers"
         ));
-        
+
         configuration.setExposedHeaders(List.of(AUTHORIZATION_HEADER));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

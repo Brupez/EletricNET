@@ -15,9 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import java.util.logging.Logger;
+
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {
+
+    Logger logger = Logger.getLogger(ReservationController.class.getName());
 
     private final ReservationService reservationService;
     private final UserRepository userRepository;
@@ -46,13 +51,13 @@ public class ReservationController {
             Optional<User> user = userRepository.findByEmail(userEmail);
 
             if (user.isEmpty()) {
-                System.out.println("User not found for email: " + userEmail);
+                logger.info("User not found");
                 return ResponseEntity.status(403).build();
             }
 
             // Verify the user ID matches the token
             if (!user.get().getId().equals(dto.getUserId())) {
-                System.out.println("User ID in token does not match the provided user ID.");
+                logger.info("User ID in token does not match the provided user ID.");
                 return ResponseEntity.status(403).build();
             }
 

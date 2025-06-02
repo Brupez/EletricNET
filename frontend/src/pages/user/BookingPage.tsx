@@ -33,7 +33,8 @@ const BookingPage = () => {
             const res = await fetch('/api/reservations/myReservations', {
                 headers: {
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                credentials: "include"
             })
 
             if (res.ok) {
