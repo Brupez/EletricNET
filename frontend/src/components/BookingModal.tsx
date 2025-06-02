@@ -1,6 +1,7 @@
 import { X, CreditCard } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import * as React from "react";
 
 interface ChargerDetailsProps {
     id: string;
@@ -55,7 +56,6 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             return
         }
 
-
         console.log('localStorage JWT:', localStorage.getItem('jwt'));
         console.log('localStorage userId:', localStorage.getItem('userId'));
 
@@ -106,17 +106,17 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
                     'Accept': 'application/json',
                     'Origin': window.location.origin
                 },
-                credentials: "include",
                 body: JSON.stringify(payload)
             })
 
+            const data = await res.json()
+
             if (!res.ok) {
-                const errorData = await res.json().catch(() => null)
-                console.error('API Error:', errorData)
-                throw new Error(errorData?.message ?? 'Reservation failed')
+                console.error('API Error:', data)
+                alert(data?.message ?? 'Reservation failed')
+                return
             }
 
-            const data = await res.json()
             console.log('Reservation successful:', data)
             onClose()
             navigate('/bookings', {
@@ -130,7 +130,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
             })
         } catch (err) {
             console.error('Reservation error:', err)
-            alert(err instanceof Error ? err.message : 'Failed to create reservation')
+            alert('Failed to connect to the server when creating reservation')
         }
     }
 
