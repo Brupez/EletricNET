@@ -14,4 +14,5 @@ public class SlotResponseDTO {
     private Double latitude;
     private Double longitude;
     private String location;
+    private double pricePerKwh;
 }

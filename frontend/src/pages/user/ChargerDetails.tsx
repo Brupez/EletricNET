@@ -55,7 +55,7 @@ const ChargerDetails = () => {
           type: data.chargingType?.charAt(0) + data.chargingType?.slice(1).toLowerCase(),
           power: data.power ? `${data.power} kW` : 'Unknown',
           status: data.reserved ? 'Occupied' : 'Available',
-          pricePerKwh: '—',
+          pricePerKwh: data.pricePerKwh ? `€${data.pricePerKwh.toFixed(2)}` : '—',
           operatingHours: '24/7',
           connectorType: '—',
           lastMaintenance: '—',

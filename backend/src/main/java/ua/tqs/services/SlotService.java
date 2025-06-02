@@ -116,12 +116,12 @@ public class SlotService {
         dto.setPower(slot.getPower());
         dto.setLatitude(slot.getLatitude());
         dto.setLongitude(slot.getLongitude());
-
-        String location = slot.getLatitude() != null && slot.getLongitude() != null
-                ? slot.getLatitude() + ", " + slot.getLongitude()
-                : "Unknown";
-
-        dto.setLocation(location);
+        dto.setLocation(
+                slot.getLatitude() != null && slot.getLongitude() != null
+                        ? slot.getLatitude() + ", " + slot.getLongitude()
+                        : "Unknown"
+        );
+        dto.setPricePerKwh(slot.getChargingType().getPricePerKwh());
 
         return dto;
     }
