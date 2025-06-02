@@ -3,24 +3,21 @@ package ua.tqs.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import ua.tqs.enums.ReservationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
 @Data
 @Table(name = "reservations")
 public class Reservation {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToOne

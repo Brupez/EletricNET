@@ -1,5 +1,7 @@
 package ua.tqs.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.tqs.login.JwtUtil;
@@ -17,6 +19,7 @@ import java.util.Optional;
 
 @Service
 public class ReservationService {
+    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
     private final ReservationRepository reservationRepository;
     private final SlotRepository slotRepository;
@@ -35,24 +38,24 @@ public class ReservationService {
     }
 
     public Optional<ReservationResponseDTO> createReservation(ReservationRequestDTO dto) {
-        System.out.println("Received reservation request: " + dto);
+        logger.info("Received reservation request: {}", dto);
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
         if (userOpt.isEmpty()) {
-            System.out.println("User not found: " + dto.getUserId());
+            logger.info("User not found: {}", dto.getUserId());
             return Optional.empty();
         }
-
 
         Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
         if (slotOpt.isEmpty()) {
-            System.out.println("Slot not found: " + dto.getSlotId());
+            logger.info("Slot not found: {}", dto.getSlotId());
             return Optional.empty();
         }
 
-        if (userOpt.isEmpty() || slotOpt.isEmpty()) return Optional.empty();
-
         Slot slot = slotOpt.get();
-        if (slot.isReserved()) return Optional.empty();
+        if (slot.isReserved()) {
+            logger.info("Slot {} is already reserved", dto.getSlotId());
+            return Optional.empty();
+        }
 
         slot.setReserved(true);
         slotRepository.save(slot);
@@ -67,14 +70,19 @@ public class ReservationService {
         reservation.setCreationDate(LocalDateTime.now());
         reservation.setStartTime(dto.getStartTime());
         reservation.setDurationMinutes(dto.getDurationMinutes());
-
         reservation.setConsumptionKWh(dto.getConsumptionKWh());
         double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
         reservation.setTotalCost(basePrice * (1 - discount));
         reservation.setPaid(false);
 
         Reservation saved = reservationRepository.save(reservation);
+        ReservationResponseDTO response = createResponseDTO(saved);
 
+        logger.info("Created reservation with ID: {}", saved.getId());
+        return Optional.of(response);
+    }
+
+    private ReservationResponseDTO createResponseDTO(Reservation saved) {
         ReservationResponseDTO response = new ReservationResponseDTO();
         response.setId(saved.getId());
         response.setUserId(saved.getUser().getId());
@@ -85,8 +93,10 @@ public class ReservationService {
         response.setPaid(saved.isPaid());
         response.setStartTime(saved.getStartTime());
         response.setDurationMinutes(saved.getDurationMinutes());
-
-        return Optional.of(response);
+        response.setStationName(saved.getSlot().getStation().getName());
+        response.setChargingType(saved.getSlot().getChargingType().name());
+        response.setCreatedAt(saved.getCreationDate());
+        return response;
     }
 
     public boolean cancelReservation(Long reservationId) {
@@ -111,47 +121,29 @@ public class ReservationService {
         Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
+            logger.info("User not found for email: {}", email);
             return List.of();
         }
 
         List<Reservation> reservations = reservationRepository.findByUser(userOpt.get());
-
-        return reservations.stream().map(reservation -> {
-            ReservationResponseDTO dto = new ReservationResponseDTO();
-            dto.setId(reservation.getId());
-            dto.setUserId(reservation.getUser().getId());
-            dto.setSlotId(reservation.getSlot().getId());
-            dto.setState(reservation.getStatus().name());
-            dto.setConsumptionKWh(reservation.getConsumptionKWh());
-            dto.setTotalCost(reservation.getTotalCost());
-            dto.setPaid(reservation.isPaid());
-            dto.setStationName(reservation.getSlot().getStation().getName());
-            dto.setChargingType(reservation.getSlot().getChargingType().name());
-
-            return dto;
-        }).toList();
+        return reservations.stream()
+                .map(this::createResponseDTO)
+                .toList();
     }
 
     public double getTotalRevenue() {
-        return reservationRepository.findAll().stream()
+        double total = reservationRepository.findAll().stream()
                 .mapToDouble(Reservation::getTotalCost)
                 .sum();
+        logger.info("Total revenue calculated: {}", total);
+        return total;
     }
 
     public List<ReservationResponseDTO> getAllReservations() {
-        return reservationRepository.findAll().stream().map(reservation -> {
-            ReservationResponseDTO dto = new ReservationResponseDTO();
-            dto.setId(reservation.getId());
-            dto.setUserId(reservation.getUser().getId());
-            dto.setSlotId(reservation.getSlot().getId());
-            dto.setState(reservation.getStatus().name());
-            dto.setConsumptionKWh(reservation.getConsumptionKWh());
-            dto.setTotalCost(reservation.getTotalCost());
-            dto.setPaid(reservation.isPaid());
-            dto.setStationName(reservation.getSlot().getStation().getName());
-            dto.setChargingType(reservation.getSlot().getChargingType().name());
-            dto.setCreatedAt(reservation.getCreationDate());
-            return dto;
-        }).toList();
+        List<ReservationResponseDTO> reservations = reservationRepository.findAll().stream()
+                .map(this::createResponseDTO)
+                .toList();
+        logger.info("Retrieved {} reservations", reservations.size());
+        return reservations;
     }
 }
