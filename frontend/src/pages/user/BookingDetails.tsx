@@ -11,7 +11,6 @@ interface ReservationDetails {
   chargingType: string
   totalCost: number
   consumptionKWh: number
-  startDate: string
   startTime: string
   durationMinutes: number
   createdAt: string
@@ -47,13 +46,12 @@ const BookingDetails = () => {
               <Battery size={24} className="text-green-700" />
               <h2 className="text-2xl font-bold text-gray-800">
                 {booking.stationName}
-                <span className={`ml-3 badge ${
-                  booking.state === 'ACTIVE'
+                <span className={`ml-3 badge ${booking.state === 'ACTIVE'
                     ? 'bg-green-100 text-green-800'
                     : booking.state === 'CANCELED'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
                   {booking.state}
                 </span>
               </h2>
@@ -86,11 +84,18 @@ const BookingDetails = () => {
                     </tr>
                     <tr>
                       <th className="py-2 text-gray-600">Start Date:</th>
-                      <td className="py-2 font-medium">{booking.startDate}</td>
+                      <td className="py-2 font-medium">
+                        {new Date(booking.startTime).toLocaleDateString('en-GB')}
+                      </td>
                     </tr>
                     <tr>
                       <th className="py-2 text-gray-600">Start Time:</th>
-                      <td className="py-2 font-medium">{booking.startTime}</td>
+                      <td className="py-2 font-medium">
+                        {new Date(booking.startTime).toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </td>
                     </tr>
                     <tr>
                       <th className="py-2 text-gray-600">Duration:</th>

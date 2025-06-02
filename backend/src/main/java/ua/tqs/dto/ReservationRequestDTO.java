@@ -1,5 +1,6 @@
 package ua.tqs.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ public class ReservationRequestDTO {
     private Double consumptionKWh;
     private Double pricePerKWh;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startTime;
     private Integer durationMinutes;
 }

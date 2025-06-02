@@ -52,6 +52,7 @@ public class ReservationService {
         reservation.setStatus(ReservationStatus.ACTIVE);
         reservation.setCreationDate(LocalDateTime.now());
         reservation.setStartTime(dto.getStartTime());
+        reservation.setStartDate(dto.getStartTime().toLocalDate());
         reservation.setDurationMinutes(dto.getDurationMinutes());
 
         reservation.setConsumptionKWh(dto.getConsumptionKWh());
