@@ -1,9 +1,10 @@
 package services;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ua.tqs.dto.ReservationRequestDTO;
@@ -46,7 +47,6 @@ class ReservationServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
-    @InjectMocks
     private ReservationService reservationService;
 
     private User user;
@@ -57,6 +57,16 @@ class ReservationServiceTest {
 
     @BeforeEach
     void setUp() {
+        MeterRegistry meterRegistry = new SimpleMeterRegistry();
+
+        reservationService = new ReservationService(
+                meterRegistry,
+                reservationRepository,
+                slotRepository,
+                userRepository,
+                jwtUtil
+        );
+
         user = new User();
         user.setId(1L);
         user.setEmail("test@test.com");
@@ -188,5 +198,53 @@ class ReservationServiceTest {
         assertThat(dto.getSlotId()).isEqualTo(slot.getId());
         assertThat(dto.getStationName()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
+    }
+
+    @Test
+    void createReservation_UserNotFound_ReturnEmpty() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+
+        Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        verify(slotRepository, never()).save(any());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReservation_SlotNotFound_ReturnEmpty() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(slotRepository.findById("1")).thenReturn(Optional.empty());
+
+        Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        verify(slotRepository, never()).save(any());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReservation_ThrowsException_ReturnEmpty() {
+        // Create a SimpleMeterRegistry for testing
+        MeterRegistry registry = new SimpleMeterRegistry();
+
+        // Create a new service instance with the test registry
+        ReservationService testService = new ReservationService(
+                registry,
+                reservationRepository,
+                slotRepository,
+                userRepository,
+                jwtUtil
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.save(any(Slot.class))).thenThrow(new RuntimeException("Database error"));
+
+        Optional<ReservationResponseDTO> result = testService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        assertThat(registry.counter("reservations.errors").count()).isEqualTo(1.0);
     }
 }

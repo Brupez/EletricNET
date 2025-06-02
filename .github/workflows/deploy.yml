@@ -1,6 +1,6 @@
 name: Deploy
 
-on: 
+on:
   push:
     branches: [master]
 
@@ -12,5 +12,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Create monitoring structure
+        run: |
+          mkdir -p monitoring/grafana/dashboards
+          mkdir -p monitoring/grafana/datasources
+          mkdir -p monitoring/prometheus
+
+      - name: Set up monitoring configuration
+        run: |
+          # Copy monitoring configs
+          cp -r monitoring/. /tqs/monitoring/
+
       - name: Build and start containers
-        run: /tqs/deploy.sh
+        run: |
+          # Create volumes if they don't exist
+          docker volume create prometheus_data || true
+          docker volume create grafana_data || true
+          
+          # Run deployment script
+          /tqs/deploy.sh
