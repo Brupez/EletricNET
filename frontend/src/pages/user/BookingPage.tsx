@@ -79,7 +79,7 @@ const BookingPage = () => {
 
     const handleViewDetails = (reservationId: number) => {
         navigate(`/booking/${reservationId}`)
-    }        
+    }
 
     const BookingTable = ({
         title,
@@ -162,7 +162,10 @@ const BookingPage = () => {
                                         <td className="px-6 py-4">
                                             {new Date(res.startTime).toLocaleString('pt-PT')}
                                         </td>
-                                        <td className="px-6 py-4 flex gap-3">
+                                        <td
+                                            className={`px-6 py-4 ${res.state === 'ACTIVE' ? 'flex gap-3' : 'flex justify-center items-center'
+                                                }`}
+                                        >
                                             <button
                                                 onClick={() => handleViewDetails(res.id)}
                                                 className="text-green-700 hover:text-green-800"
