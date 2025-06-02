@@ -117,6 +117,8 @@ public class ReservationService {
             dto.setPaid(reservation.isPaid());
             dto.setStationName(reservation.getSlot().getStation().getName());
             dto.setChargingType(reservation.getSlot().getChargingType().name());
+            dto.setStartTime(reservation.getStartTime());
+            dto.setDurationMinutes(reservation.getDurationMinutes());
 
             return dto;
         }).collect(Collectors.toList());

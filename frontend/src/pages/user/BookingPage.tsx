@@ -160,7 +160,7 @@ const BookingPage = () => {
                                         <td className="px-6 py-4">€{res.totalCost.toFixed(2)}</td>
                                         <td className="px-6 py-4">{res.consumptionKWh} kWh</td>
                                         <td className="px-6 py-4">
-                                            {new Date(res.startTime).toLocaleString('pt-PT')}
+                                            {new Date(res.startTime).toLocaleDateString('pt-PT')}
                                         </td>
                                         <td
                                             className={`px-6 py-4 ${res.state === 'ACTIVE' ? 'flex gap-3' : 'flex justify-center items-center'
