@@ -199,4 +199,52 @@ class ReservationServiceTest {
         assertThat(dto.getStationName()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
     }
+
+    @Test
+    void createReservation_UserNotFound_ReturnEmpty() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+
+        Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        verify(slotRepository, never()).save(any());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReservation_SlotNotFound_ReturnEmpty() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(slotRepository.findById("1")).thenReturn(Optional.empty());
+
+        Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        verify(slotRepository, never()).save(any());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void createReservation_ThrowsException_ReturnEmpty() {
+        // Create a SimpleMeterRegistry for testing
+        MeterRegistry registry = new SimpleMeterRegistry();
+
+        // Create a new service instance with the test registry
+        ReservationService testService = new ReservationService(
+                registry,
+                reservationRepository,
+                slotRepository,
+                userRepository,
+                jwtUtil
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.save(any(Slot.class))).thenThrow(new RuntimeException("Database error"));
+
+        Optional<ReservationResponseDTO> result = testService.createReservation(requestDTO);
+
+        assertThat(result).isEmpty();
+        assertThat(registry.counter("reservations.errors").count()).isEqualTo(1.0);
+    }
 }
