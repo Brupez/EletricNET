@@ -20,7 +20,7 @@ const ChargerDetails = () => {
 
   useEffect(() => {
     const markerData = location.state as LocationState & { isExternal?: boolean }
-  
+
     const loadExternalDetails = () => {
       setChargerDetails({
         id,
@@ -39,15 +39,15 @@ const ChargerDetails = () => {
         }
       });
     };
-  
+
     const fetchInternalDetails = async () => {
       try {
         const res = await fetch(`http://localhost:8081/api/slots/${id}`);
         if (!res.ok) throw new Error('Failed to fetch slot data');
         const data = await res.json();
-  
+
         const address = await getAddressFromCoords(data.latitude, data.longitude);
-  
+
         setChargerDetails({
           id: data.id,
           name: data.name ?? 'Unnamed',
@@ -68,13 +68,13 @@ const ChargerDetails = () => {
         console.error(err);
       }
     };
-  
+
     if (markerData?.isExternal) {
       loadExternalDetails();
     } else {
       fetchInternalDetails();
     }
-  }, [id, location.state]);  
+  }, [id, location.state]);
 
   if (!chargerDetails) return <div className="p-6">Loading charger details...</div>
 
@@ -101,60 +101,51 @@ const ChargerDetails = () => {
                 <table className="w-full text-lg">
                   <tbody className="space-y-2">
                     <tr>
-                      <th className="py-2 text-gray-600">Type:</th>
+                      <th className="py-2 text-gray-600 text-left">Type:</th>
                       <td className="py-2 font-medium">{chargerDetails.type}</td>
                     </tr>
-
                     <tr>
-                      <th className="py-2 text-gray-600">Power Output:</th>
+                      <th className="py-2 text-gray-600 text-left">Power Output:</th>
                       <td className="py-2 font-medium">{chargerDetails.power}</td>
                     </tr>
-
                     {chargerDetails.pricePerKwh && chargerDetails.pricePerKwh !== '—' && (
                       <tr>
-                        <th className="py-2 text-gray-600">Price per kWh:</th>
+                        <th className="py-2 text-gray-600 text-left">Price per kWh:</th>
                         <td className="py-2 font-medium">{chargerDetails.pricePerKwh}</td>
                       </tr>
                     )}
-
                     <tr>
-                      <th className="py-2 text-gray-600">Operating Hours:</th>
+                      <th className="py-2 text-gray-600 text-left">Operating Hours:</th>
                       <td className="py-2 font-medium">{chargerDetails.operatingHours}</td>
                     </tr>
-
                     {chargerDetails.connectorType && chargerDetails.connectorType !== '—' && (
                       <tr>
-                        <th className="py-2 text-gray-600">Connector Type:</th>
+                        <th className="py-2 text-gray-600 text-left">Connector Type:</th>
                         <td className="py-2 font-medium">{chargerDetails.connectorType}</td>
                       </tr>
                     )}
-
                     {chargerDetails.lastMaintenance && chargerDetails.lastMaintenance !== '—' && (
                       <tr>
-                        <th className="py-2 text-gray-600">Last Maintenance:</th>
+                        <th className="py-2 text-gray-600 text-left">Last Maintenance:</th>
                         <td className="py-2 font-medium">{chargerDetails.lastMaintenance}</td>
                       </tr>
                     )}
-
                     <tr>
-                      <td className="py-2 text-gray-600">Latitude:</td>
+                      <th className="py-2 text-gray-600 text-left">Latitude:</th>
                       <td className="py-2 font-medium">{chargerDetails.coordinates.lat}</td>
                     </tr>
-
                     <tr>
-                      <td className="py-2 text-gray-600">Longitude:</td>
+                      <th className="py-2 text-gray-600 text-left">Longitude:</th>
                       <td className="py-2 font-medium">{chargerDetails.coordinates.lng}</td>
                     </tr>
-
                     {chargerDetails.pricePerKwh !== '—' && (
                       <tr>
-                        <th className="py-2 text-gray-600">Promotions:</th>
+                        <th className="py-2 text-gray-600 text-left">Promotions:</th>
                         <td className="py-2 font-medium">—</td>
                       </tr>
                     )}
-
                     <tr>
-                      <td className="py-2 text-gray-600">Payment:</td>
+                      <th className="py-2 text-gray-600 text-left">Payment:</th>
                       <td className="py-2 font-medium">Card / App</td>
                     </tr>
                   </tbody>
