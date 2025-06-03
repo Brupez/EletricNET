@@ -6,7 +6,7 @@ import {
     Eye
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import ReservationModalAdmin from '../../components/ReservationModalAdmin'
+import { useNavigate } from 'react-router-dom'
 
 type SortDirection = 'asc' | 'desc' | null
 type SortField = 'id' | 'stationName' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
@@ -18,13 +18,10 @@ interface ReservationResponseDTO {
     totalCost: number
     state: string
     createdAt: string
-    userName: string
-    userEmail: string
 }
 
-const API_BASE = 'http://localhost:8081'
-
 const AdminReservationsPage = () => {
+    const navigate = useNavigate()
     const [sortField, setSortField] = useState<SortField>(null)
     const [sortDirection, setSortDirection] = useState<SortDirection>(null)
     const [currentPage, setCurrentPage] = useState(1)
@@ -32,14 +29,18 @@ const AdminReservationsPage = () => {
 
     const [reservations, setReservations] = useState<ReservationResponseDTO[]>([])
 
-    const [selectedReservation, setSelectedReservation] = useState<ReservationResponseDTO | null>(null)
-
     useEffect(() => {
-        fetch(`${API_BASE}/api/reservations/all`)
+        fetch(`/api/reservations/all`, {
+            credentials: "include",
+        })
             .then(res => res.json())
             .then(data => setReservations(data))
             .catch(err => console.error("Error fetching reservations", err))
     }, [])
+
+    const handleViewDetails = (id: number) => {
+        navigate(`/admin/reservation/${id}`)
+    }
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -137,7 +138,7 @@ const AdminReservationsPage = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <button
-                                            onClick={() => setSelectedReservation(r)}
+                                            onClick={() => handleViewDetails(r.id)}
                                             className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
                                         >
                                             <Eye size={16} />
@@ -187,7 +188,6 @@ const AdminReservationsPage = () => {
     )
 
     return (
-        <>
             <div className="space-y-8 mt-8">
                 <div className="card w-full">
                     <div className="flex items-center gap-3 mb-6">
@@ -206,12 +206,6 @@ const AdminReservationsPage = () => {
                     <Pagination />
                 </div>
             </div>
-
-
-            {selectedReservation && (
-                <ReservationModalAdmin reservation={selectedReservation} onClose={() => setSelectedReservation(null)} />
-            )}
-        </>
     )
 }
 

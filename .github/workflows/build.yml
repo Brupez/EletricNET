@@ -5,177 +5,141 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+env:
+  COMPOSE_BAKE: true
+  PLAYWRIGHT_DEPS: libglib2.0-0t64 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libxcb1 libxkbcommon0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64 libatspi2.0-0 libwayland-client0
+
 jobs:
   sonarqube:
-    name: SonarQube Analysis and Report to Xray
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Prevent service restarts
+        run: |
+          sudo mkdir -p /etc/needrestart/conf.d/
+          echo "\$nrconf{restart} = 'a';" | sudo tee /etc/needrestart/conf.d/99-disable-restarts.conf > /dev/null
+          echo "PackageKitEnable=false" | sudo tee -a /etc/PackageKit/PackageKit.conf > /dev/null
+
+      - uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: 'temurin'
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ${{ env.PLAYWRIGHT_DEPS }}
+          sudo apt-get clean
+
+      - name: Start Services
+        run: |
+          docker compose up -d --build
+          for i in {1..30}; do
+            if docker compose ps | grep -q "healthy" && curl -s http://localhost:80 >/dev/null; then
+              echo "Services ready!" && exit 0
+            fi
+            echo "Waiting for services... ($i/30)"
+            sleep 10
+          done
+          exit 1
+
+      - uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze with SonarQube
+
+      - name: Install Playwright
+        working-directory: backend
+        run: |
+          mvn clean compile
+          mvn exec:java -D exec.mainClass="com.microsoft.playwright.CLI" -D exec.args="install chromium" -D exec.classpathScope=test
+
+      - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd backend
-          mvn -B clean test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=Brupez_EletricNET \
-          -Dsonar.organization=eletricnet \
-          -Dsonar.host.url=https://sonarcloud.io
-      
+          mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=Brupez_EletricNET \
+            -Dsonar.organization=eletricnet \
+            -Dsonar.host.url=https://sonarcloud.io
 
-      - name: Upload to Xray
-        uses: mikepenz/xray-action@v3
+      - uses: mikepenz/xray-action@v3
         with:
           xrayCloud: true
           username: ${{ secrets.XRAY_CLIENT_ID }}
           password: ${{ secrets.XRAY_CLIENT_SECRET }}
           testFormat: 'junit'
           projectKey: 'EN'
-          testExecKey: ''
           testPaths: '**/target/surefire-reports/*.xml'
 
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
   deploy:
-    name: Deploy Application
+    name: Deploy
     needs: sonarqube
     runs-on: ubuntu-latest
-    outputs:
-      container_status: ${{ steps.container_status.outputs.status }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Deploy with Docker Compose
-        run: |
-          export COMPOSE_BAKE=true
-          docker compose down -v || true
-          docker compose up -d --build
-
-      - name: Wait for services to be healthy
-        run: |
-          echo "Waiting for services to be healthy..."
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build
+      - run: |
           for i in {1..30}; do
-            if docker compose ps | grep -q "healthy"; then
-              if curl -s http://localhost:80 > /dev/null; then
-                echo "All services are healthy!"
-                exit 0
-              fi
+            if docker compose ps | grep -q "healthy" && curl -s http://localhost >/dev/null; then
+              echo "Deployed!" && exit 0
             fi
-            echo "Attempt $i/30: Waiting for services..."
-            docker compose ps
             sleep 10
           done
-          echo "Services failed to become healthy"
-          docker compose logs
           exit 1
 
   lighthouse:
-    name: Lighthouse Audits
+    name: Lighthouse
     needs: deploy
     runs-on: ubuntu-latest
-
     permissions:
       issues: write
       pull-requests: write
-
     steps:
       - uses: actions/checkout@v4
       - uses: browser-actions/setup-chrome@v1
-
-      - name: Deploy application again
-        run: |
-          docker compose down -v
-          docker compose up -d --build
-          echo "Waiting for nginx to start..."
-          sleep 20
-          
-      - name: Verify application is running
-        run: |
-          echo "Docker container status:"
-          docker compose ps
-          
-          echo "Testing connection:"
-          curl -v --max-time 10 http://localhost || true
-
-      - name: Check container status
-        run: |
-          echo "Docker container status:"
-          docker compose ps
-          echo "\nDocker logs:"
-          docker compose logs
-
-      - name: Waiting for app
-        timeout-minutes: 2
-        run: |
-          until curl -s --fail --retry 3 --retry-delay 5 http://localhost > /dev/null; do
-            echo "Waiting for the application to be ready..."
-            docker compose ps
-            sleep 5
-          done
-          echo "Application is ready!"
-      
-
-      - name: Run Lighthouse Audit
+      - run: docker compose up -d --build
+      - run: sleep 20
+      - uses: treosh/lighthouse-ci-action@v12
         id: lighthouse
-        uses: treosh/lighthouse-ci-action@v12
         with:
           urls: "http://localhost"
           uploadArtifacts: true
           temporaryPublicStorage: true
           configPath: ./lighthouserc.json
         continue-on-error: true
-
-      - name: Format results
+      - name: Format Results
         id: format_results
         run: |
-          if compgen -G ".lighthouseci/lhr-*.json" > /dev/null; then
-            SCORES=$(jq -r --compact-output '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json)
-            echo "scores=$(echo $SCORES | jq -c '.')" >> "$GITHUB_OUTPUT"
-          else
-            echo "scores=[]" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Post PR comment
+          SCORES=$(jq -r --compact-output '[.categories[] | {id: .id, score: (.score*100|round)}]' .lighthouseci/lhr-*.json 2>/dev/null || echo '[]')
+          echo "scores=$SCORES" >> $GITHUB_OUTPUT
+      - uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const scores = ${{ steps.format_results.outputs.scores }};
             let comment = "## ⚡ Lighthouse Results\n\n";
-            
-            if (!scores || scores.length === 0) {
-              comment += "❌ Lighthouse audit failed to complete\n";
-            } else {
-              for (const {id, score} of scores) {
-                const emoji = score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴';
-                comment += `- ${emoji} ${id}: ${score}/100\n`;
-              }
-            }
-                        
+            scores.forEach(({id, score}) => {
+              comment += `- ${score >= 90 ? '🟢' : score >= 50 ? '🟠' : '🔴'} ${id}: ${score}/100\n`;
+            });
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: context.issue.number,
@@ -187,34 +151,18 @@ jobs:
     needs: lighthouse
     if: always()
     runs-on: ubuntu-latest
-    permissions:
-      contents: none
-      issues: none
-      pull-requests: none
-      deployments: none
-      statuses: none
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Stop containers
-        run: |
+      - run: |
           docker compose down -v || true
-          docker container prune -f
-          docker image prune -af
-          docker builder prune -af
+          docker system prune -af
 
   check-required:
-    name: Check Required Status
+    name: Check Status
     needs: [sonarqube, deploy, lighthouse]
-    runs-on: ubuntu-latest
     if: always()
+    runs-on: ubuntu-latest
     steps:
-      - name: Check Status
-        run: |
-          if [ "${{ needs.sonarqube.result }}" != "success" ] || \
-             [ "${{ needs.deploy.result }}" != "success" ] || \
-             [ "${{ needs.lighthouse.result }}" != "success" ]; then
-            echo "Some analysis failed."
-            exit 1
-          fi
+      - run: |
+          [ "${{ needs.sonarqube.result }}" = "success" ] && \
+          [ "${{ needs.deploy.result }}" = "success" ] && \
+          [ "${{ needs.lighthouse.result }}" = "success" ] || exit 1

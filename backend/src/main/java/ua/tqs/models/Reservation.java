@@ -23,7 +23,8 @@ public class Reservation {
     @ManyToOne
     private User user;
 
-    @ManyToOne
+    @OneToOne
+    @JoinColumn(name = "slot_id")
     @JsonManagedReference
     private Slot slot;
 

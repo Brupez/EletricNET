@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class ReservationResponseDTO {
     private Long id;
     private Long userId;
-    private Long slotId;
+    private String slotId;
     private String state;
     private Double consumptionKWh;
     private Double totalCost;

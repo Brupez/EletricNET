@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../utils/AuthContext'
 import { Eye, EyeOff } from 'lucide-react'
 import logo from '../assets/greenLogo.svg'
+import { useAuth } from '../utils/AuthContext'
 
 interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
@@ -19,7 +19,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [error, setError] = useState('')
 
-    const { setUser } = useAuth()
+    const { login } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -33,11 +33,12 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
             }
 
             try {
-                const response = await fetch('http://localhost:8081/api/auth/register', {
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ email, password, name, role })
                 })
 
@@ -47,6 +48,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                 }
 
                 setIsLoginMode(true)
+                setError('') 
             } catch (err: any) {
                 setError(err.message || 'Failed to register')
             }
@@ -54,19 +56,23 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
             return
         }
 
-        // Login
         const redirectPath = await onLogin(email, password)
         if (redirectPath) {
             const info = JSON.parse(localStorage.getItem('userInfo') || '{}')
             const roleRaw = (localStorage.getItem('role') || 'USER').toLowerCase()
             const role = roleRaw === 'admin' ? 'admin' : 'user'
-            setUser({ name: info.name, email: info.email, role })
+            const token = localStorage.getItem('jwt') 
+            if (!token) {
+                setError('No token found, please log in again')
+                return
+            }
+            login(token, { id: info.userId || info.id, name: info.name, email: info.email, role })
             navigate(redirectPath)
         } else {
             setError('Invalid credentials')
         }
-    }
 
+    }
     const handleToggleMode = () => {
         setIsLoginMode(!isLoginMode)
         setEmail('')

@@ -1,6 +1,6 @@
-import { Calendar, Plus, History, Eye, Trash2 } from 'lucide-react'
+import { Calendar, Plus, History, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 interface ReservationResponseDTO {
     id: number
@@ -17,68 +17,47 @@ const itemsPerPage = 5
 
 const BookingPage = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const [bookings, setBookings] = useState<ReservationResponseDTO[]>([])
-    const [cancelModalOpen, setCancelModalOpen] = useState(false)
-    const [cancelId, setCancelId] = useState<number | null>(null)
-
-    const openCancelModal = (id: number) => {
-        setCancelId(id)
-        setCancelModalOpen(true)
-    }
-
-    const closeCancelModal = () => {
-        setCancelModalOpen(false)
-        setCancelId(null)
-    }
-
-    const confirmCancel = async () => {
-        if (!cancelId) return
-        const token = localStorage.getItem('jwt')
-        const res = await fetch(`http://localhost:8081/api/reservations/${cancelId}/cancel`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (res.ok) {
-            closeCancelModal()
-            await fetchBookings()
-        } else {
-            alert('Erro ao cancelar reserva')
-        }
-    }
-
-    const fetchBookings = async () => {
-        const token = localStorage.getItem('jwt')
-        if (!token) {
-            alert('Please login to view your bookings.')
-            navigate('/login')
-            return
-        }
-
-        const res = await fetch('http://localhost:8081/api/reservations/myReservations', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (res.ok) {
-            const data = await res.json()
-            setBookings(data)
-        } else {
-            console.error('Failed to fetch bookings')
-        }
-    }
 
     useEffect(() => {
+        // Check if user is logged in
+        const fetchBookings = async () => {
+            const token = localStorage.getItem('jwt')
+            if (!token) {
+                alert('Please login to view your bookings.')
+                navigate('/login')
+                return
+            }
+
+            const res = await fetch('/api/reservations/myReservations', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: "include"
+            })
+
+            if (res.ok) {
+                const data = await res.json()
+                setBookings(data)
+            } else {
+                console.error('Failed to fetch bookings')
+            }
+        }
+
         fetchBookings()
+
+        if (location.state?.newBooking) {
+            setBookings(prev => [location.state.newBooking, ...prev])
+        }
     }, [navigate])
 
     const handleAddBooking = () => {
         navigate('/')
     }
 
-    const handleViewDetails = (reservationId: number) => {
-        navigate(`/booking/${reservationId}`)
+    const handleViewDetails = (slotId: number) => {
+        navigate(`/charger/${slotId}`)
     }
 
     const BookingTable = ({
@@ -147,12 +126,13 @@ const BookingPage = () => {
                                         <td className="px-6 py-4">{res.id}</td>
                                         <td className="px-6 py-4">{res.stationName}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`badge ${res.state === 'ACTIVE'
-                                                ? 'bg-green-100 text-green-800'
-                                                : res.state === 'CANCELED'
+                                            <span className={`badge ${
+                                                res.state === 'ACTIVE'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : res.state === 'CANCELED'
                                                     ? 'bg-red-100 text-red-800'
                                                     : 'bg-gray-100 text-gray-800'
-                                                }`}>
+                                            }`}>
                                                 {res.state}
                                             </span>
                                         </td>
@@ -160,28 +140,15 @@ const BookingPage = () => {
                                         <td className="px-6 py-4">€{res.totalCost.toFixed(2)}</td>
                                         <td className="px-6 py-4">{res.consumptionKWh} kWh</td>
                                         <td className="px-6 py-4">
-                                            {new Date(res.startTime).toLocaleDateString('pt-PT')}
+                                            {new Date(res.startTime).toLocaleString('pt-PT')}
                                         </td>
-                                        <td
-                                            className={`px-6 py-4 ${res.state === 'ACTIVE' ? 'flex gap-3' : 'flex justify-center items-center'
-                                                }`}
-                                        >
+                                        <td className="px-6 py-4">
                                             <button
-                                                onClick={() => handleViewDetails(res.id)}
-                                                className="text-green-700 hover:text-green-800"
-                                                title="Ver detalhes da reserva"
+                                                onClick={() => handleViewDetails(res.slotId)}
+                                                className="text-green-700 hover:text-green-800 flex items-center gap-1"
                                             >
-                                                <Eye size={16} />
+                                                <Eye size={16} /> View
                                             </button>
-                                            {res.state === 'ACTIVE' && (
-                                                <button
-                                                    onClick={() => openCancelModal(res.id)}
-                                                    className="text-red-600 hover:text-red-800"
-                                                    title="Cancelar reserva"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            )}
                                         </td>
                                     </tr>
                                 ))
@@ -213,28 +180,6 @@ const BookingPage = () => {
                             >
                                 Next
                             </button>
-                        </div>
-                    </div>
-                )}
-                {cancelModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded shadow max-w-sm">
-                            <h2 className="text-lg font-semibold mb-4">Confirm Cancellation</h2>
-                            <p className="mb-4">Tem a certeza de que pretende cancelar esta reserva?</p>
-                            <div className="flex justify-end gap-3">
-                                <button
-                                    onClick={closeCancelModal}
-                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={confirmCancel}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                                >
-                                    Confirmar
-                                </button>
-                            </div>
                         </div>
                     </div>
                 )}

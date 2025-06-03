@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.tqs.dto.SlotDTO;
-import ua.tqs.dto.SlotResponseDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.services.SlotService;
 
@@ -13,13 +12,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/slots")
 public class SlotController {
 
+    private final SlotService slotService;
+
     @Autowired
-    private SlotService slotService;
+    public SlotController(SlotService slotService) {
+        this.slotService = slotService;
+    }
+
 
     @GetMapping
     public ResponseEntity<List<Slot>> getAllSlots() {
@@ -32,14 +36,14 @@ public class SlotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SlotResponseDTO> getSlotById(@PathVariable Long id) {
-        return slotService.getSlotById(id)
-                .map(slot -> ResponseEntity.ok(slotService.convertToResponseDTO(slot)))
+    public ResponseEntity<Slot> getSlotById(@PathVariable String id) {
+        Optional<Slot> slot = slotService.getSlotById(id);
+        return slot.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/dto")
-    public ResponseEntity<?> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
+    public ResponseEntity<Object> createSlotFromDto(@RequestBody SlotDTO slotDTO) {
         if (slotDTO.getId() != null) {
             return ResponseEntity.badRequest().body("ID should not be provided when creating a new slot.");
         }
@@ -58,7 +62,7 @@ public class SlotController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteSlot(@PathVariable Long id) {
+    public ResponseEntity<String> deleteSlot(@PathVariable String id) {
         boolean success = slotService.deleteSlot(id);
         if (success) {
             return ResponseEntity.ok("Slot deleted successfully.");
@@ -86,7 +90,7 @@ public class SlotController {
     }
 
     @PutMapping("/dto/{id}")
-    public ResponseEntity<?> updateSlotFromDto(@PathVariable Long id, @RequestBody SlotDTO slotDTO) {
+    public ResponseEntity<Object> updateSlotFromDto(@PathVariable String id, @RequestBody SlotDTO slotDTO) {
         Optional<Slot> existingSlot = slotService.getSlotById(id);
         if (existingSlot.isEmpty()) {
             return ResponseEntity.notFound().build();

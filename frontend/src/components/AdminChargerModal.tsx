@@ -237,7 +237,7 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
                                 ...prev,
                                 latitude: lat,
                                 longitude: lng,
-                                location: placeName || prev.location,
+                                location: placeName ?? prev.location,
                             }));
                             setShowMap(false);
                         }}

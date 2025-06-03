@@ -3,6 +3,7 @@ import map from '../../assets/map.jpg'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import LoadingScreen from '../../components/LoadingScreen.tsx'
+import * as React from "react";
 
 const HomePage = () => {
     const navigate = useNavigate()
@@ -15,6 +16,13 @@ const HomePage = () => {
         setTimeout(() => {
             navigate(`/map?location=${encodeURIComponent(searchLocation)}`)
         }, 1000)
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch();
+        }
     }
 
     return (
@@ -48,6 +56,7 @@ const HomePage = () => {
                                     placeholder="Location..."
                                     value={searchLocation}
                                     onChange={(e) => setSearchLocation(e.target.value)}
+                                    onKeyDown={handleKeyDown}
                                     className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 />
                             </div>

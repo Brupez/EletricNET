@@ -25,3 +25,7 @@ Backlog, Related repositories (if applicable), API documentation, static analysi
 ### [Jira - Backlog](https://eletricnet.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
 ### [Mockups](https://app.moqups.com/apiwPY7LZnYoukWLSLGCHXXqVlXX2Zo7/edit/page/ab9bb6bb5)
 ### [Sonarqube Dashboard(needs authentication)](https://sonarcloud.io/project/overview?id=Brupez_EletricNET)
+
+### [Prometheus](http://localhost:9090)
+### [Grafana - dashboard](http://localhost:3001)
+
