@@ -17,7 +17,7 @@ import java.util.List;
 @Table(name = "slots")
 public class Slot {
     @Id
-    private String id;
+    private Long id;
 
     @Column(nullable = false)
     private String name;

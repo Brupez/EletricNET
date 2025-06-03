@@ -77,7 +77,7 @@ class ReservationServiceTest {
         station.setDiscountValue(0.1);
 
         slot = new Slot();
-        slot.setId("1");
+        slot.setId(1L);
         slot.setStation(station);
         slot.setChargingType(ChargingType.FAST);
         slot.setReserved(false);
@@ -96,7 +96,7 @@ class ReservationServiceTest {
 
         requestDTO = new ReservationRequestDTO();
         requestDTO.setUserId(1L);
-        requestDTO.setSlotId("1");
+        requestDTO.setSlotId(1L);
         requestDTO.setStartTime(LocalDateTime.now().plusHours(1));
         requestDTO.setDurationMinutes(60);
         requestDTO.setConsumptionKWh(10.0);
@@ -106,7 +106,7 @@ class ReservationServiceTest {
     @Test
     void createReservation_Success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
         when(slotRepository.save(any(Slot.class))).thenReturn(slot);
         when(reservationRepository.save(any(Reservation.class))).thenReturn(reservation);
 
@@ -122,7 +122,7 @@ class ReservationServiceTest {
     void createReservation_SlotAlreadyReserved_ReturnEmpty() {
         slot.setReserved(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
 
         Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
 
@@ -203,7 +203,7 @@ class ReservationServiceTest {
     @Test
     void createReservation_UserNotFound_ReturnEmpty() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
 
         Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
 
@@ -215,7 +215,7 @@ class ReservationServiceTest {
     @Test
     void createReservation_SlotNotFound_ReturnEmpty() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(slotRepository.findById("1")).thenReturn(Optional.empty());
+        when(slotRepository.findById(1L)).thenReturn(Optional.empty());
 
         Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
 
@@ -239,7 +239,7 @@ class ReservationServiceTest {
         );
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
         when(slotRepository.save(any(Slot.class))).thenThrow(new RuntimeException("Database error"));
 
         Optional<ReservationResponseDTO> result = testService.createReservation(requestDTO);

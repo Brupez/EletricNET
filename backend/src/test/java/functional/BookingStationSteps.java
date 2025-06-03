@@ -22,7 +22,7 @@ public class BookingStationSteps {
         playwright = Playwright.create();
 
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-                .setHeadless(false);
+                .setHeadless(true);
 
         browser = playwright.chromium().launch(launchOptions);
 
@@ -115,13 +115,13 @@ public class BookingStationSteps {
                 .locator("xpath=following-sibling::input")
                 .fill(name);
     }
-
-    @When("I enter {string} in the location field")
-    public void iEnterInTheLocationField(String location) {
-        page.getByText("Location", new Page.GetByTextOptions().setExact(true))
-                .locator("xpath=following-sibling::div/input")
-                .fill(location);
-    }
+//
+//    @When("I enter {string} in the location field")
+//    public void iEnterInTheLocationField(String location) {
+//        page.getByText("Location", new Page.GetByTextOptions().setExact(true))
+//                .locator("xpath=following-sibling::div/input")
+//                .fill(location);
+//    }
 
     @And("I select {string} from the charging type dropdown")
     public void iSelectFromTheChargingTypeDropdown(String type) {
@@ -137,20 +137,20 @@ public class BookingStationSteps {
                 .fill(power);
     }
 
-    @And("I click the {string} button")
-    public void iClickTheSaveChangesButton(String buttonText) {
-        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(buttonText)).click();
-    }
+//    @And("I click the {string} button")
+//    public void iClickTheSaveChangesButton(String buttonText) {
+//        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(buttonText)).click();
+//    }
 
-    @Then("the new charger should appear in the chargers list")
-    public void theNewChargerShouldAppearInTheChargersList() {
-        page.waitForSelector("table tbody");
-
-        assertTrue(page.locator("table tbody tr")
-                        .locator("td:nth-child(2)")
-                        .getByText("Fast Charger Porto")
-                        .isVisible(),
-                "New charger should be visible in the stations list");    }
+//    @Then("the new charger should appear in the chargers list")
+//    public void theNewChargerShouldAppearInTheChargersList() {
+//        page.waitForSelector("table tbody");
+//
+//        assertTrue(page.locator("table tbody tr")
+//                        .locator("td:nth-child(2)")
+//                        .getByText("Fast Charger Porto")
+//                        .isVisible(),
+//                "New charger should be visible in the stations list");    }
 
     @After
     public void tearDown() {

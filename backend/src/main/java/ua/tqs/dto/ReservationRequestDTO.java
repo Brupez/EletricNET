@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class ReservationRequestDTO {
     private Long userId;
-    private String slotId;
+    private Long slotId;
     private Double consumptionKWh;
     private Double pricePerKWh;
 

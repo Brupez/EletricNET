@@ -32,7 +32,7 @@ public class SlotService {
         return slotRepository.findByReservedFalse();
     }
 
-    public Optional<Slot> getSlotById(String id) {
+    public Optional<Slot> getSlotById(Long id) {
         return slotRepository.findById(id);
     }
 
@@ -44,7 +44,7 @@ public class SlotService {
                 .toList();
     }
 
-    public boolean deleteSlot(String id) {
+    public boolean deleteSlot(Long id) {
         if (slotRepository.existsById(id)) {
             slotRepository.deleteById(id);
             return true;

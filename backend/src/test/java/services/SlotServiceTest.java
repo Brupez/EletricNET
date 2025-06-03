@@ -55,7 +55,7 @@ class SlotServiceTest {
         slotDTO.setLongitude(-8.6538);
 
         slot = new Slot();
-        slot.setId("1");
+        slot.setId(1L);
         slot.setName("Test Slot");
         slot.setStation(station);
         slot.setReserved(false);
@@ -84,11 +84,11 @@ class SlotServiceTest {
 
     @Test
     void whenUpdateExistingSlot_thenSuccess() {
-        slotDTO.setId("1");
+        slotDTO.setId(1L);
 
         when(stationRepository.findByName("Test Station")).thenReturn(Optional.of(station));
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
-        when(slotRepository.existsByNameAndIdNot("Test Slot", "1")).thenReturn(false);
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
+        when(slotRepository.existsByNameAndIdNot("Test Slot", 1L)).thenReturn(false);
         when(slotRepository.save(any(Slot.class))).thenReturn(slot);
 
         Slot updatedSlot = slotService.saveOrUpdateSlotFromDTO(slotDTO);
@@ -109,9 +109,9 @@ class SlotServiceTest {
 
     @Test
     void whenUpdateSlotWithNonExistingId_thenThrowException() {
-        slotDTO.setId("999");
+        slotDTO.setId(999L);
 
-        when(slotRepository.findById("999")).thenReturn(Optional.empty());
+        when(slotRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> slotService.saveOrUpdateSlotFromDTO(slotDTO))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -124,7 +124,7 @@ class SlotServiceTest {
         newStation.setName("New Station");
 
         Slot newSlot = new Slot();
-        newSlot.setId("1");
+        newSlot.setId(1L);
         newSlot.setName("Test Slot");
         newSlot.setStation(newStation);
         newSlot.setReserved(false);
@@ -167,9 +167,9 @@ class SlotServiceTest {
 
     @Test
     void getSlotById_shouldReturnSlot() {
-        when(slotRepository.findById("1")).thenReturn(Optional.of(slot));
+        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
 
-        Optional<Slot> result = slotService.getSlotById("1");
+        Optional<Slot> result = slotService.getSlotById(1L);
 
         assertThat(result).isPresent()
                 .contains(slot);
@@ -188,19 +188,19 @@ class SlotServiceTest {
 
     @Test
     void deleteSlot_shouldReturnTrueWhenExists() {
-        when(slotRepository.existsById("1")).thenReturn(true);
+        when(slotRepository.existsById(1L)).thenReturn(true);
 
-        boolean result = slotService.deleteSlot("1");
+        boolean result = slotService.deleteSlot(1L);
 
         assertThat(result).isTrue();
-        verify(slotRepository).deleteById("1");
+        verify(slotRepository).deleteById(1L);
     }
 
     @Test
     void deleteSlot_shouldReturnFalseWhenNotExists() {
-        when(slotRepository.existsById("1")).thenReturn(false);
+        when(slotRepository.existsById(1L)).thenReturn(false);
 
-        boolean result = slotService.deleteSlot("1");
+        boolean result = slotService.deleteSlot(1L);
 
         assertThat(result).isFalse();
         verify(slotRepository, never()).deleteById(any());
