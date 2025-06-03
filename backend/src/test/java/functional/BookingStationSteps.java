@@ -82,6 +82,12 @@ public class BookingStationSteps {
         page.locator("#confirmPassword").fill(password);
     }
 
+    @And("I select {string} from the role dropdown")
+    public void iSelectFromTheRoleDropdown(String role) {
+        Locator roleDropdown = page.getByRole(AriaRole.COMBOBOX, new Page.GetByRoleOptions().setName("Role"));
+        roleDropdown.selectOption(role);
+    }
+
     @When("I click the register button")
     public void iClickTheRegisterButton() {
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign Up")).click();
@@ -89,7 +95,6 @@ public class BookingStationSteps {
 
     @Then("I should be redirected to the login page and homepage should be visible")
     public void iShouldBeRedirectedToTheLoginPage() {
-        // Wait for URL to contain login path
         page.waitForURL("**/login");
         assertTrue(page.url().contains("/login"), "URL should contain '/login'");
 
@@ -112,4 +117,6 @@ public class BookingStationSteps {
             playwright.close();
         }
     }
+
+
 }
