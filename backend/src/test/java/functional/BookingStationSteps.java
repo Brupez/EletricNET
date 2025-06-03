@@ -22,7 +22,7 @@ public class BookingStationSteps {
         playwright = Playwright.create();
 
         BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-                .setHeadless(true);
+                .setHeadless(false);
 
         browser = playwright.chromium().launch(launchOptions);
 
@@ -99,10 +99,58 @@ public class BookingStationSteps {
         assertTrue(page.url().contains("/login"), "URL should contain '/login'");
 
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign In")).click();
-
-        page.waitForURL("**/login");
-        assertTrue(page.url().contains("/login"), "URL should contain '/login'");
     }
+
+    // Add Charger Admin Side
+
+    @Then("I should see the admin dashboard")
+    public void iShouldSeeTheAdminDashboard() {
+        page.waitForURL("**/admin");
+        assertTrue(page.url().contains("/admin"), "URL should contain '/admin'");
+    }
+
+    @When("I enter {string} in the charger name field")
+    public void iEnterInTheChargerNameField(String name) {
+        page.getByText("Name", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::input")
+                .fill(name);
+    }
+
+    @When("I enter {string} in the location field")
+    public void iEnterInTheLocationField(String location) {
+        page.getByText("Location", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::div/input")
+                .fill(location);
+    }
+
+    @And("I select {string} from the charging type dropdown")
+    public void iSelectFromTheChargingTypeDropdown(String type) {
+        page.getByText("Type", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::select")
+                .selectOption(type);
+    }
+
+    @And("I enter {string} in the power field")
+    public void iEnterInThePowerField(String power) {
+        page.getByText("Power", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::input")
+                .fill(power);
+    }
+
+    @And("I click the {string} button")
+    public void iClickTheSaveChangesButton(String buttonText) {
+        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(buttonText)).click();
+    }
+
+    @Then("the new charger should appear in the chargers list")
+    public void theNewChargerShouldAppearInTheChargersList() {
+        page.waitForSelector("table tbody");
+
+        assertTrue(page.locator("table tbody tr")
+                        .locator("td:nth-child(2)")
+                        .getByText("Fast Charger Porto")
+                        .isVisible(),
+                "New charger should be visible in the stations list");    }
 
     @After
     public void tearDown() {
@@ -117,6 +165,4 @@ public class BookingStationSteps {
             playwright.close();
         }
     }
-
-
 }

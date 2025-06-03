@@ -19,18 +19,15 @@ Feature: Booking charger Management
 
   Scenario: Admin creates a new charger
     Given I navigate to "http:/localhost"
-    When I click on the "Sign In" button
-    And I enter "admin@electricgo.com" in the email field
-    And I enter "admin123!" in the password field
-    And I click the "Sign In" button
+    And I enter "bob.brown@hotmail.com" in the email field
+    And I enter "Secure789!" in the password field
+    And I click on the "Sign In" button
     Then I should see the admin dashboard
+
     When I click on the "Add Charger" button
     And I enter "Fast Charger Porto" in the charger name field
+    And I enter "Porto" in the location field
     And I select "ULTRA_FAST" from the charging type dropdown
     And I enter "350" in the power field
-    And I enter "41.1456" in the latitude field
-    And I enter "-8.6116" in the longitude field
-    And I enter "Porto Station" in the station name field
-    And I click the "Save Charger" button
-    Then I should see a success message "Charger created successfully"
-    And the new charger should appear in the chargers list
+    And I click the "Save Changes" button
+    Then the new charger should appear in the chargers list
