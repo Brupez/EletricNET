@@ -5,6 +5,7 @@ import SidebarUser from './components/SidebarUser.tsx'
 import SidebarAdmin from './components/SidebarAdmin.tsx'
 import HomePage from './pages/user/HomePage.tsx'
 import MapPage from './pages/user/MapPage.tsx'
+import DetailsPage from './pages/user/DetailsPage.tsx'
 import BookingPage from './pages/user/BookingPage.tsx'
 import ChargerDetails from './pages/user/ChargerDetails.tsx'
 import AdminPage from './pages/admin/AdminPage.tsx'
@@ -161,6 +162,11 @@ const AppContent = () => {
                         <Route path="/map" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <MapPage />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/details" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <DetailsPage />
                             </ProtectedRoute>
                         } />
                         <Route path="/bookings" element={

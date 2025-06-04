@@ -72,4 +72,16 @@ public class ReservationController {
         List<ReservationResponseDTO> reservations = reservationService.getActiveReservationsBySlotId(slotId);
         return ResponseEntity.ok(reservations);
     }
+
+    @GetMapping("/myStats")
+    public ResponseEntity<?> getMyStats(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        var stats = reservationService.getClientStats(token);
+
+        if (stats == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        return ResponseEntity.ok(stats);
+    }
 }

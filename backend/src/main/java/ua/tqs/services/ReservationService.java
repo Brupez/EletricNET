@@ -2,6 +2,7 @@ package ua.tqs.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ua.tqs.dto.ClientStatsDTO;
 import ua.tqs.login.JwtUtil;
 import ua.tqs.models.*;
 import ua.tqs.enums.ReservationStatus;
@@ -10,6 +11,9 @@ import ua.tqs.repositories.SlotRepository;
 import ua.tqs.repositories.UserRepository;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
+
+import java.util.Comparator;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -201,5 +205,61 @@ public class ReservationService {
             dto.setSlotLabel(reservation.getSlot().getName());
             return dto;
         }).toList();
+    }
+
+    public ClientStatsDTO getClientStats(String token) {
+        String email = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) return null;
+
+        List<Reservation> reservations = reservationRepository.findByUser(userOpt.get());
+
+        double totalEnergy = reservations.stream()
+                .mapToDouble(r -> r.getConsumptionKWh() != null ? r.getConsumptionKWh() : 0)
+                .sum();
+
+        double totalCost = reservations.stream()
+                .mapToDouble(r -> r.getTotalCost() != null ? r.getTotalCost() : 0)
+                .sum();
+
+        int count = reservations.size();
+
+        double avgDuration = reservations.stream()
+                .mapToInt(r -> r.getDurationMinutes() != null ? r.getDurationMinutes() : 0)
+                .average().orElse(0);
+
+        Map<String, Long> stationUsage = reservations.stream()
+                .filter(r -> r.getSlot() != null && r.getSlot().getStation() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getSlot().getStation().getName(),
+                        Collectors.counting()
+                ));
+
+        String mostUsed = stationUsage.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("—");
+
+        Map<String, Double> kWhPerMonth = reservations.stream()
+                .filter(r -> r.getStartTime() != null && r.getConsumptionKWh() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getStartTime().getMonth().toString().substring(0, 3) + "/" + r.getStartTime().getYear(),
+                        Collectors.summingDouble(Reservation::getConsumptionKWh)
+                ));
+
+        List<ClientStatsDTO.MonthlyConsumption> monthly = kWhPerMonth.entrySet().stream()
+                .map(e -> new ClientStatsDTO.MonthlyConsumption(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparing(e -> e.getMonth()))
+                .toList();
+
+        ClientStatsDTO dto = new ClientStatsDTO();
+        dto.setTotalEnergy(totalEnergy);
+        dto.setTotalCost(totalCost);
+        dto.setReservationCount(count);
+        dto.setAverageDuration(avgDuration);
+        dto.setMostUsedStation(mostUsed);
+        dto.setMonthlyConsumption(monthly);
+
+        return dto;
     }
 }

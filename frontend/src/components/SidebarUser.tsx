@@ -15,7 +15,7 @@ const SidebarUser = ({ onLogout }: { onLogout: () => void }) => {
                     icon: <LayoutDashboard size={24} />,
                     text: 'Overview',
                     path: '/',
-                    subItems: [{ text: 'Chargers', path: '/map' }]
+                    subItems: [{ text: 'Search chargers', path: '/' }, { text: 'Your stats', path: '/details' }]
                 },
                 {
                     icon: <Calendar size={24} />,
