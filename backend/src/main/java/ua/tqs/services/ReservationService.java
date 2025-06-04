@@ -35,6 +35,9 @@ public class ReservationService {
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
         Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
 
+        System.out.println(">> Received: slotId=" + dto.getSlotId() + ", userId=" + dto.getUserId());
+        System.out.println(">> startTime=" + dto.getStartTime() + ", duration=" + dto.getDurationMinutes());
+
         if (userOpt.isEmpty() || slotOpt.isEmpty()) return Optional.empty();
 
         Slot slot = slotOpt.get();
@@ -170,5 +173,34 @@ public class ReservationService {
         });
     }
 
+    public List<ReservationResponseDTO> getActiveReservationsBySlotId(Long slotId) {
+        System.out.println(">> Fetching active reservations for slot: " + slotId);
 
+        List<Reservation> reservations = reservationRepository.findBySlot_IdAndStatus(slotId, ReservationStatus.ACTIVE);
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Reservation> futureOrCurrent = reservations.stream()
+                .filter(r -> {
+                    LocalDateTime start = r.getStartTime();
+                    int duration = r.getDurationMinutes() != null ? r.getDurationMinutes() : 0;
+                    LocalDateTime end = start.plusMinutes(duration);
+                    return end.isAfter(now);
+                })
+                .toList();
+
+        System.out.println(">> Filtered reservations count: " + futureOrCurrent.size());
+
+        return futureOrCurrent.stream().map(reservation -> {
+            ReservationResponseDTO dto = new ReservationResponseDTO();
+            dto.setId(reservation.getId());
+            dto.setUserId(reservation.getUser().getId());
+            dto.setUserEmail(reservation.getUser().getEmail());
+            dto.setStartTime(reservation.getStartTime());
+            dto.setDurationMinutes(reservation.getDurationMinutes());
+            dto.setConsumptionKWh(reservation.getConsumptionKWh());
+            dto.setTotalCost(reservation.getTotalCost());
+            dto.setPaid(reservation.isPaid());
+            return dto;
+        }).toList();
+    }
 }

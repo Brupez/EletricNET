@@ -17,6 +17,7 @@ const ChargerDetails = () => {
   const location = useLocation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [chargerDetails, setChargerDetails] = useState<any | null>(null)
+  const [reservations, setReservations] = useState<any[]>([])
 
   useEffect(() => {
     const markerData = location.state as LocationState & { isExternal?: boolean }
@@ -48,6 +49,8 @@ const ChargerDetails = () => {
 
         const address = await getAddressFromCoords(data.latitude, data.longitude);
 
+        console.log("Charger ID:", id);
+
         setChargerDetails({
           id: data.id,
           name: data.name ?? 'Unnamed',
@@ -64,6 +67,18 @@ const ChargerDetails = () => {
             lng: data.longitude
           }
         });
+
+        const reservationsRes = await fetch(`http://localhost:8081/api/reservations/slot/${id}/active`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('jwt')}`
+          }
+        })        
+
+        if (reservationsRes.ok) {
+          const resData = await reservationsRes.json()
+          console.log("Fetched reservations:", resData);
+          setReservations(resData)
+        }
       } catch (err) {
         console.error(err);
       }
@@ -179,6 +194,36 @@ const ChargerDetails = () => {
           </div>
         </div>
       </div>
+
+      {reservations.length > 0 && (
+        <div className="mt-12">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Active Reservations</h3>
+          <table className="w-full table-auto border-collapse border border-gray-300">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border border-gray-300 px-4 py-2">User</th>
+                <th className="border border-gray-300 px-4 py-2">Start Time</th>
+                <th className="border border-gray-300 px-4 py-2">Duration</th>
+                <th className="border border-gray-300 px-4 py-2">kWh</th>
+                <th className="border border-gray-300 px-4 py-2">Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reservations.map((r) => (
+                <tr key={r.id}>
+                  <td className="border border-gray-300 px-4 py-2">{r.userEmail ?? `User #${r.userId}`}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {new Date(r.startTime).toLocaleString()}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">{r.durationMinutes} min</td>
+                  <td className="border border-gray-300 px-4 py-2">{r.consumptionKWh} kWh</td>
+                  <td className="border border-gray-300 px-4 py-2">{r.paid ? 'Yes' : 'No'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="flex justify-end mt-8">
         <button

@@ -66,4 +66,10 @@ public class ReservationController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/slot/{slotId}/active")
+    public ResponseEntity<List<ReservationResponseDTO>> getActiveReservationsBySlot(@PathVariable Long slotId) {
+        List<ReservationResponseDTO> reservations = reservationService.getActiveReservationsBySlotId(slotId);
+        return ResponseEntity.ok(reservations);
+    }
 }
