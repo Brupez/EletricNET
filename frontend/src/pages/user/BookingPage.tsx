@@ -20,8 +20,19 @@ const BookingPage = () => {
     const [bookings, setBookings] = useState<ReservationResponseDTO[]>([])
     const [cancelModalOpen, setCancelModalOpen] = useState(false)
     const [cancelId, setCancelId] = useState<number | null>(null)
+    const [tooLateModalOpen, setTooLateModalOpen] = useState(false)
 
-    const openCancelModal = (id: number) => {
+    const openCancelModal = (id: number, startTime: string) => {
+        const now = new Date()
+        const reservationTime = new Date(startTime)
+        const diffInMs = reservationTime.getTime() - now.getTime()
+        const diffInHours = diffInMs / (1000 * 60 * 60)
+
+        if (diffInHours < 1) {
+            setTooLateModalOpen(true)
+            return
+        }
+
         setCancelId(id)
         setCancelModalOpen(true)
     }
@@ -175,7 +186,7 @@ const BookingPage = () => {
                                             </button>
                                             {res.state === 'ACTIVE' && (
                                                 <button
-                                                    onClick={() => openCancelModal(res.id)}
+                                                    onClick={() => openCancelModal(res.id, res.startTime)}
                                                     className="text-red-600 hover:text-red-800"
                                                     title="Cancelar reserva"
                                                 >
@@ -216,23 +227,43 @@ const BookingPage = () => {
                         </div>
                     </div>
                 )}
+
                 {cancelModalOpen && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded shadow max-w-sm">
                             <h2 className="text-lg font-semibold mb-4">Confirm Cancellation</h2>
-                            <p className="mb-4">Tem a certeza de que pretende cancelar esta reserva?</p>
+                            <p className="mb-4">Are you sure you want to cancel this booking?</p>
                             <div className="flex justify-end gap-3">
                                 <button
                                     onClick={closeCancelModal}
                                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                                 >
-                                    Cancelar
+                                    Cancel
                                 </button>
                                 <button
                                     onClick={confirmCancel}
                                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                                 >
-                                    Confirmar
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {tooLateModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded shadow max-w-sm">
+                            <h2 className="text-lg font-semibold mb-4 text-red-600">Cancellation Not Allowed</h2>
+                            <p className="mb-4 text-gray-700">
+                                You can only cancel a reservation up to <strong>1 hour before</strong> the start time.
+                            </p>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setTooLateModalOpen(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                                >
+                                    Close
                                 </button>
                             </div>
                         </div>
