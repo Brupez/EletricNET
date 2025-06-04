@@ -8,21 +8,22 @@ import java.util.Map;
 public class ClientStatsDTO {
     private double totalEnergy;
     private double totalCost;
+    private double currentMonthCost;
     private int reservationCount;
     private double averageDuration;
     private String mostUsedStation;
-    private List<MonthlyConsumption> monthlyConsumption;
 
+    private List<WeeklyConsumption> weeklyConsumption;
     private Map<String, Long> chargingTypeCounts;
     private Map<String, Long> reservationsPerSlot;
 
     @Data
-    public static class MonthlyConsumption {
-        private String month;
+    public static class WeeklyConsumption {
+        private String weekStart;
         private double kWh;
 
-        public MonthlyConsumption(String month, double kWh) {
-            this.month = month;
+        public WeeklyConsumption(String weekStart, double kWh) {
+            this.weekStart = weekStart;
             this.kWh = kWh;
         }
     }

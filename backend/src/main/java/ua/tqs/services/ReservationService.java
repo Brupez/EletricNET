@@ -12,13 +12,14 @@ import ua.tqs.repositories.UserRepository;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 
-import java.util.Comparator;
-import java.util.Map;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.WeekFields;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.List;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class ReservationService {
@@ -214,6 +215,13 @@ public class ReservationService {
 
         List<Reservation> reservations = reservationRepository.findByUser(userOpt.get());
 
+        YearMonth currentMonth = YearMonth.now();
+        double currentMonthCost = reservations.stream()
+                .filter(r -> r.getStartTime() != null &&
+                        YearMonth.from(r.getStartTime().toLocalDate()).equals(currentMonth))
+                .mapToDouble(r -> r.getTotalCost() != null ? r.getTotalCost() : 0)
+                .sum();
+
         double totalEnergy = reservations.stream()
                 .mapToDouble(r -> r.getConsumptionKWh() != null ? r.getConsumptionKWh() : 0)
                 .sum();
@@ -240,6 +248,25 @@ public class ReservationService {
                 .map(Map.Entry::getKey)
                 .orElse("—");
 
+        Map<String, Double> kWhPerWeek = reservations.stream()
+                .filter(r -> r.getStartTime() != null && r.getConsumptionKWh() != null)
+                .collect(Collectors.groupingBy(
+                        r -> {
+                            LocalDate start = r.getStartTime().toLocalDate();
+                            WeekFields weekFields = WeekFields.of(DayOfWeek.MONDAY, 1);
+                            LocalDate weekStart = start.with(weekFields.getFirstDayOfWeek());
+                            return weekStart.toString();
+                        },
+                        Collectors.summingDouble(Reservation::getConsumptionKWh)
+                ));
+
+        List<ClientStatsDTO.WeeklyConsumption> weekly = kWhPerWeek.entrySet().stream()
+                .map(e -> new ClientStatsDTO.WeeklyConsumption(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparing(ClientStatsDTO.WeeklyConsumption::getWeekStart))
+                .toList();
+
+        // Para retornar dados mensais
+        /*
         Map<String, Double> kWhPerMonth = reservations.stream()
                 .filter(r -> r.getStartTime() != null && r.getConsumptionKWh() != null)
                 .collect(Collectors.groupingBy(
@@ -251,6 +278,7 @@ public class ReservationService {
                 .map(e -> new ClientStatsDTO.MonthlyConsumption(e.getKey(), e.getValue()))
                 .sorted(Comparator.comparing(ClientStatsDTO.MonthlyConsumption::getMonth))
                 .toList();
+        */
 
         Map<String, Long> chargingTypeCounts = reservations.stream()
                 .filter(r -> r.getSlot() != null)
@@ -269,10 +297,12 @@ public class ReservationService {
         ClientStatsDTO dto = new ClientStatsDTO();
         dto.setTotalEnergy(totalEnergy);
         dto.setTotalCost(totalCost);
+        dto.setCurrentMonthCost(currentMonthCost);
         dto.setReservationCount(count);
         dto.setAverageDuration(avgDuration);
         dto.setMostUsedStation(mostUsed);
-        dto.setMonthlyConsumption(monthly);
+        dto.setWeeklyConsumption(weekly);
+        // dto.setMonthlyConsumption(monthly); // dados mensais
         dto.setChargingTypeCounts(chargingTypeCounts);
         dto.setReservationsPerSlot(reservationsPerSlot);
 

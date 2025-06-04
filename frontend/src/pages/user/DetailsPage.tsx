@@ -1,39 +1,49 @@
 import { useEffect, useState } from 'react'
 import { Bar, Doughnut } from 'react-chartjs-2'
+import { format } from 'date-fns'
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
   ArcElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js'
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 )
 
 interface ClientStats {
   totalEnergy: number
   totalCost: number
+  currentMonthCost: number
   reservationCount: number
   averageDuration: number
   mostUsedStation: string
-  monthlyConsumption: { month: string, kWh: number }[]
+  weeklyConsumption: { weekStart: string, kWh: number }[]
   chargingTypeCounts: { [type: string]: number }
   reservationsPerSlot: { [slotLabel: string]: number }
 }
 
 const DetailsPage = () => {
   const [stats, setStats] = useState<ClientStats | null>(null)
+
+  const currentMonthName = format(new Date(), 'MMMM')
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -58,6 +68,10 @@ const DetailsPage = () => {
         <div className="bg-white shadow p-6 rounded-xl">
           <h4 className="text-gray-600">Total Energy</h4>
           <p className="text-xl font-semibold">{stats.totalEnergy} kWh</p>
+        </div>
+        <div className="bg-white shadow p-6 rounded-xl">
+          <h4 className="text-gray-600">{currentMonthName} Cost</h4>
+          <p className="text-xl font-semibold">€{stats.currentMonthCost.toFixed(2)}</p>
         </div>
         <div className="bg-white shadow p-6 rounded-xl">
           <h4 className="text-gray-600">Total Spent</h4>
@@ -111,32 +125,56 @@ const DetailsPage = () => {
               responsive: true,
               plugins: {
                 legend: { display: false }
+              },
+              scales: {
+                y: {
+                  ticks: {
+                    stepSize: 1,
+                    precision: 0,
+                    callback: function (value) {
+                      return Number(value).toString();
+                    }
+                  },
+                  beginAtZero: true
+                }
               }
             }}
           />
         </div>
       </div>
 
+      {/*
       <div className="bg-white p-6 shadow rounded-xl mt-6">
-        <h3 className="text-xl font-bold mb-4">Monthly Energy Consumption</h3>
+        <h3 className="text-xl font-bold mb-4">Weekly Energy Consumption</h3>
         <Bar
           data={{
-            labels: stats.monthlyConsumption.map(m => m.month),
+            labels: stats.weeklyConsumption.map(w => w.weekStart),
             datasets: [{
               label: 'kWh',
-              data: stats.monthlyConsumption.map(m => m.kWh),
-              backgroundColor: '#15803d'
+              data: stats.weeklyConsumption.map(w => w.kWh),
+              backgroundColor: '#4ade80',
+              borderColor: '#166534',
+              borderWidth: 1
             }]
           }}
           options={{
             responsive: true,
             plugins: {
-              legend: { display: false },
-              title: { display: false }
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 5,
+                  precision: 0
+                }
+              }
             }
           }}
         />
       </div>
+      */}
     </div>
   )
 }
