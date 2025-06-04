@@ -22,10 +22,35 @@ payment functionalities across diverse charging networks.
 link all relevant resources here and, at least, the links to Project
 Backlog, Related repositories (if applicable), API documentation, static analysis dashboard.
 
-### [Jira - Backlog](https://eletricnet.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
-### [Mockups](https://app.moqups.com/apiwPY7LZnYoukWLSLGCHXXqVlXX2Zo7/edit/page/ab9bb6bb5)
-### [Sonarqube Dashboard(needs authentication)](https://sonarcloud.io/project/overview?id=Brupez_EletricNET)
+---
 
-### [Prometheus](http://localhost:9090)
-### [Grafana - dashboard](http://localhost:3001)
+### Useful Links
+- **Jira - Backlog**:  
+  [https://eletricnet.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog](https://eletricnet.atlassian.net/jira/software/projects/SCRUM/boards/1/backlog)
+- **Mockups**:  
+  [https://app.moqups.com/apiwPY7LZnYoukWLSLGCHXXqVlXX2Zo7/edit/page/ab9bb6bb5](https://app.moqups.com/apiwPY7LZnYoukWLSLGCHXXqVlXX2Zo7/edit/page/ab9bb6bb5)
+- **Sonarqube Dashboard**:  
+  [https://sonarcloud.io/project/overview?id=Brupez_EletricNET](https://sonarcloud.io/project/overview?id=Brupez_EletricNET)  
+  *(requires authentication)*
 
+---
+
+### Platform Resources
+> **Requires UA VPN**
+
+#### Website
+- **EletricNET - Website**:  
+  [http://deti-tqs-05.ua.pt](http://deti-tqs-05.ua.pt)
+
+#### Monitoring
+- **Prometheus**:  
+  [http://deti-tqs-05.ua.pt:8081/actuator/prometheus](http://deti-tqs-05.ua.pt:8081/actuator/prometheus)
+- **Spring Boot Actuator (Health Check)**:  
+  [http://deti-tqs-05.ua.pt:8081/actuator/health](http://deti-tqs-05.ua.pt:8081/actuator/health)
+- **Grafana - Dashboard**:  
+  [http://deti-tqs-05.ua.pt:3001/](http://deti-tqs-05.ua.pt:3001/)  
+  *(Credentials: `user: admin` | `password: eletricNET_grafana`)*
+
+#### API Documentation
+- **Swagger UI**:  
+  [http://deti-tqs-05.ua.pt:8081/swagger-ui/index.html](http://deti-tqs-05.ua.pt:8081/swagger-ui/index.html)
