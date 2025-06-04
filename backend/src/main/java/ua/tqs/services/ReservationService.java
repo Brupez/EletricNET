@@ -194,6 +194,7 @@ public class ReservationService {
             ReservationResponseDTO dto = new ReservationResponseDTO();
             dto.setId(reservation.getId());
             dto.setUserId(reservation.getUser().getId());
+            dto.setUserName(reservation.getUser().getName());
             dto.setUserEmail(reservation.getUser().getEmail());
             dto.setStartTime(reservation.getStartTime());
             dto.setDurationMinutes(reservation.getDurationMinutes());

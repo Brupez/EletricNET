@@ -72,7 +72,7 @@ const ChargerDetails = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('jwt')}`
           }
-        })        
+        })
 
         if (reservationsRes.ok) {
           const resData = await reservationsRes.json()
@@ -201,23 +201,27 @@ const ChargerDetails = () => {
           <table className="w-full table-auto border-collapse border border-gray-300">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border border-gray-300 px-4 py-2">User</th>
-                <th className="border border-gray-300 px-4 py-2">Start Time</th>
-                <th className="border border-gray-300 px-4 py-2">Duration</th>
-                <th className="border border-gray-300 px-4 py-2">kWh</th>
-                <th className="border border-gray-300 px-4 py-2">Paid</th>
+                <th className="border border-gray-300 px-4 py-2 text-center align-middle">User</th>
+                <th className="border border-gray-300 px-4 py-2 text-center align-middle">Start Time</th>
+                <th className="border border-gray-300 px-4 py-2 text-center align-middle">Duration</th>
+                <th className="border border-gray-300 px-4 py-2 text-center align-middle">kWh</th>
               </tr>
             </thead>
             <tbody>
               {reservations.map((r) => (
                 <tr key={r.id}>
-                  <td className="border border-gray-300 px-4 py-2">{r.userEmail ?? `User #${r.userId}`}</td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border border-gray-300 px-4 py-2 text-center align-middle">
+                    {r.userName ?? `User #${r.userId}`}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-center align-middle">
                     {new Date(r.startTime).toLocaleString()}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">{r.durationMinutes} min</td>
-                  <td className="border border-gray-300 px-4 py-2">{r.consumptionKWh} kWh</td>
-                  <td className="border border-gray-300 px-4 py-2">{r.paid ? 'Yes' : 'No'}</td>
+                  <td className="border border-gray-300 px-4 py-2 text-center align-middle">
+                    {r.durationMinutes} min
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-center align-middle">
+                    {r.consumptionKWh} kWh
+                  </td>
                 </tr>
               ))}
             </tbody>
