@@ -9,11 +9,12 @@ import { useEffect, useState } from 'react'
 import ReservationModalAdmin from '../../components/ReservationModalAdmin'
 
 type SortDirection = 'asc' | 'desc' | null
-type SortField = 'id' | 'stationName' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
+type SortField = 'id' | 'slotLabel' | 'stationLocation' | 'chargingType' | 'totalCost' | 'createdAt' | 'state' | null
 
 interface ReservationResponseDTO {
     id: number
-    stationName: string
+    stationLocation: string
+    slotLabel: string
     chargingType: string
     totalCost: number
     state: string
@@ -97,34 +98,36 @@ const AdminReservationsPage = () => {
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
+                        <tr className="text-center">
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
                                 ID <SortIcon field="id" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('stationName')}>
-                                Station <SortIcon field="stationName" />
+                            <th className="px-6 py-4 text-sm text-gray-500">Slot</th>
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('stationLocation')}>
+                                Station <SortIcon field="stationLocation" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('state')}>
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('state')}>
                                 Status <SortIcon field="state" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('chargingType')}>
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('chargingType')}>
                                 Charging Type <SortIcon field="chargingType" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('totalCost')}>
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('totalCost')}>
                                 Cost <SortIcon field="totalCost" />
                             </th>
-                            <th className="px-6 py-4 text-left text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
+                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
                                 Created At <SortIcon field="createdAt" />
                             </th>
                             <th className="px-6 py-4 text-sm text-gray-500">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 text-center">
                         {paginated.length > 0 ? (
                             paginated.map(r => (
                                 <tr key={r.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4">{r.id}</td>
-                                    <td className="px-6 py-4">{r.stationName}</td>
+                                    <td className="px-6 py-4">{r.slotLabel}</td>
+                                    <td className="px-6 py-4">{r.stationLocation}</td>
                                     <td className="px-6 py-4">
                                         <span className={`badge ${statusStyles[r.state as keyof typeof statusStyles] || ''}`}>
                                             {r.state}
@@ -132,13 +135,11 @@ const AdminReservationsPage = () => {
                                     </td>
                                     <td className="px-6 py-4">{r.chargingType}</td>
                                     <td className="px-6 py-4">€{r.totalCost.toFixed(2)}</td>
-                                    <td className="px-6 py-4">
-                                        {new Date(r.createdAt).toLocaleString('pt-PT')}
-                                    </td>
+                                    <td className="px-6 py-4">{new Date(r.createdAt).toLocaleString('pt-PT')}</td>
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => setSelectedReservation(r)}
-                                            className="text-blue-700 hover:text-blue-800 flex items-center gap-1"
+                                            className="text-blue-700 hover:text-blue-800 flex items-center gap-1 justify-center"
                                         >
                                             <Eye size={16} />
                                             View
@@ -148,7 +149,7 @@ const AdminReservationsPage = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={7} className="px-6 py-6 text-center text-gray-500">
+                                <td colSpan={8} className="px-6 py-6 text-center text-gray-500">
                                     No reservations found.
                                 </td>
                             </tr>
