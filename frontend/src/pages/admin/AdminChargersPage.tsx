@@ -102,7 +102,9 @@ const AdminReservationsPage = () => {
                             <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('id')}>
                                 ID <SortIcon field="id" />
                             </th>
-                            <th className="px-6 py-4 text-sm text-gray-500">Slot</th>
+                            <th className="px-6 py-4 text-sm text-gray-500 text-center group">
+                                Slot <span className="opacity-0"><ChevronUp size={16} /></span>
+                            </th>
                             <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('stationLocation')}>
                                 Station <SortIcon field="stationLocation" />
                             </th>
@@ -118,7 +120,9 @@ const AdminReservationsPage = () => {
                             <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
                                 Created At <SortIcon field="createdAt" />
                             </th>
-                            <th className="px-6 py-4 text-sm text-gray-500">Actions</th>
+                            <th className="px-6 py-4 text-sm text-gray-500 text-center group">
+                                Actions <span className="opacity-0"><ChevronUp size={16} /></span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 text-center">
