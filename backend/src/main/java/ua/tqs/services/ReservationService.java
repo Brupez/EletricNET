@@ -35,9 +35,6 @@ public class ReservationService {
         Optional<User> userOpt = userRepository.findById(dto.getUserId());
         Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
 
-        System.out.println(">> Received: slotId=" + dto.getSlotId() + ", userId=" + dto.getUserId());
-        System.out.println(">> startTime=" + dto.getStartTime() + ", duration=" + dto.getDurationMinutes());
-
         if (userOpt.isEmpty() || slotOpt.isEmpty()) return Optional.empty();
 
         Slot slot = slotOpt.get();
@@ -75,7 +72,8 @@ public class ReservationService {
         response.setPaid(saved.isPaid());
         response.setStartTime(saved.getStartTime());
         response.setDurationMinutes(saved.getDurationMinutes());
-        response.setStationName(slot.getStation().getName());
+        response.setStationLocation(slot.getStation().getName());
+        response.setSlotLabel(slot.getName());
         response.setChargingType(slot.getChargingType().name());
         response.setCreatedAt(saved.getCreationDate());
 
@@ -118,7 +116,8 @@ public class ReservationService {
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
             dto.setTotalCost(reservation.getTotalCost());
             dto.setPaid(reservation.isPaid());
-            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setStationLocation(reservation.getSlot().getStation().getName());
+            dto.setSlotLabel(reservation.getSlot().getName());
             dto.setChargingType(reservation.getSlot().getChargingType().name());
             dto.setStartTime(reservation.getStartTime());
             dto.setDurationMinutes(reservation.getDurationMinutes());
@@ -145,7 +144,8 @@ public class ReservationService {
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
             dto.setTotalCost(reservation.getTotalCost());
             dto.setPaid(reservation.isPaid());
-            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setStationLocation(reservation.getSlot().getStation().getName());
+            dto.setSlotLabel(reservation.getSlot().getName());
             dto.setChargingType(reservation.getSlot().getChargingType().name());
             dto.setCreatedAt(reservation.getCreationDate());
             return dto;
@@ -164,7 +164,8 @@ public class ReservationService {
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
             dto.setTotalCost(reservation.getTotalCost());
             dto.setPaid(reservation.isPaid());
-            dto.setStationName(reservation.getSlot().getStation().getName());
+            dto.setStationLocation(reservation.getSlot().getStation().getName());
+            dto.setSlotLabel(reservation.getSlot().getName());
             dto.setChargingType(reservation.getSlot().getChargingType().name());
             dto.setCreatedAt(reservation.getCreationDate());
             dto.setStartTime(reservation.getStartTime());
@@ -174,8 +175,6 @@ public class ReservationService {
     }
 
     public List<ReservationResponseDTO> getActiveReservationsBySlotId(Long slotId) {
-        System.out.println(">> Fetching active reservations for slot: " + slotId);
-
         List<Reservation> reservations = reservationRepository.findBySlot_IdAndStatus(slotId, ReservationStatus.ACTIVE);
 
         LocalDateTime now = LocalDateTime.now();
@@ -188,8 +187,6 @@ public class ReservationService {
                 })
                 .toList();
 
-        System.out.println(">> Filtered reservations count: " + futureOrCurrent.size());
-
         return futureOrCurrent.stream().map(reservation -> {
             ReservationResponseDTO dto = new ReservationResponseDTO();
             dto.setId(reservation.getId());
@@ -201,6 +198,7 @@ public class ReservationService {
             dto.setConsumptionKWh(reservation.getConsumptionKWh());
             dto.setTotalCost(reservation.getTotalCost());
             dto.setPaid(reservation.isPaid());
+            dto.setSlotLabel(reservation.getSlot().getName());
             return dto;
         }).toList();
     }

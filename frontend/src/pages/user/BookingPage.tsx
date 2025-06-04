@@ -5,13 +5,14 @@ import { useNavigate } from 'react-router-dom'
 interface ReservationResponseDTO {
     id: number
     slotId: number
-    stationName: string
+    stationLocation: string
+    slotLabel?: string
     chargingType: string
     state: 'ACTIVE' | 'CANCELED' | 'COMPLETED'
     totalCost: number
     consumptionKWh: number
     startTime: string
-}
+  }  
 
 const itemsPerPage = 5
 
@@ -133,8 +134,9 @@ const BookingPage = () => {
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-4">ID</th>
-                                <th className="px-6 py-4">Charger Station</th>
+                                {/*<th className="px-6 py-4">ID</th>*/}
+                                <th className="px-6 py-4">Slot Name</th>
+                                <th className="px-6 py-4">Slot Location</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Charging Type</th>
                                 <th className="px-6 py-4">Price</th>
@@ -155,8 +157,9 @@ const BookingPage = () => {
                             ) : (
                                 paginatedData.map((res) => (
                                     <tr key={res.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">{res.id}</td>
-                                        <td className="px-6 py-4">{res.stationName}</td>
+                                        {/*<td className="px-6 py-4">{res.id}</td>*/}
+                                        <td className="px-6 py-4 font-medium text-gray-800">{res.slotLabel ?? '—'}</td>
+                                        <td className="px-6 py-4">{res.stationLocation}</td>
                                         <td className="px-6 py-4">
                                             <span className={`badge ${res.state === 'ACTIVE'
                                                 ? 'bg-green-100 text-green-800'

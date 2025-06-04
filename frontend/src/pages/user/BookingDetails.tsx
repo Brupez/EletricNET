@@ -6,7 +6,8 @@ interface ReservationDetails {
   id: number
   userName: string
   userEmail: string
-  stationName: string
+  stationLocation: string
+  slotLabel: string
   state: 'ACTIVE' | 'CANCELED' | 'COMPLETED'
   chargingType: string
   totalCost: number
@@ -45,12 +46,12 @@ const BookingDetails = () => {
             <div className="flex items-center gap-2">
               <Battery size={24} className="text-green-700" />
               <h2 className="text-2xl font-bold text-gray-800">
-                {booking.stationName}
+                {booking.slotLabel}
                 <span className={`ml-3 badge ${booking.state === 'ACTIVE'
-                    ? 'bg-green-100 text-green-800'
-                    : booking.state === 'CANCELED'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'
+                  ? 'bg-green-100 text-green-800'
+                  : booking.state === 'CANCELED'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-800'
                   }`}>
                   {booking.state}
                 </span>
@@ -59,7 +60,7 @@ const BookingDetails = () => {
 
             <div className="flex items-center gap-2 text-gray-600">
               <MapPin size={20} />
-              <span>Reservation ID: {booking.id}</span>
+              <span>{booking.stationLocation}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-6 p-4">
