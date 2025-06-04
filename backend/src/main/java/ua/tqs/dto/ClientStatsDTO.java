@@ -2,6 +2,7 @@ package ua.tqs.dto;
 
 import lombok.Data;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ClientStatsDTO {
@@ -11,6 +12,9 @@ public class ClientStatsDTO {
     private double averageDuration;
     private String mostUsedStation;
     private List<MonthlyConsumption> monthlyConsumption;
+
+    private Map<String, Long> chargingTypeCounts;
+    private Map<String, Long> reservationsPerSlot;
 
     @Data
     public static class MonthlyConsumption {

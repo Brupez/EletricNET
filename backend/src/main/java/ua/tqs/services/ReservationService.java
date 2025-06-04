@@ -249,8 +249,22 @@ public class ReservationService {
 
         List<ClientStatsDTO.MonthlyConsumption> monthly = kWhPerMonth.entrySet().stream()
                 .map(e -> new ClientStatsDTO.MonthlyConsumption(e.getKey(), e.getValue()))
-                .sorted(Comparator.comparing(e -> e.getMonth()))
+                .sorted(Comparator.comparing(ClientStatsDTO.MonthlyConsumption::getMonth))
                 .toList();
+
+        Map<String, Long> chargingTypeCounts = reservations.stream()
+                .filter(r -> r.getSlot() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getSlot().getChargingType().toString(),
+                        Collectors.counting()
+                ));
+
+        Map<String, Long> reservationsPerSlot = reservations.stream()
+                .filter(r -> r.getSlot() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getSlot().getName(),
+                        Collectors.counting()
+                ));
 
         ClientStatsDTO dto = new ClientStatsDTO();
         dto.setTotalEnergy(totalEnergy);
@@ -259,6 +273,8 @@ public class ReservationService {
         dto.setAverageDuration(avgDuration);
         dto.setMostUsedStation(mostUsed);
         dto.setMonthlyConsumption(monthly);
+        dto.setChargingTypeCounts(chargingTypeCounts);
+        dto.setReservationsPerSlot(reservationsPerSlot);
 
         return dto;
     }

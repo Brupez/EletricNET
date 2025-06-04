@@ -1,8 +1,25 @@
 import { useEffect, useState } from 'react'
-import { Bar } from 'react-chartjs-2'
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { Bar, Doughnut } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+)
 
 interface ClientStats {
   totalEnergy: number
@@ -11,6 +28,8 @@ interface ClientStats {
   averageDuration: number
   mostUsedStation: string
   monthlyConsumption: { month: string, kWh: number }[]
+  chargingTypeCounts: { [type: string]: number }
+  reservationsPerSlot: { [slotLabel: string]: number }
 }
 
 const DetailsPage = () => {
@@ -55,6 +74,46 @@ const DetailsPage = () => {
         <div className="bg-white shadow p-6 rounded-xl">
           <h4 className="text-gray-600">Most Used Station</h4>
           <p className="text-xl font-semibold">{stats.mostUsedStation}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 shadow rounded-xl">
+          <h3 className="text-xl font-bold mb-4">Charging Types Used</h3>
+          <Doughnut
+            data={{
+              labels: Object.keys(stats.chargingTypeCounts),
+              datasets: [{
+                data: Object.values(stats.chargingTypeCounts),
+                backgroundColor: ['#4ade80', '#22d3ee', '#facc15']
+              }]
+            }}
+            options={{
+              plugins: {
+                legend: { position: 'bottom' }
+              }
+            }}
+          />
+        </div>
+
+        <div className="bg-white p-6 shadow rounded-xl">
+          <h3 className="text-xl font-bold mb-4">Reservations per Station</h3>
+          <Bar
+            data={{
+              labels: Object.keys(stats.reservationsPerSlot),
+              datasets: [{
+                label: 'Reservations',
+                data: Object.values(stats.reservationsPerSlot),
+                backgroundColor: '#6366f1'
+              }]
+            }}
+            options={{
+              responsive: true,
+              plugins: {
+                legend: { display: false }
+              }
+            }}
+          />
         </div>
       </div>
 
