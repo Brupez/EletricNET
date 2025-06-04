@@ -19,6 +19,7 @@ interface ReservationResponseDTO {
     totalCost: number
     state: string
     createdAt: string
+    startTime: string
     userName: string
     userEmail: string
 }
@@ -117,8 +118,8 @@ const AdminReservationsPage = () => {
                             <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('totalCost')}>
                                 Cost <SortIcon field="totalCost" />
                             </th>
-                            <th className="px-6 py-4 text-sm text-gray-500 cursor-pointer group" onClick={() => handleSort('createdAt')}>
-                                Created At <SortIcon field="createdAt" />
+                            <th className="px-6 py-4 text-sm text-gray-500 text-center group">
+                                Reservation Day <span className="opacity-0"><ChevronUp size={16} /></span>
                             </th>
                             <th className="px-6 py-4 text-sm text-gray-500 text-center group">
                                 Actions <span className="opacity-0"><ChevronUp size={16} /></span>
@@ -139,7 +140,9 @@ const AdminReservationsPage = () => {
                                     </td>
                                     <td className="px-6 py-4">{r.chargingType}</td>
                                     <td className="px-6 py-4">€{r.totalCost.toFixed(2)}</td>
-                                    <td className="px-6 py-4">{new Date(r.createdAt).toLocaleString('pt-PT')}</td>
+                                    <td className="px-6 py-4">
+                                        {r.startTime ? new Date(r.startTime).toLocaleDateString('pt-PT') : '—'}
+                                    </td>
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => setSelectedReservation(r)}

@@ -3,6 +3,7 @@ package ua.tqs.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ua.tqs.dto.AdminStatsDTO;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 import ua.tqs.services.ReservationService;
@@ -83,5 +84,12 @@ public class ReservationController {
         }
 
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/admin/stats")
+    public ResponseEntity<AdminStatsDTO> getAdminStats() {
+        AdminStatsDTO dto = new AdminStatsDTO();
+        dto.setCurrentMonthRevenue(reservationService.getCurrentMonthRevenue());
+        return ResponseEntity.ok(dto);
     }
 }

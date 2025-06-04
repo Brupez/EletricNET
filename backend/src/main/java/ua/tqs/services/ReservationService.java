@@ -153,6 +153,7 @@ public class ReservationService {
             dto.setSlotLabel(reservation.getSlot().getName());
             dto.setChargingType(reservation.getSlot().getChargingType().name());
             dto.setCreatedAt(reservation.getCreationDate());
+            dto.setStartTime(reservation.getStartTime());
             return dto;
         }).collect(Collectors.toList());
     }
@@ -307,5 +308,15 @@ public class ReservationService {
         dto.setReservationsPerSlot(reservationsPerSlot);
 
         return dto;
+    }
+
+    public double getCurrentMonthRevenue() {
+        YearMonth currentMonth = YearMonth.now();
+
+        return reservationRepository.findAll().stream()
+                .filter(r -> r.getStartTime() != null &&
+                        YearMonth.from(r.getStartTime().toLocalDate()).equals(currentMonth))
+                .mapToDouble(r -> r.getTotalCost() != null ? r.getTotalCost() : 0)
+                .sum();
     }
 }
