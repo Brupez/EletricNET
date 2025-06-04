@@ -10,7 +10,6 @@ import ua.tqs.models.User;
 import ua.tqs.repositories.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
