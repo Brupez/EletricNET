@@ -40,7 +40,7 @@ interface ClientStats {
   reservationsPerSlot: { [slotLabel: string]: number }
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const DetailsPage = () => {
   const [stats, setStats] = useState<ClientStats | null>(null)
@@ -50,7 +50,7 @@ const DetailsPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       const token = localStorage.getItem('jwt')
-      const res = await fetch(`${BASEURL}/api/reservations/myStats`, {
+      const res = await fetch(`/api/reservations/myStats`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()

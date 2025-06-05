@@ -50,7 +50,7 @@ const ProtectedRoute = ({
   return children;
 };
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 const AppContent = () => {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const AppContent = () => {
     password: string
   ): Promise<string | null> => {
     try {
-      const response = await fetch(`${BASEURL}/api/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

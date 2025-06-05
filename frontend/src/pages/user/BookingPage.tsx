@@ -16,7 +16,7 @@ interface ReservationResponseDTO {
 
 const itemsPerPage = 5
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const BookingPage = () => {
     const navigate = useNavigate()
@@ -49,7 +49,7 @@ const BookingPage = () => {
     const confirmCancel = async () => {
         if (!cancelId) return
         const token = localStorage.getItem('jwt')
-        const res = await fetch(`${BASEURL}/api/reservations/${cancelId}/cancel`, {
+        const res = await fetch(`/api/reservations/${cancelId}/cancel`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -71,7 +71,7 @@ const BookingPage = () => {
             return
         }
 
-        const res = await fetch(`${BASEURL}/api/reservations/myReservations`, {
+        const res = await fetch(`/api/reservations/myReservations`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
