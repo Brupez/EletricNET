@@ -46,7 +46,7 @@ class SlotControllerTest {
         station.setName("Test Station");
 
         testSlot = new Slot();
-        testSlot.setId("1");
+        testSlot.setId(1L);
         testSlot.setName("Test Slot");
         testSlot.setStation(station);
         testSlot.setReserved(false);
@@ -95,7 +95,7 @@ class SlotControllerTest {
 
     @Test
     void getSlotById_whenExists_shouldReturn200() {
-        when(slotService.getSlotById("1")).thenReturn(Optional.of(testSlot));
+        when(slotService.getSlotById(1L)).thenReturn(Optional.of(testSlot));
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -108,7 +108,7 @@ class SlotControllerTest {
 
     @Test
     void getSlotById_whenNotExists_shouldReturn404() {
-        when(slotService.getSlotById("999")).thenReturn(Optional.empty());
+        when(slotService.getSlotById(999L)).thenReturn(Optional.empty());
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -134,7 +134,7 @@ class SlotControllerTest {
 
     @Test
     void createSlotFromDto_whenIdProvided_shouldReturn400() {
-        testSlotDTO.setId("1");
+        testSlotDTO.setId(1L);
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -161,7 +161,7 @@ class SlotControllerTest {
 
     @Test
     void deleteSlot_whenExists_shouldReturn200() {
-        when(slotService.deleteSlot("1")).thenReturn(true);
+        when(slotService.deleteSlot(1L)).thenReturn(true);
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -174,7 +174,7 @@ class SlotControllerTest {
 
     @Test
     void deleteSlot_whenNotExists_shouldReturn400() {
-        when(slotService.deleteSlot("999")).thenReturn(false);
+        when(slotService.deleteSlot(999L)).thenReturn(false);
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -202,7 +202,7 @@ class SlotControllerTest {
 
     @Test
     void updateSlotFromDto_whenExists_shouldReturn200() {
-        when(slotService.getSlotById("1")).thenReturn(Optional.of(testSlot));
+        when(slotService.getSlotById(1L)).thenReturn(Optional.of(testSlot));
         when(slotService.saveOrUpdateSlotFromDTO(any(SlotDTO.class))).thenReturn(testSlot);
 
         given()
@@ -217,7 +217,7 @@ class SlotControllerTest {
 
     @Test
     void updateSlotFromDto_whenNotExists_shouldReturn404() {
-        when(slotService.getSlotById("999")).thenReturn(Optional.empty());
+        when(slotService.getSlotById(999L)).thenReturn(Optional.empty());
 
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)

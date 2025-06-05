@@ -9,6 +9,7 @@ import BookingPage from './pages/user/BookingPage.tsx'
 import ChargerDetails from './pages/user/ChargerDetails.tsx'
 import AdminPage from './pages/admin/AdminPage.tsx'
 import AdminChargersPage from './pages/admin/AdminChargersPage.tsx'
+import BookingDetails from './pages/user/BookingDetails.tsx'
 import { AuthProvider } from './utils/AuthContext'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -169,6 +170,11 @@ const AppContent = () => {
                         <Route path="/bookings" element={
                             <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <BookingPage />
+                            </ProtectedRoute>
+                        } />    
+                        <Route path="/booking/:id" element={
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
+                                <BookingDetails />
                             </ProtectedRoute>
                         } />
                         <Route path="/charger/:id" element={

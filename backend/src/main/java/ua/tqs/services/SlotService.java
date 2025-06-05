@@ -3,6 +3,7 @@ package ua.tqs.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.tqs.dto.SlotDTO;
+import ua.tqs.dto.SlotResponseDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.models.Station;
 import ua.tqs.repositories.SlotRepository;
@@ -31,7 +32,7 @@ public class SlotService {
         return slotRepository.findByReservedFalse();
     }
 
-    public Optional<Slot> getSlotById(String id) {
+    public Optional<Slot> getSlotById(Long id) {
         return slotRepository.findById(id);
     }
 
@@ -43,7 +44,7 @@ public class SlotService {
                 .toList();
     }
 
-    public boolean deleteSlot(String id) {
+    public boolean deleteSlot(Long id) {
         if (slotRepository.existsById(id)) {
             slotRepository.deleteById(id);
             return true;
@@ -99,5 +100,25 @@ public class SlotService {
         slot.setLongitude(dto.getLongitude());
 
         return slotRepository.save(slot);
+    }
+
+    public SlotResponseDTO convertToResponseDTO(Slot slot) {
+        SlotResponseDTO dto = new SlotResponseDTO();
+        dto.setId(slot.getId());
+        dto.setName(slot.getName());
+        dto.setStationName(slot.getStation().getName());
+        dto.setReserved(slot.isReserved());
+        dto.setChargingType(slot.getChargingType());
+        dto.setPower(slot.getPower());
+        dto.setLatitude(slot.getLatitude());
+        dto.setLongitude(slot.getLongitude());
+        dto.setLocation(
+                slot.getLatitude() != null && slot.getLongitude() != null
+                        ? slot.getLatitude() + ", " + slot.getLongitude()
+                        : "Unknown"
+        );
+        dto.setPricePerKwh(slot.getChargingType().getPricePerKwh());
+
+        return dto;
     }
 }

@@ -36,7 +36,7 @@ public class SlotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Slot> getSlotById(@PathVariable String id) {
+    public ResponseEntity<Slot> getSlotById(@PathVariable Long id) {
         Optional<Slot> slot = slotService.getSlotById(id);
         return slot.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -62,7 +62,7 @@ public class SlotController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteSlot(@PathVariable String id) {
+    public ResponseEntity<String> deleteSlot(@PathVariable Long id) {
         boolean success = slotService.deleteSlot(id);
         if (success) {
             return ResponseEntity.ok("Slot deleted successfully.");
@@ -90,7 +90,7 @@ public class SlotController {
     }
 
     @PutMapping("/dto/{id}")
-    public ResponseEntity<Object> updateSlotFromDto(@PathVariable String id, @RequestBody SlotDTO slotDTO) {
+    public ResponseEntity<Object> updateSlotFromDto(@PathVariable Long id, @RequestBody SlotDTO slotDTO) {
         Optional<Slot> existingSlot = slotService.getSlotById(id);
         if (existingSlot.isEmpty()) {
             return ResponseEntity.notFound().build();

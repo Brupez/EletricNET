@@ -67,14 +67,14 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const payload: Partial<Charger> = { ...formData }
-    
+
         if (mode === 'create') {
             delete payload.id
         }
-    
+
         onConfirm(payload as Charger)
         cleanForm()
-    }    
+    }
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
@@ -139,12 +139,9 @@ const AdminChargerModal = ({ isOpen, onClose, mode, charger, onConfirm, errorMes
                                     <input
                                         type="text"
                                         value={formData.location}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({ ...prev, location: e.target.value }))
-                                        }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        placeholder="Ex: Aveiro"
-                                        required
+                                        readOnly
+                                        placeholder="Escolhe no mapa"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
                                     />
                                     <button
                                         type="button"

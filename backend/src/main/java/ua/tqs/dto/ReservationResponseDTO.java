@@ -8,13 +8,16 @@ import java.time.LocalDateTime;
 public class ReservationResponseDTO {
     private Long id;
     private Long userId;
-    private String slotId;
+    private Long slotId;
     private String state;
     private Double consumptionKWh;
     private Double totalCost;
     private boolean paid;
     private String stationName;
     private String chargingType;
+
+    private String userName;
+    private String userEmail;
 
     private LocalDateTime createdAt;
 

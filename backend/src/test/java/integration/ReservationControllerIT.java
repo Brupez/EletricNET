@@ -46,7 +46,7 @@ class ReservationControllerIT {
     void testCreateReservation() throws Exception {
         ReservationRequestDTO dto = new ReservationRequestDTO();
         dto.setUserId(1L);
-        dto.setSlotId("slot123");
+        dto.setSlotId(1L);
         dto.setConsumptionKWh(10.5);
         dto.setPricePerKWh(0.15);
 
