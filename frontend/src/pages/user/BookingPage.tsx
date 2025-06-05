@@ -16,7 +16,7 @@ interface ReservationResponseDTO {
 
 const itemsPerPage = 5
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL;
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const BookingPage = () => {
     const navigate = useNavigate()

@@ -17,7 +17,7 @@ interface ReservationDetails {
   createdAt: string
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL;
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const BookingDetails = () => {
   const { id } = useParams()

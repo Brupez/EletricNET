@@ -8,7 +8,7 @@ interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL;
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const LoginPage = ({ onLogin }: LoginPageProps) => {
     const navigate = useNavigate()
