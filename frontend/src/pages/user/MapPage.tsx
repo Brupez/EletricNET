@@ -57,7 +57,9 @@ const MapPage = () => {
         isExternal = true,
         place?: Place
     ) => {
-        navigate(`/charger/${id}`, {
+        const cleanedId = id.startsWith("internal-") ? id.replace("internal-", "") : id;
+
+        navigate(`/charger/${cleanedId}`, {
             state: {
                 isExternal,
                 name: place?.name,
@@ -222,7 +224,7 @@ const MapPage = () => {
     const loadInternalSlots = async () => {
         if (!mapInstance || !location) return;
         try {
-            const response = await fetch(`${BASEURL}:8081/api/slots`);
+            const response = await fetch(`${BASEURL}/api/slots`);
             const slots = await response.json();
 
             const { google } = window as typeof window & { google: any };
@@ -328,7 +330,7 @@ const MapPage = () => {
                                 }`}
                         >
                             <button
-                                onClick={() => handleChargerClick(place.place_id)}
+                                onClick={() => handleChargerClick(place.place_id, !place.place_id.startsWith("internal-"), place)}
                                 className="w-full p-2 rounded hover:bg-gray-100 transition-colors text-left"
                             >
                                 <span className="font-medium block">{place.name}</span>
