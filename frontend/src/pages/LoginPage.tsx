@@ -8,6 +8,8 @@ interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
 }
 
+const BASEURL = 'http://localhost:8081'
+
 const LoginPage = ({ onLogin }: LoginPageProps) => {
     const navigate = useNavigate()
     const [isLoginMode, setIsLoginMode] = useState(true)
@@ -33,7 +35,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
             }
 
             try {
-                const response = await fetch('/api/auth/register', {
+                const response = await fetch(`${BASEURL}/api/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

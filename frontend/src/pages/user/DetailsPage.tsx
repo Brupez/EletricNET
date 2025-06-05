@@ -40,6 +40,8 @@ interface ClientStats {
   reservationsPerSlot: { [slotLabel: string]: number }
 }
 
+const BASEURL = 'http://localhost:8081'
+
 const DetailsPage = () => {
   const [stats, setStats] = useState<ClientStats | null>(null)
 
@@ -48,7 +50,7 @@ const DetailsPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       const token = localStorage.getItem('jwt')
-      const res = await fetch('/api/reservations/myStats', {
+      const res = await fetch(`${BASEURL}/api/reservations/myStats`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -94,52 +96,64 @@ const DetailsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white p-6 shadow rounded-xl">
           <h3 className="text-xl font-bold mb-4">Charging Types Used</h3>
-          <Doughnut
-            data={{
-              labels: Object.keys(stats.chargingTypeCounts),
-              datasets: [{
-                data: Object.values(stats.chargingTypeCounts),
-                backgroundColor: ['#4ade80', '#22d3ee', '#facc15']
-              }]
-            }}
-            options={{
-              plugins: {
-                legend: { position: 'bottom' }
-              }
-            }}
-          />
+          {Object.keys(stats.chargingTypeCounts).length > 0 ? (
+            <Doughnut
+              data={{
+                labels: Object.keys(stats.chargingTypeCounts),
+                datasets: [{
+                  data: Object.values(stats.chargingTypeCounts),
+                  backgroundColor: ['#4ade80', '#22d3ee', '#facc15']
+                }]
+              }}
+              options={{
+                plugins: {
+                  legend: { position: 'bottom' }
+                }
+              }}
+            />
+          ) : (
+            <p className="text-center text-sm text-gray-500 mt-8">
+              No data yet – make your first reservation to see stats!
+            </p>
+          )}
         </div>
 
         <div className="bg-white p-6 shadow rounded-xl">
           <h3 className="text-xl font-bold mb-4">Reservations per Station</h3>
-          <Bar
-            data={{
-              labels: Object.keys(stats.reservationsPerSlot),
-              datasets: [{
-                label: 'Reservations',
-                data: Object.values(stats.reservationsPerSlot),
-                backgroundColor: '#6366f1'
-              }]
-            }}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                y: {
-                  ticks: {
-                    stepSize: 1,
-                    precision: 0,
-                    callback: function (value) {
-                      return Number(value).toString();
-                    }
-                  },
-                  beginAtZero: true
+          {Object.keys(stats.reservationsPerSlot).length > 0 ? (
+            <Bar
+              data={{
+                labels: Object.keys(stats.reservationsPerSlot),
+                datasets: [{
+                  label: 'Reservations',
+                  data: Object.values(stats.reservationsPerSlot),
+                  backgroundColor: '#6366f1'
+                }]
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false }
+                },
+                scales: {
+                  y: {
+                    ticks: {
+                      stepSize: 1,
+                      precision: 0,
+                      callback: function (value) {
+                        return Number(value).toString();
+                      }
+                    },
+                    beginAtZero: true
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          ) : (
+            <p className="text-center text-sm text-gray-500 mt-8">
+              No data yet – make your first reservation to see stats!
+            </p>
+          )}
         </div>
       </div>
 

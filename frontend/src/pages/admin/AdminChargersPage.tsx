@@ -26,6 +26,8 @@ interface ReservationResponseDTO {
   userEmail: string;
 }
 
+const BASEURL = "http://localhost:8081";
+
 const AdminReservationsPage = () => {
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -40,7 +42,7 @@ const AdminReservationsPage = () => {
     useState<ReservationResponseDTO | null>(null);
 
   useEffect(() => {
-    fetch(`/api/reservations/all`, {
+    fetch(`${BASEURL}/api/reservations/all`, {
       credentials: "include",
     })
       .then((res) => res.json())

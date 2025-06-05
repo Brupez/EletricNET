@@ -48,6 +48,8 @@ interface Place extends PlaceResult {
     vicinity?: string;
 }
 
+const BASEURL = 'http://localhost:8081'
+
 const AdminPage = () => {
     const [chargers, setChargers] = useState<Charger[]>([])
     const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
@@ -67,8 +69,10 @@ const AdminPage = () => {
 
     const [currentMonthRevenue, setCurrentMonthRevenue] = useState<number | null>(null);
 
+    const [loadingRevenue, setLoadingRevenue] = useState(true);
+
     useEffect(() => {
-        fetch(`/api/slots/chargers`, {
+        fetch(`${BASEURL}/api/slots/chargers`, {
             credentials: "include",
         })
             .then(response => response.json())
@@ -87,7 +91,7 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`/api/users/total-users`, {
+        fetch(`${BASEURL}/api/users/total-users`, {
             credentials: "include",
         })
             .then(response => response.json())
@@ -96,7 +100,7 @@ const AdminPage = () => {
     }, []);
 
     useEffect(() => {
-        fetch(`/api/reservations/admin/stats`, {
+        fetch(`${BASEURL}/api/reservations/admin/stats`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -104,6 +108,18 @@ const AdminPage = () => {
             .then(response => response.json())
             .then(data => setCurrentMonthRevenue(data.currentMonthRevenue))
             .catch(error => console.error('Error fetching revenue:', error));
+    }, []);
+
+    useEffect(() => {
+        fetch(`${BASEURL}/api/reservations/admin/stats`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+            .then(response => response.json())
+            .then(data => setCurrentMonthRevenue(data.currentMonthRevenue))
+            .catch(() => setCurrentMonthRevenue(null))
+            .finally(() => setLoadingRevenue(false));
     }, []);
 
     const formatExternalToCharger = (place: Place): Charger => ({
@@ -406,8 +422,10 @@ const AdminPage = () => {
                 </div>
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-700">Revenue</h3>
-                    <p className="text-3xl font-bold mt-2">
-                        {currentMonthRevenue !== null ? `€${currentMonthRevenue.toFixed(2)}` : 'Loading...'}
+                    <p className={currentMonthRevenue === null ? "text-sm text-gray-500 mt-2" : "text-3xl font-bold mt-2"}>
+                        {currentMonthRevenue === null
+                            ? 'No revenue data available'
+                            : `€${currentMonthRevenue.toFixed(2)}`}
                     </p>
                 </div>
                 <div className="card">

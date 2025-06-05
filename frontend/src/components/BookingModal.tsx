@@ -21,6 +21,8 @@ function parseJwt(token: string) {
   }
 }
 
+const BASEURL = 'http://localhost:8081'
+
 const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) => {
   const navigate = useNavigate()
   const [bookingData, setBookingData] = useState({
@@ -81,7 +83,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
         }
 
     try {
-      const res = await fetch('/api/reservations/create', {
+      const res = await fetch(`${BASEURL}/api/reservations/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -50,6 +50,8 @@ const ProtectedRoute = ({
   return children;
 };
 
+const BASEURL = "http://localhost:8081";
+
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,7 +93,7 @@ const AppContent = () => {
     password: string
   ): Promise<string | null> => {
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${BASEURL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,6 +193,8 @@ const AppContent = () => {
                 </ProtectedRoute>
               }
             />
+            
+            {/*
             <Route
               path="/admin/chargers"
               element={
@@ -203,6 +207,8 @@ const AppContent = () => {
                 </ProtectedRoute>
               }
             />
+            */}
+            
             <Route
               path="/admin/bookings"
               element={

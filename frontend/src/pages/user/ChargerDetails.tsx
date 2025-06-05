@@ -16,6 +16,8 @@ interface LocationState {
   openingHoursText?: string[]
 }
 
+const BASEURL = 'http://localhost:8081'
+
 const ChargerDetails = () => {
   const { id } = useParams()
   const location = useLocation()
@@ -45,7 +47,7 @@ const ChargerDetails = () => {
 
     const fetchInternalDetails = async () => {
       try {
-        const res = await fetch(`/api/slots/${id}`);
+        const res = await fetch(`${BASEURL}/api/slots/${id}`);
         if (!res.ok) throw new Error('Failed to fetch slot data');
         const data = await res.json();
 
@@ -70,7 +72,7 @@ const ChargerDetails = () => {
           }
         });
 
-        const reservationsRes = await fetch(`/api/reservations/slot/${id}/active`, {
+        const reservationsRes = await fetch(`${BASEURL}/api/reservations/slot/${id}/active`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('jwt')}`
           }
