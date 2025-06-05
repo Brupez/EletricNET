@@ -2,15 +2,11 @@ package ua.tqs.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import ua.tqs.enums.StationStatus;
 
 import java.time.LocalTime;
 
 @Entity
-@Getter
-@Setter
 @Data
 @Table(name = "stations")
 public class Station {

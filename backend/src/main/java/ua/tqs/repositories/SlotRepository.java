@@ -12,4 +12,6 @@ public interface SlotRepository extends JpaRepository<Slot, Long> {
     boolean existsByNameAndIdNot(String name, Long id);
 
     List<Slot> findByReservedFalse();
+
+    boolean existsByIdAndReservedTrue(Long id);
 }

@@ -165,7 +165,7 @@ class ReservationServiceTest {
         assertThat(dto.getUserId()).isEqualTo(user.getId());
         assertThat(dto.getUserEmail()).isEqualTo(user.getEmail());
         assertThat(dto.getSlotId()).isEqualTo(slot.getId());
-        assertThat(dto.getStationName()).isEqualTo(station.getName());
+        assertThat(dto.getSlotLabel()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
         assertThat(dto.getStartTime()).isEqualTo(reservation.getStartTime());
         assertThat(dto.getDurationMinutes()).isEqualTo(reservation.getDurationMinutes());
@@ -223,7 +223,7 @@ class ReservationServiceTest {
         assertThat(dto.getId()).isEqualTo(reservation.getId());
         assertThat(dto.getUserId()).isEqualTo(user.getId());
         assertThat(dto.getSlotId()).isEqualTo(slot.getId());
-        assertThat(dto.getStationName()).isEqualTo(station.getName());
+        assertThat(dto.getSlotLabel()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
     }
 
