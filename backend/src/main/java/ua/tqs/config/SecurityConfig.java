@@ -77,7 +77,7 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    @SuppressWarnings({"squid:S5344", "squid:S1874", "squid:S1874"})
+    @SuppressWarnings({"squid:S5344", "squid:S1874", "squid:S4790"})
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
