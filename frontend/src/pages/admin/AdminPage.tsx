@@ -101,6 +101,7 @@ const AdminPage = () => {
 
     useEffect(() => {
         fetch(`${BASEURL}/api/reservations/admin/stats`, {
+            credentials: "include",
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -112,6 +113,7 @@ const AdminPage = () => {
 
     useEffect(() => {
         fetch(`${BASEURL}/api/reservations/admin/stats`, {
+            credentials: "include",
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -223,7 +225,7 @@ const AdminPage = () => {
         setErrorMessage('')
 
         if (modalMode === 'delete' && selectedCharger) {
-            fetch(`/api/slots/delete/${selectedCharger.id}`, {
+            fetch(`${BASEURL}/api/slots/delete/${selectedCharger.id}`, {
                 method: 'DELETE',
                 credentials: "include"
             })
@@ -257,12 +259,13 @@ const AdminPage = () => {
         };
 
         const url = updatedCharger.id
-            ? `/api/slots/dto/${updatedCharger.id}`
-            : `/api/slots/dto`;
+            ? `${BASEURL}/api/slots/dto/${updatedCharger.id}`
+            : `${BASEURL}/api/slots/dto`;
 
         const method = updatedCharger.id ? 'PUT' : 'POST';
 
         fetch(url, {
+            credentials: "include",
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
