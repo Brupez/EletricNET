@@ -202,17 +202,48 @@ const MapPage = () => {
     };
 
     const loadInternalSlots = async () => {
-        if (!mapInstance) return;
+        if (!mapInstance || !location) return;
         try {
             const response = await fetch("http://localhost:8081/api/slots");
             const slots = await response.json();
-            slots.forEach((slot: any) => {
-                if (slot.latitude && slot.longitude) {
-                    createInternalMarker(slot, mapInstance.map);
-                }
-            });
+
+            const { google } = window as typeof window & { google: any };
+            const geocoder = new google.maps.Geocoder();
+
+            const internalPlaces: Place[] = [];
+
+            for (const slot of slots) {
+                if (!slot.latitude || !slot.longitude) continue;
+
+                const position = new google.maps.LatLng(slot.latitude, slot.longitude);
+
+                await new Promise<void>((resolve) => {
+                    geocoder.geocode({ location: position }, (results, status) => {
+                        if (
+                            status === google.maps.GeocoderStatus.OK &&
+                            results &&
+                            results[0] &&
+                            results[0].formatted_address.toLowerCase().includes(location.toLowerCase())
+                        ) {
+                            createInternalMarker(slot, mapInstance.map);
+
+                            internalPlaces.push({
+                                place_id: `internal-${slot.id}`,
+                                name: slot.name,
+                                geometry: { location: position },
+                                vicinity: results[0].formatted_address,
+                            } as Place);
+                        }
+                        resolve();
+                    });
+                });
+            }
+
+            setPlaces(prev => [...prev, ...internalPlaces]);
+            setFilteredPlaces(prev => [...prev, ...internalPlaces]);
+
         } catch (error) {
-            console.error("Erro ao carregar slots internos:", error);
+            console.error("Error loading internal slots:", error);
         }
     };
 
@@ -258,7 +289,7 @@ const MapPage = () => {
                 <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 shadow-md rounded-md p-3 text-sm space-y-2 z-10 border border-gray-300">
                     <div className="flex items-center space-x-2">
                         <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: "#243E16" }}></span>
-                        <span>Exists Chargers</span>
+                        <span>External Chargers</span>
                     </div>
                     <div className="flex items-center space-x-2">
                         <span className="inline-block w-4 h-4 rounded" style={{ backgroundColor: "#4CAF50" }}></span>
@@ -273,33 +304,31 @@ const MapPage = () => {
                 </h3>
                 <ul>
                     {filteredPlaces.map((place) => (
-                        <li key={place.place_id} className="mb-2">
+                        <li
+                            key={place.place_id}
+                            className={`mb-2 ${place.place_id.startsWith("internal-") ? "bg-green-50" : ""
+                                }`}
+                        >
                             <button
                                 onClick={() => handleChargerClick(place.place_id)}
-                                className="w-full p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors text-left"
+                                className="w-full p-2 rounded hover:bg-gray-100 transition-colors text-left"
                             >
                                 <span className="font-medium block">{place.name}</span>
-                                <p className="text-sm text-gray-600">{place.vicinity}</p>
+                                {place.vicinity && (
+                                    <p className="text-sm text-gray-600">{place.vicinity}</p>
+                                )}
                                 {place.rating !== undefined && (
                                     <p className="text-sm text-gray-700">Rating: {place.rating.toFixed(1)}</p>
                                 )}
-                                <p
-                                    className={`text-sm ${place.businessStatus === "OPERATIONAL"
-                                        ? "text-green-600"
-                                        : "text-red-600"
-                                        }`}
-                                >
-                                    {place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed"}
-                                </p>
-                                {place.openingHoursText && place.openingHoursText.length > 0 && (
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        <p className="font-semibold">Opening Hours:</p>
-                                        <ul className="list-disc list-inside">
-                                            {place.openingHoursText.map((text, index) => (
-                                                <li key={index}>{text}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                                {place.businessStatus && (
+                                    <p
+                                        className={`text-sm ${place.businessStatus === "OPERATIONAL"
+                                                ? "text-green-600"
+                                                : "text-red-600"
+                                            }`}
+                                    >
+                                        {place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed"}
+                                    </p>
                                 )}
                             </button>
                         </li>
