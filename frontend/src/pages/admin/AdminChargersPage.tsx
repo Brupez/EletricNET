@@ -26,7 +26,7 @@ interface ReservationResponseDTO {
   userEmail: string;
 }
 
-const BASEURL = "http://localhost:8081";
+const BASEURL = import.meta.env.VITE_API_BASE_URL;
 
 const AdminReservationsPage = () => {
   const [sortField, setSortField] = useState<SortField>(null);

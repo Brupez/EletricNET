@@ -24,7 +24,7 @@ interface MapInstance {
     customMarker: google.maps.Symbol;
 }
 
-const BASEURL = "http://localhost:8081";
+const BASEURL = import.meta.env.VITE_API_BASE_URL;
 
 const MapPage = () => {
     const navigate = useNavigate();

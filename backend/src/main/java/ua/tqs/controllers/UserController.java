@@ -8,7 +8,7 @@ import ua.tqs.services.UserService;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost", allowCredentials = "true")
+@CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

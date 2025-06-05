@@ -21,7 +21,7 @@ function parseJwt(token: string) {
   }
 }
 
-const BASEURL = 'http://localhost:8081'
+const BASEURL = import.meta.env.VITE_API_BASE_URL;
 
 const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) => {
   const navigate = useNavigate()

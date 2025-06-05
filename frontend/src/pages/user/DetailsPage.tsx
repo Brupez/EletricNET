@@ -40,7 +40,7 @@ interface ClientStats {
   reservationsPerSlot: { [slotLabel: string]: number }
 }
 
-const BASEURL = 'http://localhost:8081'
+const BASEURL = import.meta.env.VITE_API_BASE_URL;
 
 const DetailsPage = () => {
   const [stats, setStats] = useState<ClientStats | null>(null)
