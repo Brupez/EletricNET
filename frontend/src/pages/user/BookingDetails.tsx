@@ -17,7 +17,7 @@ interface ReservationDetails {
   createdAt: string
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const BookingDetails = () => {
   const { id } = useParams()
@@ -26,7 +26,7 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       const token = localStorage.getItem('jwt')
-      const res = await fetch(`${BASEURL}/api/reservations/${id}`, {
+      const res = await fetch(`/api/reservations/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

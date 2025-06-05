@@ -21,7 +21,7 @@ function parseJwt(token: string) {
   }
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL;
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) => {
   const navigate = useNavigate()
@@ -87,7 +87,7 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
     }
 
     try {
-      const res = await fetch(`${BASEURL}/api/reservations/create`, {
+      const res = await fetch(`/api/reservations/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
