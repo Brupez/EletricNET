@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 
 interface ReservationResponseDTO {
     id: number
-    stationName: string
+    stationLocation: string
     chargingType: string
     totalCost: number
     state: string
@@ -21,7 +21,7 @@ const ReservationModalAdmin = ({ reservation, onClose }: { reservation: Reservat
                 </button>
                 <h2 className="text-xl font-bold mb-4 text-gray-800">Reservation #{reservation.id}</h2>
                 <div className="space-y-2 text-sm text-gray-700">
-                    <p><strong>Station:</strong> {reservation.stationName}</p>
+                    <p><strong>Station:</strong> {reservation.stationLocation}</p>
                     <p><strong>Type:</strong> {reservation.chargingType}</p>
                     <p><strong>Cost:</strong> €{reservation.totalCost.toFixed(2)}</p>
                     <p><strong>Status:</strong> {reservation.state}</p>

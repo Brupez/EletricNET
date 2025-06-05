@@ -48,6 +48,8 @@ interface Place extends PlaceResult {
     vicinity?: string;
 }
 
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+
 const AdminPage = () => {
     const [chargers, setChargers] = useState<Charger[]>([])
     const [selectedCharger, setSelectedCharger] = useState<Charger | null>(null)
@@ -65,8 +67,12 @@ const AdminPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    const [currentMonthRevenue, setCurrentMonthRevenue] = useState<number | null>(null);
+
+    const [loadingRevenue, setLoadingRevenue] = useState(true);
+
     useEffect(() => {
-        fetch(`/api/slots/chargers`, {
+        fetch(`${BASEURL}/api/slots/chargers`, {
             credentials: "include",
         })
             .then(response => response.json())
@@ -75,7 +81,7 @@ const AdminPage = () => {
                     id: slot.id,
                     name: slot.name ?? `Slot ${slot.id}`,
                     location: slot.station?.name ?? 'Unknown',
-                    status: slot.reserved ? 'Inactive' : 'Active',
+                    status: slot.station?.status === 'UNAVAILABLE' ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
                 }))
@@ -85,12 +91,37 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`/api/users/total-users`, {
+        fetch(`${BASEURL}/api/users/total-users`, {
             credentials: "include",
         })
             .then(response => response.json())
             .then(data => setTotalUsers(data))
             .catch(error => console.error('Error fetching total users:', error));
+    }, []);
+
+    useEffect(() => {
+        fetch(`${BASEURL}/api/reservations/admin/stats`, {
+            credentials: "include",
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+            .then(response => response.json())
+            .then(data => setCurrentMonthRevenue(data.currentMonthRevenue))
+            .catch(error => console.error('Error fetching revenue:', error));
+    }, []);
+
+    useEffect(() => {
+        fetch(`${BASEURL}/api/reservations/admin/stats`, {
+            credentials: "include",
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        })
+            .then(response => response.json())
+            .then(data => setCurrentMonthRevenue(data.currentMonthRevenue))
+            .catch(() => setCurrentMonthRevenue(null))
+            .finally(() => setLoadingRevenue(false));
     }, []);
 
     const formatExternalToCharger = (place: Place): Charger => ({
@@ -156,19 +187,19 @@ const AdminPage = () => {
     };
 
     const filteredChargers = searchQuery.trim()
-    ? [
-        ...chargers.filter(c =>
-            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.location.toLowerCase().includes(searchQuery.toLowerCase())
-        ),
-        ...externalChargers
-            .filter(ext =>
-                ext.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (ext.vicinity ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-            )
-            .map(formatExternalToCharger)
-    ]
-    : chargers;
+        ? [
+            ...chargers.filter(c =>
+                c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.location.toLowerCase().includes(searchQuery.toLowerCase())
+            ),
+            ...externalChargers
+                .filter(ext =>
+                    ext.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (ext.vicinity ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map(formatExternalToCharger)
+        ]
+        : chargers;
 
     const totalPages = Math.max(1, Math.ceil(filteredChargers.length / itemsPerPage));
 
@@ -192,9 +223,9 @@ const AdminPage = () => {
 
     const handleModalConfirm = (updatedCharger?: Charger) => {
         setErrorMessage('')
-    
+
         if (modalMode === 'delete' && selectedCharger) {
-            fetch(`/api/slots/delete/${selectedCharger.id}`, {
+            fetch(`${BASEURL}/api/slots/delete/${selectedCharger.id}`, {
                 method: 'DELETE',
                 credentials: "include"
             })
@@ -210,12 +241,12 @@ const AdminPage = () => {
                     console.error(error);
                     setErrorMessage(error.message);
                 });
-    
+
             return;
         }
-    
+
         if (!updatedCharger) return;
-    
+
         const payload = {
             id: updatedCharger.id && updatedCharger.id !== '' ? updatedCharger.id : null,
             name: updatedCharger.name,
@@ -226,14 +257,15 @@ const AdminPage = () => {
             latitude: updatedCharger.latitude,
             longitude: updatedCharger.longitude
         };
-    
+
         const url = updatedCharger.id
-            ? `/api/slots/dto/${updatedCharger.id}`
-            : `/api/slots/dto`;
-    
+            ? `${BASEURL}/api/slots/dto/${updatedCharger.id}`
+            : `${BASEURL}/api/slots/dto`;
+
         const method = updatedCharger.id ? 'PUT' : 'POST';
-    
+
         fetch(url, {
+            credentials: "include",
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -250,18 +282,18 @@ const AdminPage = () => {
                     id: newSlot.id,
                     name: newSlot.name || `Slot ${newSlot.id}`,
                     location: newSlot.station?.name || 'Unknown',
-                    status: newSlot.reserved ? 'Inactive' : 'Active',
+                    status: newSlot.station?.status === 'UNAVAILABLE' ? 'Inactive' : 'Active',
                     type: newSlot.chargingType,
                     power: newSlot.power
                 };
-    
+
                 setChargers(prev => {
                     const existing = prev.find(c => c.id === formattedCharger.id);
                     return existing
                         ? prev.map(c => c.id === formattedCharger.id ? formattedCharger : c)
                         : [...prev, formattedCharger];
                 });
-    
+
                 setIsModalOpen(false);
                 setErrorMessage('');
             })
@@ -269,7 +301,7 @@ const AdminPage = () => {
                 console.error('Error saving charger:', error);
                 setErrorMessage(error.message);
             });
-    };    
+    };
 
     const handleAdd = () => {
         setSelectedCharger(null)
@@ -393,8 +425,11 @@ const AdminPage = () => {
                 </div>
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-700">Revenue</h3>
-                    <p className="text-3xl font-bold mt-2">€1,500</p>
-                    <p className="text-sm text-green-600 mt-1">+8% from last month</p>
+                    <p className={currentMonthRevenue === null ? "text-sm text-gray-500 mt-2" : "text-3xl font-bold mt-2"}>
+                        {currentMonthRevenue === null
+                            ? 'No revenue data available'
+                            : `€${currentMonthRevenue.toFixed(2)}`}
+                    </p>
                 </div>
                 <div className="card">
                     <h3 className="text-lg font-semibold text-gray-700">Total Users</h3>

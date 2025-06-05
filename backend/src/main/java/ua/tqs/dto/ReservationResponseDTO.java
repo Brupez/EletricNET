@@ -13,7 +13,8 @@ public class ReservationResponseDTO {
     private Double consumptionKWh;
     private Double totalCost;
     private boolean paid;
-    private String stationName;
+    private String stationLocation;
+    private String slotLabel;
     private String chargingType;
 
     private String userName;

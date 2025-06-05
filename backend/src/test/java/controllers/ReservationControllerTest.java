@@ -63,18 +63,18 @@ class ReservationControllerTest {
 
         testReservationRequest = new ReservationRequestDTO();
         testReservationRequest.setUserId(1L);
-        testReservationRequest.setSlotId(1L);
+        testReservationRequest.setSlotId(2L);
         testReservationRequest.setStartTime(LocalDateTime.now());
         testReservationRequest.setDurationMinutes(60);
 
         testReservationResponse = new ReservationResponseDTO();
         testReservationResponse.setId(1L);
         testReservationResponse.setUserId(1L);
-        testReservationResponse.setSlotId(1L);
+        testReservationResponse.setSlotId(3L);
         testReservationResponse.setState("ACTIVE");
         testReservationResponse.setStartTime(LocalDateTime.now());
         testReservationResponse.setDurationMinutes(60);
-        testReservationResponse.setStationName("Test Station");
+        testReservationResponse.setSlotLabel("Test Station");
         testReservationResponse.setChargingType("FAST");
 
 

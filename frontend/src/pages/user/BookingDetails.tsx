@@ -6,7 +6,8 @@ interface ReservationDetails {
   id: number
   userName: string
   userEmail: string
-  stationName: string
+  stationLocation: string
+  slotLabel: string
   state: 'ACTIVE' | 'CANCELED' | 'COMPLETED'
   chargingType: string
   totalCost: number
@@ -16,6 +17,8 @@ interface ReservationDetails {
   createdAt: string
 }
 
+const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+
 const BookingDetails = () => {
   const { id } = useParams()
   const [booking, setBooking] = useState<ReservationDetails | null>(null)
@@ -23,7 +26,7 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       const token = localStorage.getItem('jwt')
-      const res = await fetch(`http://localhost:8081/api/reservations/${id}`, {
+      const res = await fetch(`${BASEURL}/api/reservations/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -45,12 +48,12 @@ const BookingDetails = () => {
             <div className="flex items-center gap-2">
               <Battery size={24} className="text-green-700" />
               <h2 className="text-2xl font-bold text-gray-800">
-                {booking.stationName}
+                {booking.slotLabel}
                 <span className={`ml-3 badge ${booking.state === 'ACTIVE'
-                    ? 'bg-green-100 text-green-800'
-                    : booking.state === 'CANCELED'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'
+                  ? 'bg-green-100 text-green-800'
+                  : booking.state === 'CANCELED'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-100 text-gray-800'
                   }`}>
                   {booking.state}
                 </span>
@@ -59,7 +62,7 @@ const BookingDetails = () => {
 
             <div className="flex items-center gap-2 text-gray-600">
               <MapPin size={20} />
-              <span>Reservation ID: {booking.id}</span>
+              <span>{booking.stationLocation}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-6 p-4">

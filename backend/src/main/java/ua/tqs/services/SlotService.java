@@ -36,7 +36,6 @@ public class SlotService {
         return slotRepository.findById(id);
     }
 
-
     public List<Slot> getSlotsByStationId(Long stationId) {
         return slotRepository.findAll()
                 .stream()
@@ -115,8 +114,7 @@ public class SlotService {
         dto.setLocation(
                 slot.getLatitude() != null && slot.getLongitude() != null
                         ? slot.getLatitude() + ", " + slot.getLongitude()
-                        : "Unknown"
-        );
+                        : "Unknown");
         dto.setPricePerKwh(slot.getChargingType().getPricePerKwh());
 
         return dto;

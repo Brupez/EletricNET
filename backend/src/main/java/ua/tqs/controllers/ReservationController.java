@@ -3,6 +3,7 @@ package ua.tqs.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ua.tqs.dto.AdminStatsDTO;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 import ua.tqs.login.JwtUtil;
@@ -98,5 +99,30 @@ public class ReservationController {
         return reservationService.getReservationById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/slot/{slotId}/active")
+    public ResponseEntity<List<ReservationResponseDTO>> getActiveReservationsBySlot(@PathVariable Long slotId) {
+        List<ReservationResponseDTO> reservations = reservationService.getActiveReservationsBySlotId(slotId);
+        return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/myStats")
+    public ResponseEntity<?> getMyStats(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        var stats = reservationService.getClientStats(token);
+
+        if (stats == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/admin/stats")
+    public ResponseEntity<AdminStatsDTO> getAdminStats() {
+        AdminStatsDTO dto = new AdminStatsDTO();
+        dto.setCurrentMonthRevenue(reservationService.getCurrentMonthRevenue());
+        return ResponseEntity.ok(dto);
     }
 }
