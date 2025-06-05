@@ -82,6 +82,12 @@ public class BookingStationSteps {
         page.locator("#confirmPassword").fill(password);
     }
 
+    @And("I select {string} from the role dropdown")
+    public void iSelectFromTheRoleDropdown(String role) {
+        Locator roleDropdown = page.getByRole(AriaRole.COMBOBOX, new Page.GetByRoleOptions().setName("Role"));
+        roleDropdown.selectOption(role);
+    }
+
     @When("I click the register button")
     public void iClickTheRegisterButton() {
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign Up")).click();
@@ -89,15 +95,41 @@ public class BookingStationSteps {
 
     @Then("I should be redirected to the login page and homepage should be visible")
     public void iShouldBeRedirectedToTheLoginPage() {
-        // Wait for URL to contain login path
         page.waitForURL("**/login");
         assertTrue(page.url().contains("/login"), "URL should contain '/login'");
 
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Sign In")).click();
-
-        page.waitForURL("**/login");
-        assertTrue(page.url().contains("/login"), "URL should contain '/login'");
     }
+
+    // Add Charger Admin Side
+
+    @Then("I should see the admin dashboard")
+    public void iShouldSeeTheAdminDashboard() {
+        page.waitForURL("**/admin");
+        assertTrue(page.url().contains("/admin"), "URL should contain '/admin'");
+    }
+
+    @When("I enter {string} in the charger name field")
+    public void iEnterInTheChargerNameField(String name) {
+        page.getByText("Name", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::input")
+                .fill(name);
+    }
+
+    @And("I select {string} from the charging type dropdown")
+    public void iSelectFromTheChargingTypeDropdown(String type) {
+        page.getByText("Type", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::select")
+                .selectOption(type);
+    }
+
+    @And("I enter {string} in the power field")
+    public void iEnterInThePowerField(String power) {
+        page.getByText("Power", new Page.GetByTextOptions().setExact(true))
+                .locator("xpath=following-sibling::input")
+                .fill(power);
+    }
+
 
     @After
     public void tearDown() {

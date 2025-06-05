@@ -88,7 +88,7 @@ class ReservationControllerTest {
         given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
         .when()
-            .get("/api/reservations")
+            .get("/api/reservations/all")
         .then()
             .statusCode(200)
             .body("$", hasSize(1))

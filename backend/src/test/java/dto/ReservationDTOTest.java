@@ -23,7 +23,7 @@ class ReservationDTOTest {
             .isNotNull()
             .hasFieldOrPropertyWithValue("id", 1L)
             .hasFieldOrPropertyWithValue("userId", 2L)
-            .hasFieldOrPropertyWithValue("slotId", "3")
+            .hasFieldOrPropertyWithValue("slotId", 1L)
             .hasFieldOrPropertyWithValue("state", "PENDING")
             .hasFieldOrPropertyWithValue("consumptionKWh", 50.0)
             .hasFieldOrPropertyWithValue("totalCost", 75.0)
