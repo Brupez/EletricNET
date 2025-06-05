@@ -84,14 +84,27 @@ public class ReservationService {
                                 LocalDateTime newStart = dto.getStartTime();
                                 LocalDateTime newEnd = newStart.plusMinutes(dto.getDurationMinutes());
 
-                                List<Reservation> existing = reservationRepository.findBySlot_IdAndStatus(dto.getSlotId(), ReservationStatus.ACTIVE);
-                                boolean overlaps = existing.stream().anyMatch(r -> {
+                                List<Reservation> slotReservations = reservationRepository.findBySlot_IdAndStatus(
+                                        dto.getSlotId(), ReservationStatus.ACTIVE
+                                );
+                                boolean overlapsWithSlot = slotReservations.stream().anyMatch(r -> {
                                         LocalDateTime existingStart = r.getStartTime();
                                         LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
                                         return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
                                 });
+                                if (overlapsWithSlot) {
+                                        return Optional.empty();
+                                }
 
-                                if (overlaps) {
+                                List<Reservation> userReservations = reservationRepository.findByUser_IdAndStatus(
+                                        dto.getUserId(), ReservationStatus.ACTIVE
+                                );
+                                boolean overlapsWithUser = userReservations.stream().anyMatch(r -> {
+                                        LocalDateTime existingStart = r.getStartTime();
+                                        LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
+                                        return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
+                                });
+                                if (overlapsWithUser) {
                                         return Optional.empty();
                                 }
 
@@ -110,6 +123,7 @@ public class ReservationService {
                                 reservation.setStartDate(dto.getStartTime().toLocalDate());
                                 reservation.setDurationMinutes(dto.getDurationMinutes());
                                 reservation.setConsumptionKWh(dto.getConsumptionKWh());
+
                                 double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
                                 reservation.setTotalCost(basePrice * (1 - discount));
                                 reservation.setPaid(false);

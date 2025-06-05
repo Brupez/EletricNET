@@ -65,7 +65,8 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
       return
     }
 
-    const startTimeObj = new Date(`${bookingData.date}T${bookingData.startTime}:00`);
+    const startTime = `${bookingData.date}T${bookingData.startTime}:00`;
+    const startTimeObj = new Date(startTime);
     const now = new Date();
     if (startTimeObj < now) {
       setErrorMessage("You cannot make a reservation for a past date/time.");
@@ -75,7 +76,6 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
     const slotId = parseInt(chargerDetails.id)
     const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace(/[^\d.]/g, ''))
     const durationMinutes = parseInt(bookingData.duration)
-    const startTime = startTimeObj.toISOString().slice(0, 19)
 
     const payload = {
       userId: parseInt(userId),
