@@ -224,4 +224,32 @@ class SlotServiceTest {
 
         assertThat(result).isEqualTo(1L);
     }
+
+    @Test
+    void convertToResponseDTO_WithCoordinates_ShouldMapAllFields() {
+        var responseDTO = slotService.convertToResponseDTO(slot);
+
+        assertThat(responseDTO.getId()).isEqualTo(slot.getId());
+        assertThat(responseDTO.getName()).isEqualTo(slot.getName());
+        assertThat(responseDTO.getStationName()).isEqualTo(slot.getStation().getName());
+        assertThat(responseDTO.isReserved()).isEqualTo(slot.isReserved());
+        assertThat(responseDTO.getChargingType()).isEqualTo(slot.getChargingType());
+        assertThat(responseDTO.getPower()).isEqualTo(slot.getPower());
+        assertThat(responseDTO.getLatitude()).isEqualTo(slot.getLatitude());
+        assertThat(responseDTO.getLongitude()).isEqualTo(slot.getLongitude());
+        assertThat(responseDTO.getLocation()).isEqualTo(slot.getLatitude() + ", " + slot.getLongitude());
+        assertThat(responseDTO.getPricePerKwh()).isEqualTo(slot.getChargingType().getPricePerKwh());
+    }
+
+    @Test
+    void convertToResponseDTO_WithoutCoordinates_ShouldSetLocationUnknown() {
+        slot.setLatitude(null);
+        slot.setLongitude(null);
+
+        var responseDTO = slotService.convertToResponseDTO(slot);
+
+        assertThat(responseDTO.getLatitude()).isNull();
+        assertThat(responseDTO.getLongitude()).isNull();
+        assertThat(responseDTO.getLocation()).isEqualTo("Unknown");
+    }
 }
