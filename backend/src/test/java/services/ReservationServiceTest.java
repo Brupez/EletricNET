@@ -154,6 +154,33 @@ class ReservationServiceTest {
     }
 
     @Test
+    void getReservationById_Success() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.of(reservation));
+
+        Optional<ReservationResponseDTO> result = reservationService.getReservationById(1L);
+
+        assertThat(result).isPresent();
+        ReservationResponseDTO dto = result.get();
+        assertThat(dto.getId()).isEqualTo(reservation.getId());
+        assertThat(dto.getUserId()).isEqualTo(user.getId());
+        assertThat(dto.getUserEmail()).isEqualTo(user.getEmail());
+        assertThat(dto.getSlotId()).isEqualTo(slot.getId());
+        assertThat(dto.getStationName()).isEqualTo(station.getName());
+        assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
+        assertThat(dto.getStartTime()).isEqualTo(reservation.getStartTime());
+        assertThat(dto.getDurationMinutes()).isEqualTo(reservation.getDurationMinutes());
+    }
+
+    @Test
+    void getReservationById_NotFound_ReturnEmpty() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Optional<ReservationResponseDTO> result = reservationService.getReservationById(1L);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void getReservationsByToken_Success() {
         when(jwtUtil.getUsername("token")).thenReturn("test@test.com");
         when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
@@ -226,10 +253,8 @@ class ReservationServiceTest {
 
     @Test
     void createReservation_ThrowsException_ReturnEmpty() {
-        // Create a SimpleMeterRegistry for testing
         MeterRegistry registry = new SimpleMeterRegistry();
 
-        // Create a new service instance with the test registry
         ReservationService testService = new ReservationService(
                 registry,
                 reservationRepository,
