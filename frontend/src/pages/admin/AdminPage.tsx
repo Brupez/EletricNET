@@ -27,8 +27,6 @@ ChartJS.register(
     ArcElement
 )
 
-const API_BASE = 'http://localhost:8081'
-
 interface Charger {
     id: string
     name: string
@@ -70,13 +68,15 @@ const AdminPage = () => {
     const [currentMonthRevenue, setCurrentMonthRevenue] = useState<number | null>(null);
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/slots/chargers`)
+        fetch(`/api/slots/chargers`, {
+            credentials: "include",
+        })
             .then(response => response.json())
             .then(slots => {
                 const chargers = slots.map((slot: any) => ({
                     id: slot.id,
-                    name: slot.name || `Slot ${slot.id}`,
-                    location: slot.station?.name || 'Unknown',
+                    name: slot.name ?? `Slot ${slot.id}`,
+                    location: slot.station?.name ?? 'Unknown',
                     status: slot.station?.status === 'UNAVAILABLE' ? 'Inactive' : 'Active',
                     type: slot.chargingType,
                     power: slot.power,
@@ -87,14 +87,16 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/users/total-users`)
+        fetch(`/api/users/total-users`, {
+            credentials: "include",
+        })
             .then(response => response.json())
             .then(data => setTotalUsers(data))
             .catch(error => console.error('Error fetching total users:', error));
     }, []);
 
     useEffect(() => {
-        fetch(`${API_BASE}/api/reservations/admin/stats`, {
+        fetch(`/api/reservations/admin/stats`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -107,7 +109,7 @@ const AdminPage = () => {
     const formatExternalToCharger = (place: Place): Charger => ({
         id: place.place_id,
         name: place.name,
-        location: place.vicinity || 'Unknown',
+        location: place.vicinity ?? 'Unknown',
         status: 'Active',
         type: 'EXTERNAL',
         power: '-',
@@ -205,8 +207,9 @@ const AdminPage = () => {
         setErrorMessage('')
 
         if (modalMode === 'delete' && selectedCharger) {
-            fetch(`${API_BASE}/api/slots/delete/${selectedCharger.id}`, {
-                method: 'DELETE'
+            fetch(`/api/slots/delete/${selectedCharger.id}`, {
+                method: 'DELETE',
+                credentials: "include"
             })
                 .then(response => {
                     if (!response.ok) {
@@ -238,8 +241,8 @@ const AdminPage = () => {
         };
 
         const url = updatedCharger.id
-            ? `${API_BASE}/api/slots/dto/${updatedCharger.id}`
-            : `${API_BASE}/api/slots/dto`;
+            ? `/api/slots/dto/${updatedCharger.id}`
+            : `/api/slots/dto`;
 
         const method = updatedCharger.id ? 'PUT' : 'POST';
 

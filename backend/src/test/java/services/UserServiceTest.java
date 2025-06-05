@@ -33,7 +33,6 @@ class UserServiceTest {
     void whenGetAllUsers_thenReturnListOfUsers() {
         log.info("Testing get all users");
 
-        // Given
         User user1 = new User();
         user1.setId(1L);
         user1.setEmail("user1@test.com");
@@ -52,11 +51,9 @@ class UserServiceTest {
         when(userRepository.findAll()).thenReturn(expectedUsers);
         log.debug("Mocked repository to return {} users", expectedUsers.size());
 
-        // When
         log.debug("Executing getAllUsers");
         List<User> actualUsers = userService.getAllUsers();
 
-        // Then
         assertThat(actualUsers)
             .hasSize(2)
             .usingRecursiveComparison()
@@ -70,16 +67,27 @@ class UserServiceTest {
     void whenGetAllUsers_andNoUsers_thenReturnEmptyList() {
         log.info("Testing getAllUsers with empty list");
 
-        // Given
         when(userRepository.findAll()).thenReturn(Collections.emptyList());
         log.debug("Mocked repository to return empty list");
 
-        // When
         List<User> actualUsers = userService.getAllUsers();
 
-        // Then
         assertThat(actualUsers).isEmpty();
         verify(userRepository).findAll();
         log.info("Successfully verified getAllUsers returns empty list");
+    }
+
+    @Test
+    void whenGetTotalUsers_andNoUsers_thenReturnZero() {
+        log.info("Testing getTotalUsers with no users");
+
+        when(userRepository.count()).thenReturn(0L);
+        log.debug("Mocked repository to return count of 0");
+
+        long totalUsers = userService.getTotalUsers();
+
+        assertThat(totalUsers).isZero();
+        verify(userRepository).count();
+        log.info("Successfully verified getTotalUsers returns zero when no users exist");
     }
 }

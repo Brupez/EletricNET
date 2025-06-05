@@ -10,6 +10,10 @@ interface LocationState {
   latitude: number
   longitude: number
   isExternal?: boolean
+  isOpen: boolean
+  rating?: number
+  businessStatus?: string
+  openingHoursText?: string[]
 }
 
 const ChargerDetails = () => {
@@ -29,11 +33,9 @@ const ChargerDetails = () => {
         location: markerData.location,
         type: 'Fast Charging Station',
         power: '150 kW',
-        status: 'Available',
-        pricePerKwh: '€0.25',
-        operatingHours: '24/7',
-        connectorType: 'CCS2',
-        lastMaintenance: '2024-02-15',
+        status: markerData?.businessStatus === 'OPERATIONAL' ? 'Available' : 'Unavailable',
+        pricePerKwh: '$0.25',
+        operatingHours: markerData?.openingHoursText?.join('\n'),
         coordinates: {
           lat: markerData.latitude,
           lng: markerData.longitude
@@ -43,7 +45,7 @@ const ChargerDetails = () => {
 
     const fetchInternalDetails = async () => {
       try {
-        const res = await fetch(`http://localhost:8081/api/slots/${id}`);
+        const res = await fetch(`/api/slots/${id}`);
         if (!res.ok) throw new Error('Failed to fetch slot data');
         const data = await res.json();
 
@@ -68,7 +70,7 @@ const ChargerDetails = () => {
           }
         });
 
-        const reservationsRes = await fetch(`http://localhost:8081/api/reservations/slot/${id}/active`, {
+        const reservationsRes = await fetch(`/api/reservations/slot/${id}/active`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('jwt')}`
           }

@@ -24,7 +24,7 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       const token = localStorage.getItem('jwt')
-      const res = await fetch(`http://localhost:8081/api/reservations/${id}`, {
+      const res = await fetch(`/api/reservations/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }

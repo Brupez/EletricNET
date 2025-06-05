@@ -1,6 +1,6 @@
 import { Calendar, Plus, History, Eye, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 interface ReservationResponseDTO {
     id: number
@@ -18,6 +18,7 @@ const itemsPerPage = 5
 
 const BookingPage = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const [bookings, setBookings] = useState<ReservationResponseDTO[]>([])
     const [cancelModalOpen, setCancelModalOpen] = useState(false)
     const [cancelId, setCancelId] = useState<number | null>(null)
@@ -46,7 +47,7 @@ const BookingPage = () => {
     const confirmCancel = async () => {
         if (!cancelId) return
         const token = localStorage.getItem('jwt')
-        const res = await fetch(`http://localhost:8081/api/reservations/${cancelId}/cancel`, {
+        const res = await fetch(`/api/reservations/${cancelId}/cancel`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -68,7 +69,7 @@ const BookingPage = () => {
             return
         }
 
-        const res = await fetch('http://localhost:8081/api/reservations/myReservations', {
+        const res = await fetch('/api/reservations/myReservations', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -83,6 +84,10 @@ const BookingPage = () => {
 
     useEffect(() => {
         fetchBookings()
+
+        if (location.state?.newBooking) {
+            setBookings(prev => [location.state.newBooking, ...prev])
+        }
     }, [navigate])
 
     const handleAddBooking = () => {

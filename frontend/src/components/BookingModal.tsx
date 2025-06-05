@@ -71,19 +71,17 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
     const durationMinutes = parseInt(bookingData.duration)
     const startTime = new Date(`${bookingData.date}T${bookingData.startTime}:00`).toISOString().slice(0, 19)
 
-    const payload = {
-      userId: parseInt(userId),
-      slotId,
-      pricePerKWh,
-      consumptionKWh: 15.0,
-      startTime,
-      durationMinutes
-    }
-
-    console.log('Payload:', payload)
+        const payload = {
+            userId: parseInt(userId),
+            slotId,
+            pricePerKWh,
+            consumptionKWh: 15.0,
+            startTime,
+            durationMinutes,
+        }
 
     try {
-      const res = await fetch('http://localhost:8081/api/reservations/create', {
+      const res = await fetch('/api/reservations/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

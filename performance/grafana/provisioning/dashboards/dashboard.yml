@@ -1,0 +1,13 @@
+#  tells Grafana to look for dashboard definition files within the /etc/grafana/provisioning/dashboards path (which will be mounted from ./grafana/provisioning/dashboards directory)
+
+apiVersion: 1
+
+providers:
+  - name: 'Default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
