@@ -24,6 +24,8 @@ interface MapInstance {
     customMarker: google.maps.Symbol;
 }
 
+const BASEURL = "http://localhost:8081";
+
 const MapPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -50,8 +52,24 @@ const MapPage = () => {
         scale: 10,
     });
 
-    const handleChargerClick = (id: string, isExternal = true) => {
-        navigate(`/charger/${id}`, { state: { isExternal } });
+    const handleChargerClick = (
+        id: string,
+        isExternal = true,
+        place?: Place
+    ) => {
+        navigate(`/charger/${id}`, {
+            state: {
+                isExternal,
+                name: place?.name,
+                location: place?.vicinity || "",
+                latitude: place?.geometry.location.lat(),
+                longitude: place?.geometry.location.lng(),
+                isOpen: place?.isOpen ?? false,
+                rating: place?.rating,
+                businessStatus: place?.businessStatus,
+                openingHoursText: place?.openingHoursText,
+            },
+        });
     };
 
     const handleSearch = () => {
@@ -87,7 +105,7 @@ const MapPage = () => {
         });
 
         marker.addListener("click", () => {
-            handleChargerClick(place.place_id);
+            handleChargerClick(place.place_id, true, place);
         });
     };
 
@@ -204,7 +222,7 @@ const MapPage = () => {
     const loadInternalSlots = async () => {
         if (!mapInstance || !location) return;
         try {
-            const response = await fetch("http://localhost:8081/api/slots");
+            const response = await fetch(`${BASEURL}:8081/api/slots`);
             const slots = await response.json();
 
             const { google } = window as typeof window & { google: any };
@@ -323,8 +341,8 @@ const MapPage = () => {
                                 {place.businessStatus && (
                                     <p
                                         className={`text-sm ${place.businessStatus === "OPERATIONAL"
-                                                ? "text-green-600"
-                                                : "text-red-600"
+                                            ? "text-green-600"
+                                            : "text-red-600"
                                             }`}
                                     >
                                         {place.businessStatus === "OPERATIONAL" ? "Open Now" : "Closed"}
