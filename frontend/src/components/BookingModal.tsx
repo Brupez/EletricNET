@@ -59,28 +59,32 @@ const BookingModal = ({ isOpen, onClose, chargerDetails }: BookingModalProps) =>
       return
     }
 
-    console.log('localStorage JWT:', localStorage.getItem('jwt'));
-    console.log('localStorage userId:', localStorage.getItem('userId'));
-
     const decoded = parseJwt(token)
     if (!decoded || !decoded.sub) {
       alert('Invalid token!')
       return
     }
 
+    const startTimeObj = new Date(`${bookingData.date}T${bookingData.startTime}:00`);
+    const now = new Date();
+    if (startTimeObj < now) {
+      setErrorMessage("You cannot make a reservation for a past date/time.");
+      return;
+    }
+
     const slotId = parseInt(chargerDetails.id)
     const pricePerKWh = parseFloat(chargerDetails.pricePerKwh.replace(/[^\d.]/g, ''))
     const durationMinutes = parseInt(bookingData.duration)
-    const startTime = new Date(`${bookingData.date}T${bookingData.startTime}:00`).toISOString().slice(0, 19)
+    const startTime = startTimeObj.toISOString().slice(0, 19)
 
-        const payload = {
-            userId: parseInt(userId),
-            slotId,
-            pricePerKWh,
-            consumptionKWh: 15.0,
-            startTime,
-            durationMinutes,
-        }
+    const payload = {
+      userId: parseInt(userId),
+      slotId,
+      pricePerKWh,
+      consumptionKWh: 15.0,
+      startTime,
+      durationMinutes,
+    }
 
     try {
       const res = await fetch(`${BASEURL}/api/reservations/create`, {

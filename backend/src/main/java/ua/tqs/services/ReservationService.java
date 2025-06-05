@@ -74,16 +74,27 @@ public class ReservationService {
                                         return Optional.empty();
                                 }
 
-                                if (slotRepository.existsByIdAndReservedTrue(dto.getSlotId())) {
-                                        return Optional.empty();
-                                }
-
                                 Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
                                 if (slotOpt.isEmpty()) {
                                         return Optional.empty();
                                 }
 
                                 Slot slot = slotOpt.get();
+
+                                LocalDateTime newStart = dto.getStartTime();
+                                LocalDateTime newEnd = newStart.plusMinutes(dto.getDurationMinutes());
+
+                                List<Reservation> existing = reservationRepository.findBySlot_IdAndStatus(dto.getSlotId(), ReservationStatus.ACTIVE);
+                                boolean overlaps = existing.stream().anyMatch(r -> {
+                                        LocalDateTime existingStart = r.getStartTime();
+                                        LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
+                                        return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
+                                });
+
+                                if (overlaps) {
+                                        return Optional.empty();
+                                }
+
                                 slot.setReserved(true);
                                 slotRepository.save(slot);
 
