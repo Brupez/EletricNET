@@ -1,10 +1,10 @@
 package ua.tqs.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ua.tqs.dto.SlotDTO;
-import ua.tqs.dto.SlotResponseDTO;
 import ua.tqs.models.Slot;
 import ua.tqs.services.SlotService;
 
@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+
 @CrossOrigin(origins = "http://deti-tqs-05.ua.pt", allowCredentials = "true")
 @RestController
-@RequestMapping("/api/slots")
+@RequestMapping(value = "/api/slots", produces = MediaType.APPLICATION_JSON_VALUE)
 public class SlotController {
 
     private final SlotService slotService;
@@ -37,10 +38,12 @@ public class SlotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SlotResponseDTO> getSlotById(@PathVariable Long id) {
+    public ResponseEntity<Slot> getSlotById(@PathVariable Long id) {
         return slotService.getSlotById(id)
-                .map(slot -> ResponseEntity.ok(slotService.convertToResponseDTO(slot)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(slot -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(slot))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/dto")

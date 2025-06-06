@@ -54,3 +54,8 @@ Backlog, Related repositories (if applicable), API documentation, static analysi
 #### API Documentation
 - **Swagger UI**:  
   [http://deti-tqs-05.ua.pt:8081/swagger-ui/index.html](http://deti-tqs-05.ua.pt:8081/swagger-ui/index.html)
+
+
+### Enhancements after project presentation
+ - Tests improved
+ - k6 integration for performance testing

@@ -123,11 +123,14 @@ class ReservationServiceTest {
         slot.setReserved(true);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
+        when(slotRepository.existsByIdAndReservedTrue(1L)).thenReturn(true);
+
 
         Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
 
         assertThat(result).isEmpty();
         verify(slotRepository, never()).save(any());
+        verify(reservationRepository, never()).save(any());
     }
 
     @Test
@@ -165,7 +168,7 @@ class ReservationServiceTest {
         assertThat(dto.getUserId()).isEqualTo(user.getId());
         assertThat(dto.getUserEmail()).isEqualTo(user.getEmail());
         assertThat(dto.getSlotId()).isEqualTo(slot.getId());
-        assertThat(dto.getSlotLabel()).isEqualTo(station.getName());
+        assertThat(dto.getStationLocation()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
         assertThat(dto.getStartTime()).isEqualTo(reservation.getStartTime());
         assertThat(dto.getDurationMinutes()).isEqualTo(reservation.getDurationMinutes());
@@ -223,14 +226,13 @@ class ReservationServiceTest {
         assertThat(dto.getId()).isEqualTo(reservation.getId());
         assertThat(dto.getUserId()).isEqualTo(user.getId());
         assertThat(dto.getSlotId()).isEqualTo(slot.getId());
-        assertThat(dto.getSlotLabel()).isEqualTo(station.getName());
+        assertThat(dto.getStationLocation()).isEqualTo(station.getName());
         assertThat(dto.getChargingType()).isEqualTo(slot.getChargingType().name());
     }
 
     @Test
     void createReservation_UserNotFound_ReturnEmpty() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        when(slotRepository.findById(1L)).thenReturn(Optional.of(slot));
 
         Optional<ReservationResponseDTO> result = reservationService.createReservation(requestDTO);
 
@@ -270,6 +272,7 @@ class ReservationServiceTest {
         Optional<ReservationResponseDTO> result = testService.createReservation(requestDTO);
 
         assertThat(result).isEmpty();
+        verify(slotRepository).save(any());
         assertThat(registry.counter("reservations.errors").count()).isEqualTo(1.0);
     }
 }
