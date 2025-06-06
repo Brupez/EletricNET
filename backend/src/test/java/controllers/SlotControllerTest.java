@@ -1,5 +1,6 @@
 package controllers;
 
+import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,10 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.restassured.config.DecoderConfig;
+import io.restassured.config.EncoderConfig;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 @ExtendWith(MockitoExtension.class)
 class SlotControllerTest {
 
@@ -38,8 +43,17 @@ class SlotControllerTest {
         SlotController slotController = new SlotController(slotService);
         MockMvc mockMvc = MockMvcBuilders
                 .standaloneSetup(slotController)
+                .defaultRequest(get("/")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .build();
         RestAssuredMockMvc.mockMvc(mockMvc);
+
+        RestAssuredMockMvc.config()
+                .encoderConfig(EncoderConfig.encoderConfig()
+                        .defaultContentCharset("UTF-8"))
+                .decoderConfig(DecoderConfig.decoderConfig()
+                        .defaultContentCharset("UTF-8"));
 
         Station station = new Station();
         station.setId(1L);
@@ -98,12 +112,14 @@ class SlotControllerTest {
         when(slotService.getSlotById(1L)).thenReturn(Optional.of(testSlot));
 
         given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
         .when()
             .get("/api/slots/1")
         .then()
-            .statusCode(200)
-            .body("name", equalTo("Test Slot"));
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .statusCode(200)
+                .body("name", equalTo("Test Slot"));
     }
 
     @Test
@@ -164,7 +180,7 @@ class SlotControllerTest {
         when(slotService.deleteSlot(1L)).thenReturn(true);
 
         given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(ContentType.JSON)
         .when()
             .delete("/api/slots/delete/1")
         .then()

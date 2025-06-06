@@ -20,6 +20,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {
+    private static final String BEARER_PREFIX = "Bearer ";
 
     private final ReservationService reservationService;
     private final UserRepository userRepository;
@@ -43,7 +44,7 @@ public class ReservationController {
             @RequestHeader("Authorization") String authHeader,
             @RequestBody ReservationRequestDTO dto) {
         try {
-            String token = authHeader.replace("Bearer ", "");
+            String token = authHeader.replace(BEARER_PREFIX, "");
             String userEmail = jwtUtil.getUsername(token);
             Optional<User> user = userRepository.findByEmail(userEmail);
 
@@ -79,7 +80,7 @@ public class ReservationController {
 
     @GetMapping("/myReservations")
     public ResponseEntity<List<ReservationResponseDTO>> getMyReservations(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
+        String token = authHeader.replace(BEARER_PREFIX, "");
         List<ReservationResponseDTO> reservations = reservationService.getReservationsByToken(token);
         return ResponseEntity.ok(reservations);
     }
@@ -108,8 +109,8 @@ public class ReservationController {
     }
 
     @GetMapping("/myStats")
-    public ResponseEntity<?> getMyStats(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
+    public ResponseEntity<Object> getMyStats(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace(BEARER_PREFIX, "");
         var stats = reservationService.getClientStats(token);
 
         if (stats == null) {

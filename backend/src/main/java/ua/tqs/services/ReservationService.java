@@ -31,7 +31,6 @@ public class ReservationService {
         private final SlotRepository slotRepository;
         private final UserRepository userRepository;
         private final JwtUtil jwtUtil;
-        private final Counter totalReservations;
         private final Counter activeReservations;
         private final Counter canceledReservations;
         private final Timer reservationCreationTimer;
@@ -48,10 +47,6 @@ public class ReservationService {
                 this.userRepository = userRepository;
                 this.jwtUtil = jwtUtil;
 
-                // Initialize grafana metrics
-                this.totalReservations = Counter.builder("reservations.total")
-                                .description("Total number of reservations")
-                                .register(meterRegistry);
 
                 this.activeReservations = Counter.builder("reservations.active")
                                 .description("Number of active reservations")
@@ -66,45 +61,71 @@ public class ReservationService {
                                 .register(meterRegistry);
         }
 
+        private Optional<ReservationResponseDTO> validateAndGetEntities(ReservationRequestDTO dto) {
+                Optional<User> userOpt = userRepository.findById(dto.getUserId());
+                if (userOpt.isEmpty()) {
+                        return Optional.empty();
+                }
+
+                Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
+                if (slotOpt.isEmpty() || slotRepository.existsByIdAndReservedTrue(dto.getSlotId())) {
+                        return Optional.empty();
+                }
+
+                return Optional.of(new ReservationResponseDTO());
+        }
+
+        private boolean checkTimeOverlap(List<Reservation> reservations, LocalDateTime newStart, LocalDateTime newEnd) {
+                return reservations.stream().anyMatch(r -> {
+                        LocalDateTime existingStart = r.getStartTime();
+                        LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
+                        return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
+                });
+        }
+
+        private ReservationResponseDTO createResponseDTO(Reservation saved, Slot slot) {
+                ReservationResponseDTO response = new ReservationResponseDTO();
+                response.setId(saved.getId());
+                response.setUserId(saved.getUser().getId());
+                response.setSlotId(saved.getSlot().getId());
+                response.setState(saved.getStatus().name());
+                response.setConsumptionKWh(saved.getConsumptionKWh());
+                response.setTotalCost(saved.getTotalCost());
+                response.setPaid(saved.isPaid());
+                response.setStartTime(saved.getStartTime());
+                response.setDurationMinutes(saved.getDurationMinutes());
+                response.setStationLocation(slot.getStation().getName());
+                response.setSlotLabel(slot.getName());
+                response.setChargingType(slot.getChargingType().name());
+                response.setCreatedAt(saved.getCreationDate());
+                return response;
+        }
+
         public Optional<ReservationResponseDTO> createReservation(ReservationRequestDTO dto) {
                 return reservationCreationTimer.record(() -> {
                         try {
-                                Optional<User> userOpt = userRepository.findById(dto.getUserId());
-                                if (userOpt.isEmpty()) {
+                                if (validateAndGetEntities(dto).isEmpty()) {
                                         return Optional.empty();
                                 }
 
                                 Optional<Slot> slotOpt = slotRepository.findById(dto.getSlotId());
-                                if (slotOpt.isEmpty()) {
-                                        return Optional.empty();
-                                }
-
                                 Slot slot = slotOpt.get();
+                                Optional<User> userOpt = userRepository.findById(dto.getUserId());
 
                                 LocalDateTime newStart = dto.getStartTime();
                                 LocalDateTime newEnd = newStart.plusMinutes(dto.getDurationMinutes());
 
+                                // Check slot availability
                                 List<Reservation> slotReservations = reservationRepository.findBySlot_IdAndStatus(
-                                        dto.getSlotId(), ReservationStatus.ACTIVE
-                                );
-                                boolean overlapsWithSlot = slotReservations.stream().anyMatch(r -> {
-                                        LocalDateTime existingStart = r.getStartTime();
-                                        LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
-                                        return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
-                                });
-                                if (overlapsWithSlot) {
+                                        dto.getSlotId(), ReservationStatus.ACTIVE);
+                                if (checkTimeOverlap(slotReservations, newStart, newEnd)) {
                                         return Optional.empty();
                                 }
 
+                                // Check user availability
                                 List<Reservation> userReservations = reservationRepository.findByUser_IdAndStatus(
-                                        dto.getUserId(), ReservationStatus.ACTIVE
-                                );
-                                boolean overlapsWithUser = userReservations.stream().anyMatch(r -> {
-                                        LocalDateTime existingStart = r.getStartTime();
-                                        LocalDateTime existingEnd = existingStart.plusMinutes(r.getDurationMinutes());
-                                        return !(existingEnd.isBefore(newStart) || existingStart.isAfter(newEnd));
-                                });
-                                if (overlapsWithUser) {
+                                        dto.getUserId(), ReservationStatus.ACTIVE);
+                                if (checkTimeOverlap(userReservations, newStart, newEnd)) {
                                         return Optional.empty();
                                 }
 
@@ -113,6 +134,7 @@ public class ReservationService {
 
                                 Station station = slot.getStation();
                                 double discount = station.isDiscountActive() ? station.getDiscountValue() : 0.0;
+                                double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
 
                                 Reservation reservation = new Reservation();
                                 reservation.setUser(userOpt.get());
@@ -123,30 +145,13 @@ public class ReservationService {
                                 reservation.setStartDate(dto.getStartTime().toLocalDate());
                                 reservation.setDurationMinutes(dto.getDurationMinutes());
                                 reservation.setConsumptionKWh(dto.getConsumptionKWh());
-
-                                double basePrice = dto.getPricePerKWh() * dto.getConsumptionKWh();
                                 reservation.setTotalCost(basePrice * (1 - discount));
                                 reservation.setPaid(false);
 
                                 Reservation saved = reservationRepository.save(reservation);
-
-                                ReservationResponseDTO response = new ReservationResponseDTO();
-                                response.setId(saved.getId());
-                                response.setUserId(saved.getUser().getId());
-                                response.setSlotId(saved.getSlot().getId());
-                                response.setState(saved.getStatus().name());
-                                response.setConsumptionKWh(saved.getConsumptionKWh());
-                                response.setTotalCost(saved.getTotalCost());
-                                response.setPaid(saved.isPaid());
-                                response.setStartTime(saved.getStartTime());
-                                response.setDurationMinutes(saved.getDurationMinutes());
-                                response.setStationLocation(slot.getStation().getName());
-                                response.setSlotLabel(slot.getName());
-                                response.setChargingType(slot.getChargingType().name());
-                                response.setCreatedAt(saved.getCreationDate());
-
-                                return Optional.of(response);
+                                return Optional.of(createResponseDTO(saved, slot));
                         } catch (Exception e) {
+                                meterRegistry.counter("reservations.errors").increment();
                                 return Optional.empty();
                         }
                 });
@@ -200,7 +205,7 @@ public class ReservationService {
                         dto.setDurationMinutes(reservation.getDurationMinutes());
 
                         return dto;
-                }).collect(Collectors.toList());
+                }).toList();
         }
 
         public double getTotalRevenue() {
@@ -227,7 +232,7 @@ public class ReservationService {
                         dto.setCreatedAt(reservation.getCreationDate());
                         dto.setStartTime(reservation.getStartTime());
                         return dto;
-                }).collect(Collectors.toList());
+                }).toList();
         }
 
         public Optional<ReservationResponseDTO> getReservationById(Long id) {
@@ -338,23 +343,6 @@ public class ReservationService {
                                 .map(e -> new ClientStatsDTO.WeeklyConsumption(e.getKey(), e.getValue()))
                                 .sorted(Comparator.comparing(ClientStatsDTO.WeeklyConsumption::getWeekStart))
                                 .toList();
-
-                // Para retornar dados mensais
-                /*
-                 * Map<String, Double> kWhPerMonth = reservations.stream()
-                 * .filter(r -> r.getStartTime() != null && r.getConsumptionKWh() != null)
-                 * .collect(Collectors.groupingBy(
-                 * r -> r.getStartTime().getMonth().toString().substring(0, 3) + "/" +
-                 * r.getStartTime().getYear(),
-                 * Collectors.summingDouble(Reservation::getConsumptionKWh)
-                 * ));
-                 * 
-                 * List<ClientStatsDTO.MonthlyConsumption> monthly =
-                 * kWhPerMonth.entrySet().stream()
-                 * .map(e -> new ClientStatsDTO.MonthlyConsumption(e.getKey(), e.getValue()))
-                 * .sorted(Comparator.comparing(ClientStatsDTO.MonthlyConsumption::getMonth))
-                 * .toList();
-                 */
 
                 Map<String, Long> chargingTypeCounts = reservations.stream()
                                 .filter(r -> r.getSlot() != null)
