@@ -26,7 +26,7 @@ interface ReservationResponseDTO {
   userEmail: string;
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 const AdminReservationsPage = () => {
   const [sortField, setSortField] = useState<SortField>(null);
@@ -42,7 +42,7 @@ const AdminReservationsPage = () => {
     useState<ReservationResponseDTO | null>(null);
 
   useEffect(() => {
-    fetch(`${BASEURL}/api/reservations/all`, {
+    fetch(`/api/reservations/all`, {
       credentials: "include",
     })
       .then((res) => res.json())

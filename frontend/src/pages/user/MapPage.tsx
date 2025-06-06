@@ -24,7 +24,7 @@ interface MapInstance {
     customMarker: google.maps.Symbol;
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 const MapPage = () => {
     const navigate = useNavigate();
@@ -224,7 +224,7 @@ const MapPage = () => {
     const loadInternalSlots = async () => {
         if (!mapInstance || !location) return;
         try {
-            const response = await fetch(`${BASEURL}/api/slots`);
+            const response = await fetch(`/api/slots`);
             const slots = await response.json();
 
             const { google } = window as typeof window & { google: any };

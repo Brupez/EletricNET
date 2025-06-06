@@ -48,7 +48,7 @@ interface Place extends PlaceResult {
     vicinity?: string;
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const AdminPage = () => {
     const [chargers, setChargers] = useState<Charger[]>([])
@@ -72,7 +72,7 @@ const AdminPage = () => {
     const [loadingRevenue, setLoadingRevenue] = useState(true);
 
     useEffect(() => {
-        fetch(`${BASEURL}/api/slots/chargers`, {
+        fetch(`/api/slots/chargers`, {
             credentials: "include",
         })
             .then(response => response.json())
@@ -91,7 +91,7 @@ const AdminPage = () => {
     }, [])
 
     useEffect(() => {
-        fetch(`${BASEURL}/api/users/total-users`, {
+        fetch(`/api/users/total-users`, {
             credentials: "include",
         })
             .then(response => response.json())
@@ -100,7 +100,7 @@ const AdminPage = () => {
     }, []);
 
     useEffect(() => {
-        fetch(`${BASEURL}/api/reservations/admin/stats`, {
+        fetch(`/api/reservations/admin/stats`, {
             credentials: "include",
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -112,7 +112,7 @@ const AdminPage = () => {
     }, []);
 
     useEffect(() => {
-        fetch(`${BASEURL}/api/reservations/admin/stats`, {
+        fetch(`/api/reservations/admin/stats`, {
             credentials: "include",
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -225,7 +225,7 @@ const AdminPage = () => {
         setErrorMessage('')
 
         if (modalMode === 'delete' && selectedCharger) {
-            fetch(`${BASEURL}/api/slots/delete/${selectedCharger.id}`, {
+            fetch(`/api/slots/delete/${selectedCharger.id}`, {
                 method: 'DELETE',
                 credentials: "include"
             })
@@ -259,8 +259,8 @@ const AdminPage = () => {
         };
 
         const url = updatedCharger.id
-            ? `${BASEURL}/api/slots/dto/${updatedCharger.id}`
-            : `${BASEURL}/api/slots/dto`;
+            ? `/api/slots/dto/${updatedCharger.id}`
+            : `/api/slots/dto`;
 
         const method = updatedCharger.id ? 'PUT' : 'POST';
 

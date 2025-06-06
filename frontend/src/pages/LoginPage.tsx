@@ -8,7 +8,7 @@ interface LoginPageProps {
     onLogin: (email: string, password: string) => Promise<string | null>
 }
 
-const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+// const BASEURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
 
 const LoginPage = ({ onLogin }: LoginPageProps) => {
     const navigate = useNavigate()
@@ -35,7 +35,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
             }
 
             try {
-                const response = await fetch(`${BASEURL}/api/auth/register`, {
+                const response = await fetch(`/api/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
