@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ua.tqs.dto.ClientStatsDTO;
 import ua.tqs.dto.ReservationRequestDTO;
 import ua.tqs.dto.ReservationResponseDTO;
 import ua.tqs.enums.ChargingType;
@@ -22,6 +23,7 @@ import ua.tqs.repositories.UserRepository;
 import ua.tqs.services.ReservationService;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,6 +72,7 @@ class ReservationServiceTest {
         user = new User();
         user.setId(1L);
         user.setEmail("test@test.com");
+        user.setName("Test User");
 
         station = new Station();
         station.setId(1L);
@@ -78,6 +81,7 @@ class ReservationServiceTest {
 
         slot = new Slot();
         slot.setId(1L);
+        slot.setName("Slot-1");
         slot.setStation(station);
         slot.setChargingType(ChargingType.FAST);
         slot.setReserved(false);
@@ -274,5 +278,131 @@ class ReservationServiceTest {
         assertThat(result).isEmpty();
         verify(slotRepository).save(any());
         assertThat(registry.counter("reservations.errors").count()).isEqualTo(1.0);
+    }
+
+    @Test
+    void getActiveReservationsBySlotId_ReturnsOnlyFutureAndCurrentReservations() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime future = now.plusHours(1);
+
+        Reservation futureReservation = new Reservation();
+        futureReservation.setId(1L);
+        futureReservation.setStartTime(future);
+        futureReservation.setDurationMinutes(60);
+        futureReservation.setUser(user);
+        futureReservation.setSlot(slot);
+
+        when(reservationRepository.findBySlot_IdAndStatus(1L, ReservationStatus.ACTIVE))
+                .thenReturn(List.of(futureReservation));
+
+        List<ReservationResponseDTO> result = reservationService.getActiveReservationsBySlotId(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+        assertThat(result.get(0).getStartTime()).isEqualTo(future);
+    }
+
+    @Test
+    void getClientStats_ValidToken_ReturnsStats() {
+        String token = "valid-token";
+        when(jwtUtil.getUsername(token)).thenReturn("test@test.com");
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
+
+        LocalDateTime now = LocalDateTime.now();
+        reservation.setStartTime(now);
+        reservation.setDurationMinutes(60);
+        reservation.setConsumptionKWh(10.0);
+        reservation.setTotalCost(45.0);
+        reservation.setStatus(ReservationStatus.ACTIVE);
+
+        when(reservationRepository.findByUser(user)).thenReturn(List.of(reservation));
+
+        ClientStatsDTO result = reservationService.getClientStats(token);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalEnergy()).isEqualTo(10.0);
+        assertThat(result.getTotalCost()).isEqualTo(45.0);
+        assertThat(result.getReservationCount()).isEqualTo(1);
+        assertThat(result.getAverageDuration()).isEqualTo(60.0);
+        assertThat(result.getMostUsedStation()).isEqualTo("Test Station");
+    }
+
+    @Test
+    void getClientStats_InvalidToken_ReturnsNull() {
+        String token = "invalid-token";
+        when(jwtUtil.getUsername(token)).thenReturn("test@test.com");
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.empty());
+
+        ClientStatsDTO result = reservationService.getClientStats(token);
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void getCurrentMonthRevenue_ReturnsCorrectSum() {
+        LocalDateTime now = LocalDateTime.now();
+
+        Reservation currentMonthReservation = new Reservation();
+        currentMonthReservation.setStartTime(now);
+        currentMonthReservation.setTotalCost(45.0);
+
+        Reservation lastMonthReservation = new Reservation();
+        lastMonthReservation.setStartTime(now.minusMonths(1));
+        lastMonthReservation.setTotalCost(30.0);
+
+        when(reservationRepository.findAll())
+                .thenReturn(List.of(currentMonthReservation, lastMonthReservation));
+
+        double result = reservationService.getCurrentMonthRevenue();
+
+        assertThat(result).isEqualTo(45.0);
+    }
+
+    @Test
+    void getActiveReservationsBySlotId_NoActiveReservations_ReturnsEmptyList() {
+        when(reservationRepository.findBySlot_IdAndStatus(1L, ReservationStatus.ACTIVE))
+                .thenReturn(Collections.emptyList());
+
+        List<ReservationResponseDTO> result = reservationService.getActiveReservationsBySlotId(1L);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getClientStats_WithMultipleReservations_CalculatesCorrectStats() {
+        String token = "valid-token";
+        when(jwtUtil.getUsername(token)).thenReturn("test@test.com");
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Reservation reservation1 = createReservation(1L, now, 60, 10.0, 45.0);
+        Reservation reservation2 = createReservation(2L, now.plusDays(1), 30, 5.0, 25.0);
+
+        when(reservationRepository.findByUser(user))
+                .thenReturn(List.of(reservation1, reservation2));
+
+        ClientStatsDTO result = reservationService.getClientStats(token);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotalEnergy()).isEqualTo(15.0);
+        assertThat(result.getTotalCost()).isEqualTo(70.0);
+        assertThat(result.getReservationCount()).isEqualTo(2);
+        assertThat(result.getAverageDuration()).isEqualTo(45.0);
+    }
+
+    private Reservation createReservation(Long id, LocalDateTime startTime,
+            int durationMinutes, double consumptionKWh, double totalCost) {
+        Reservation reservation1 = new Reservation();
+        reservation1.setId(id);
+        reservation1.setStartTime(startTime);
+        reservation1.setDurationMinutes(durationMinutes);
+        reservation1.setConsumptionKWh(consumptionKWh);
+        reservation1.setTotalCost(totalCost);
+        reservation1.setUser(user);
+        reservation1.setSlot(slot);
+        reservation1.setStatus(ReservationStatus.ACTIVE);
+        reservation1.setCreationDate(LocalDateTime.now());
+        return reservation1;
     }
 }
