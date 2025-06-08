@@ -16,6 +16,7 @@ import ua.tqs.login.JwtUtil;
 import ua.tqs.models.User;
 import ua.tqs.repositories.UserRepository;
 import ua.tqs.services.ReservationService;
+import ua.tqs.dto.ClientStatsDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -183,5 +184,94 @@ class ReservationControllerTest {
         .then()
             .statusCode(200)
             .body("totalRevenue", equalTo(100.0f));
+    }
+
+    @Test
+    void getReservationById_whenExists_shouldReturn200() {
+        when(reservationService.getReservationById(1L))
+            .thenReturn(Optional.of(testReservationResponse));
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+            .get("/api/reservations/1")
+        .then()
+            .statusCode(200)
+            .body("id", equalTo(1))
+            .body("state", equalTo("ACTIVE"))
+            .body("slotLabel", equalTo("Test Station"))
+            .body("chargingType", equalTo("FAST"));
+    }
+
+    @Test
+    void getReservationById_whenNotExists_shouldReturn404() {
+        when(reservationService.getReservationById(999L))
+            .thenReturn(Optional.empty());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+            .get("/api/reservations/999")
+        .then()
+            .statusCode(404);
+    }
+
+    @Test
+    void getActiveReservationsBySlot_shouldReturn200() {
+        when(reservationService.getActiveReservationsBySlotId(1L))
+            .thenReturn(List.of(testReservationResponse));
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+            .get("/api/reservations/slot/1/active")
+        .then()
+            .statusCode(200)
+            .body("$", hasSize(1))
+            .body("[0].id", equalTo(1))
+            .body("[0].state", equalTo("ACTIVE"));
+    }
+
+    @Test
+    void getMyStats_whenValidToken_shouldReturn200() {
+        when(reservationService.getClientStats("valid.jwt.token"))
+            .thenReturn(new ClientStatsDTO());
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .header("Authorization", VALID_TOKEN)
+        .when()
+            .get("/api/reservations/myStats")
+        .then()
+            .statusCode(200);
+    }
+
+    @Test
+    void getMyStats_whenInvalidToken_shouldReturn401() {
+        when(reservationService.getClientStats("valid.jwt.token"))
+            .thenReturn(null);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .header("Authorization", VALID_TOKEN)
+        .when()
+            .get("/api/reservations/myStats")
+        .then()
+            .statusCode(401)
+            .body(equalTo("Unauthorized"));
+    }
+
+    @Test
+    void getAdminStats_shouldReturn200() {
+        when(reservationService.getCurrentMonthRevenue())
+            .thenReturn(150.0);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+            .get("/api/reservations/admin/stats")
+        .then()
+            .statusCode(200)
+            .body("currentMonthRevenue", equalTo(150.0f));
     }
 }
